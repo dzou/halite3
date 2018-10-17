@@ -1,9 +1,11 @@
 // This Java API uses camelCase instead of the snake_case as documented in the API docs.
 //   Otherwise the names of methods are consistent.
 
+import com.google.common.collect.ImmutableList;
 import hlt.*;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 public class MyBot {
@@ -22,6 +24,8 @@ public class MyBot {
     // As soon as you call "ready" function below, the 2 second per turn timer will start.
     game.ready("MyJavaBot");
 
+    List<String> someWords = ImmutableList.of("Hello", "World");
+    Log.log(String.join(" ", someWords));
     Log.log("Successfully created bot! My Player ID is " + game.myId + ". Bot rng seed is " + rngSeed + ".");
 
     for (;;) {

@@ -13,4 +13,12 @@
       <useDefaultExcludes>true</useDefaultExcludes>
     </fileSet>
   </fileSets>
+  <dependencySets>
+    <dependencySet>
+      <outputDirectory></outputDirectory>
+      <includes>
+        <include>com.google.guava:*</include>
+      </includes>
+    </dependencySet>
+  </dependencySets>
 </assembly>

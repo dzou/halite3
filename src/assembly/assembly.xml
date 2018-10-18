@@ -8,17 +8,11 @@
   <includeBaseDirectory>false</includeBaseDirectory>
   <fileSets>
     <fileSet>
-      <directory>${project.basedir}/src/main/java</directory>
-      <outputDirectory></outputDirectory>
-      <useDefaultExcludes>true</useDefaultExcludes>
+      <directory>target</directory>
+      <includes>
+        <include>MyBot.jar</include>
+      </includes>
+      <outputDirectory>/</outputDirectory>
     </fileSet>
   </fileSets>
-  <dependencySets>
-    <dependencySet>
-      <outputDirectory></outputDirectory>
-      <includes>
-        <include>com.google.guava:*</include>
-      </includes>
-    </dependencySet>
-  </dependencySets>
 </assembly>

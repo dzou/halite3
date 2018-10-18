@@ -1,5 +1,4 @@
-// This Java API uses camelCase instead of the snake_case as documented in the API docs.
-//   Otherwise the names of methods are consistent.
+package bot;
 
 import com.google.common.collect.ImmutableList;
 import hlt.*;
@@ -8,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+// This Java API uses camelCase instead of the snake_case as documented in the API docs.
+//   Otherwise the names of methods are consistent.
 public class MyBot {
   public static void main(final String[] args) {
     final long rngSeed;

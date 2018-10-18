@@ -11,3 +11,4 @@ __pycache__/
 *.iws
 .idea/
 target/
+dependency-reduced-pom.xml

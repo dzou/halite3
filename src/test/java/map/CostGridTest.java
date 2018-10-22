@@ -1,0 +1,26 @@
+package map;
+
+import hlt.Position;
+import org.junit.Test;
+
+import java.util.Arrays;
+
+public class CostGridTest {
+
+  @Test
+  public void testCostGrid() {
+
+    int[][] simpleGrid = {
+      {3, 4, 3, 1},
+      {2, 1, 1, 1},
+      {4, 5, 8, 2},
+      {4, 5, 3, 1}
+    };
+
+    CostGrid costGrid = new CostGrid(simpleGrid);
+    Navigator navigator = new Navigator(costGrid);
+
+    CostGrid cache = navigator.findShortestPath(Position.at(1, 2), Position.at(3, 0));
+    System.out.println(cache);
+  }
+}

@@ -9,6 +9,10 @@ public class Position {
     this.y = y;
   }
 
+  public static Position at(int x, int y) {
+    return new Position(x, y);
+  }
+
   Position directionalOffset(final Direction d) {
     final int dx;
     final int dy;

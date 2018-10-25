@@ -1,16 +1,15 @@
 package map;
 
+import com.google.common.collect.ImmutableList;
 import hlt.Position;
+import hlt.Ship;
+
+import java.util.ArrayDeque;
+import java.util.HashMap;
 
 public class Navigator {
 
-  private final CostGrid costGrid;
-
-  public Navigator(CostGrid costGrid) {
-    this.costGrid = costGrid;
-  }
-
-  public CostGrid findShortestPath(Position start, Position goal) {
+  public static Path findShortestPath(Position start, Position goal, CostGrid costGrid) {
     CostGrid cache = new CostGrid(costGrid.width, costGrid.height);
 
     int xLimit = getAxisDirection(start.x, goal.x, costGrid.width);
@@ -21,13 +20,12 @@ public class Navigator {
 
     for (int y = start.y; y != start.y + yLimit + yStep; y += yStep) {
       for (int x = start.x; x != start.x + xLimit + xStep; x += xStep) {
-
         if (x == start.x && y == start.y) {
           cache.set(x, y, 0);
         } else {
           int cost = Integer.MAX_VALUE;
           if (x != start.x) {
-            cost = costGrid.get(x, y) + cache.get(x - xStep, y);
+            cost = Math.min(cost, costGrid.get(x, y) + cache.get(x - xStep, y));
           }
 
           if (y != start.y) {
@@ -38,7 +36,27 @@ public class Navigator {
       }
     }
 
-    return cache;
+    Path path = new Path();
+
+    int xCurr = start.x + xLimit;
+    int yCurr = start.y + yLimit;
+
+    while (xCurr != start.x || yCurr != start.y) {
+      path.push(costGrid.normalize(xCurr, yCurr));
+      if (xCurr == start.x) {
+        yCurr -= yStep;
+      } else if (yCurr == start.y) {
+        xCurr -= xStep;
+      } else {
+        if (cache.get(xCurr - xStep, yCurr) < cache.get(xCurr, yCurr - yStep)) {
+          xCurr -= xStep;
+        } else {
+          yCurr -= yStep;
+        }
+      }
+    }
+
+    return path;
   }
 
   private static int getAxisDirection(int start, int goal, int max) {

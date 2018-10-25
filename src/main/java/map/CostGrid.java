@@ -36,6 +36,10 @@ public class CostGrid {
     return costGrid[adjY][adjX];
   }
 
+  public Position normalize(int x, int y) {
+    return new Position(normalizeX(x), normalizeY(y));
+  }
+
   private int normalizeX(int x) {
     return (x % width + width) % width;
   }

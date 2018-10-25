@@ -2,6 +2,7 @@ package bot;
 
 import com.google.common.collect.ImmutableList;
 import hlt.*;
+import map.ExploreCommander;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,11 +24,17 @@ public class MyBot {
     // At this point "game" variable is populated with initial map data.
     // This is a good place to do computationally expensive start-up pre-processing.
     // As soon as you call "ready" function below, the 2 second per turn timer will start.
-    game.ready("WorkingVersion");
+    game.ready("WorkingVersion_Curr");
 
     List<String> someWords = ImmutableList.of("Hello", "World");
     Log.log(String.join(" ", someWords));
     Log.log("Successfully created bot! My Player ID is " + game.myId + ". Bot rng seed is " + rngSeed + ".");
+
+    /**
+     * 1. Generate and assign goals.
+     * 2. Do Path finding
+     * 3. Resolve moves for each path that you stored.
+     */
 
     for (;;) {
       game.updateFrame();
@@ -36,14 +43,18 @@ public class MyBot {
 
       final ArrayList<Command> commandQueue = new ArrayList<>();
 
-      for (final Ship ship : me.ships.values()) {
-        if (gameMap.at(ship).halite < Constants.MAX_HALITE / 10 || ship.isFull()) {
-          final Direction randomDirection = Direction.ALL_CARDINALS.get(rng.nextInt(4));
-          commandQueue.add(ship.move(randomDirection));
-        } else {
-          commandQueue.add(ship.stayStill());
-        }
-      }
+//      for (final Ship ship : me.ships.values()) {
+//        if (gameMap.at(ship).halite < Constants.MAX_HALITE / 10 || ship.isFull()) {
+//          final Direction randomDirection = Direction.ALL_CARDINALS.get(rng.nextInt(4));
+//          commandQueue.add(ship.move(randomDirection));
+//        } else {
+//          commandQueue.add(ship.stayStill());
+//        }
+//      }
+
+      ExploreCommander exploreCommander = new ExploreCommander();
+      List<Command> commands = exploreCommander.getExploreCommands(me.ships, gameMap);
+      commandQueue.addAll(commands);
 
       if (
         game.turnNumber <= 200 &&

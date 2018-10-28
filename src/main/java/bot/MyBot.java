@@ -42,16 +42,14 @@ public class MyBot {
 
       final ArrayList<Command> commandQueue = new ArrayList<>();
 
-//      for (final Ship ship : me.ships.values()) {
+      for (final Ship ship : me.ships.values()) {
+        commandQueue.add(ship.move(Direction.EAST));
 //        if (gameMap.at(ship).halite < Constants.MAX_HALITE / 10 || ship.isFull()) {
 //          final Direction randomDirection = Direction.ALL_CARDINALS.get(rng.nextInt(4));
-//          commandQueue.add(ship.move(randomDirection));
 //        } else {
 //          commandQueue.add(ship.stayStill());
 //        }
-//      }
-
-      // commandQueue.addAll(commands);
+      }
 
       if (
         game.turnNumber <= 200 &&

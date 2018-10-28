@@ -1,11 +1,9 @@
 package map;
 
 import com.google.common.collect.ImmutableList;
-import grid.CostGrid;
+import grid.DjikstraGrid;
 import hlt.Position;
 import org.junit.Test;
-
-import java.util.Comparator;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -21,11 +19,11 @@ public class GoalGeneratorTest {
         {1, 1, 1, 1, 1},
         {1, 1, 3, 1, 6},
     };
-    CostGrid costGrid = CostGrid.create(rawGrid, Position.at(2, 2));
+    DjikstraGrid djikstraGrid = DjikstraGrid.create(rawGrid, Position.at(2, 2));
 
-    GoalGenerator goalGenerator = new GoalGenerator(costGrid);
+    GoalGenerator goalGenerator = new GoalGenerator(djikstraGrid);
 
-    GoalGenerator.PositionComparator comparator = new GoalGenerator.PositionComparator(costGrid);
+    GoalGenerator.PositionComparator comparator = new GoalGenerator.PositionComparator(djikstraGrid);
     ImmutableList<Position> positions = ImmutableList.sortedCopyOf(
         comparator, goalGenerator.getBestPositions(5));
 

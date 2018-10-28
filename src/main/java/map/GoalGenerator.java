@@ -1,8 +1,7 @@
 package map;
 
 import com.google.common.collect.ImmutableList;
-import grid.CostGrid;
-import grid.Grid;
+import grid.DjikstraGrid;
 import hlt.GameMap;
 import hlt.Position;
 
@@ -11,23 +10,23 @@ import java.util.PriorityQueue;
 
 public class GoalGenerator {
 
-  private final CostGrid costGrid;
+  private final DjikstraGrid djikstraGrid;
   private final Position home;
 
   public GoalGenerator(GameMap gameMap, Position home) {
-    this(CostGrid.create(gameMap.toHaliteGrid(), home));
+    this(DjikstraGrid.create(gameMap.toHaliteGrid(), home, null));
   }
 
-  public GoalGenerator(CostGrid costGrid) {
-    this.costGrid = costGrid;
-    this.home = costGrid.origin;
+  public GoalGenerator(DjikstraGrid djikstraGrid) {
+    this.djikstraGrid = djikstraGrid;
+    this.home = djikstraGrid.origin;
   }
 
   public ImmutableList<Position> getBestPositions(int positionCount) {
-    PositionComparator comp = new PositionComparator(costGrid);
+    PositionComparator comp = new PositionComparator(djikstraGrid);
     PriorityQueue<Position> queue = new PriorityQueue<>(comp.reversed());
-    for (int y = 0; y < costGrid.height; y++) {
-      for (int x = 0; x < costGrid.width; x++) {
+    for (int y = 0; y < djikstraGrid.haliteGrid.height; y++) {
+      for (int x = 0; x < djikstraGrid.haliteGrid.width; x++) {
         queue.offer(Position.at(x, y));
         if (queue.size() > positionCount) {
           queue.poll();
@@ -40,14 +39,14 @@ public class GoalGenerator {
 
   static class PositionComparator implements Comparator<Position> {
 
-    private final CostGrid costGrid;
+    private final DjikstraGrid djikstraGrid;
 
-    PositionComparator(CostGrid costGrid) {
-      this.costGrid = costGrid;
+    PositionComparator(DjikstraGrid djikstraGrid) {
+      this.djikstraGrid = djikstraGrid;
     }
 
     public double getScore(Position a) {
-      return 1.0 * costGrid.haliteGrid.get(a.x, a.y) / (costGrid.get(a.x, a.y) + 1);
+      return 1.0 * djikstraGrid.haliteGrid.get(a.x, a.y) / (djikstraGrid.costCache.get(a.x, a.y) + 1);
     }
 
     @Override
@@ -60,7 +59,7 @@ public class GoalGenerator {
       } else if (scoreA < scoreB) {
         return 1;
       } else {
-        return costGrid.haliteGrid.get(b.x, b.y) - costGrid.haliteGrid.get(a.x, a.y);
+        return djikstraGrid.haliteGrid.get(b.x, b.y) - djikstraGrid.haliteGrid.get(a.x, a.y);
       }
     }
   }

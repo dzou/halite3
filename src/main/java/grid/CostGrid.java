@@ -13,9 +13,9 @@ public class CostGrid extends Grid<Integer> {
 
   private static final int MAX_VAL = 999999;
 
-  public final Grid haliteGrid;
+  public final Position origin;
+  public final Grid<Integer> haliteGrid;
 
-  private final Position origin;
   private final Direction[][] prevGrid;
 
   private CostGrid(Grid<Integer> haliteGrid, Position origin) {
@@ -60,6 +60,10 @@ public class CostGrid extends Grid<Integer> {
 
   public Position getOrigin() {
     return origin;
+  }
+
+  public static CostGrid create(Integer[][] rawInputGrid, Position origin) {
+    return CostGrid.create(new Grid<Integer>(rawInputGrid), origin);
   }
 
   public static CostGrid create(Grid<Integer> inputGrid, Position origin) {

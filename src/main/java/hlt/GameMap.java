@@ -1,6 +1,6 @@
 package hlt;
 
-import map.CostGrid;
+import grid.Grid;
 
 import java.util.ArrayList;
 
@@ -24,10 +24,10 @@ public class GameMap {
     return cells[normalized.y][normalized.x];
   }
 
-  public CostGrid toCostgrid() {
+  public Grid toCostgrid() {
     int[][] rawCostGrid = new int[cells.length][cells[0].length];
-    CostGrid costGrid = new CostGrid(rawCostGrid);
-    return costGrid;
+    Grid grid = new Grid(rawCostGrid);
+    return grid;
   }
 
   public MapCell at(final Entity entity) {

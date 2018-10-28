@@ -1,6 +1,8 @@
-package map;
+package grid;
 
 import hlt.Position;
+import map.Navigator;
+import map.Path;
 import org.junit.Test;
 
 import java.util.ArrayDeque;
@@ -8,7 +10,7 @@ import java.util.Arrays;
 
 import static com.google.common.truth.Truth.assertThat;
 
-public class CostGridTest {
+public class GridTest {
 
   @Test
   public void testCostGrid() {
@@ -20,10 +22,10 @@ public class CostGridTest {
       {4, 5, 3, 1}
     };
 
-    CostGrid costGrid = new CostGrid(simpleGrid);
+    Grid grid = new Grid(simpleGrid);
     Navigator navigator = new Navigator();
 
-    Path path = navigator.findShortestPath(Position.at(1, 2), Position.at(3, 0), costGrid);
-    assertThat(path.toString()).isEqualTo("[(0, 2), (3, 2), (3, 3), (3, 0)]");
+    Path path = navigator.findShortestPath(Position.at(1, 2), Position.at(3, 0), grid);
+    assertThat(path.toString()).isEqualTo("[(1, 2), (0, 2), (3, 2), (3, 3), (3, 0)]");
   }
 }

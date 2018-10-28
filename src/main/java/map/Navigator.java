@@ -1,6 +1,7 @@
 package map;
 
 import com.google.common.collect.ImmutableList;
+import grid.Grid;
 import hlt.Position;
 import hlt.Ship;
 
@@ -9,8 +10,8 @@ import java.util.HashMap;
 
 public class Navigator {
 
-  public static Path findShortestPath(Position start, Position goal, CostGrid costGrid) {
-    CostGrid cache = new CostGrid(costGrid.width, costGrid.height);
+  public static Path findShortestPath(Position start, Position goal, Grid costGrid) {
+    Grid cache = new Grid(costGrid.width, costGrid.height);
 
     int xLimit = getAxisDirection(start.x, goal.x, costGrid.width);
     int yLimit = getAxisDirection(start.y, goal.y, costGrid.height);
@@ -56,6 +57,7 @@ public class Navigator {
       }
     }
 
+    path.push(start);
     return path;
   }
 

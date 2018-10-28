@@ -2,7 +2,6 @@ package bot;
 
 import com.google.common.collect.ImmutableList;
 import hlt.*;
-import map.ExploreCommander;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,9 +51,7 @@ public class MyBot {
 //        }
 //      }
 
-      ExploreCommander exploreCommander = new ExploreCommander();
-      List<Command> commands = exploreCommander.getExploreCommands(me.ships, gameMap);
-      commandQueue.addAll(commands);
+      // commandQueue.addAll(commands);
 
       if (
         game.turnNumber <= 200 &&

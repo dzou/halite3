@@ -13,7 +13,7 @@ public class Position {
     return new Position(x, y);
   }
 
-  Position directionalOffset(final Direction d) {
+  public Position directionalOffset(final Direction d) {
     final int dx;
     final int dy;
 

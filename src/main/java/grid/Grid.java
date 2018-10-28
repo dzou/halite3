@@ -8,40 +8,39 @@ import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.List;
 
-public class Grid {
+/**
+ * Generic grid representing the map. It self-contains the wrap-around map logic doing
+ * the modulos and stuff for convenience.
+ */
+public class Grid<T> {
 
   public final int height;
   public final int width;
+  private final T[][] costGrid;
 
-  private final int[][] costGrid;
-
-  public Grid(int width, int height) {
-    this(width, height, 0);
-  }
-
-  public Grid(int width, int height, int initValue) {
-    this.costGrid = new int[height][width];
+  public Grid(int width, int height, T initValue) {
     this.width = width;
     this.height = height;
+    this.costGrid = (T[][]) new Object[height][width];
 
     for (int i = 0; i < costGrid.length; i++) {
       Arrays.fill(costGrid[i], initValue);
     }
   }
 
-  public Grid(int[][] costGrid) {
+  public Grid(T[][] costGrid) {
     this.costGrid = costGrid;
     this.height = costGrid.length;
     this.width = costGrid[0].length;
   }
 
-  public void set(int x, int y, int value) {
+  public void set(int x, int y, T value) {
     int adjX = normalizeX(x);
     int adjY = normalizeY(y);
     costGrid[adjY][adjX] = value;
   }
 
-  public int get(int x, int y) {
+  public T get(int x, int y) {
     int adjX = normalizeX(x);
     int adjY = normalizeY(y);
     return costGrid[adjY][adjX];
@@ -92,7 +91,11 @@ public class Grid {
     StringBuilder stringBuilder = new StringBuilder();
     for (int i = 0; i < costGrid.length; i++) {
       for (int j = 0; j < costGrid[i].length; j++) {
-        stringBuilder.append(df.format(costGrid[i][j]) + " ");
+        if (costGrid[i][j] instanceof Integer) {
+          stringBuilder.append(df.format(costGrid[i][j]) + " ");
+        } else {
+          stringBuilder.append(costGrid[i][j] + " ");
+        }
       }
       stringBuilder.append("\n");
     }

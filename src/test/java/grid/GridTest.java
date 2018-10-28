@@ -15,14 +15,14 @@ public class GridTest {
   @Test
   public void testCostGrid() {
 
-    int[][] simpleGrid = {
+    Integer[][] simpleGrid = {
       {3, 4, 3, 1},
       {2, 1, 1, 1},
       {4, 5, 8, 2},
       {4, 5, 3, 1}
     };
 
-    Grid grid = new Grid(simpleGrid);
+    Grid<Integer> grid = new Grid(simpleGrid);
     Navigator navigator = new Navigator();
 
     Path path = navigator.findShortestPath(Position.at(1, 2), Position.at(3, 0), grid);

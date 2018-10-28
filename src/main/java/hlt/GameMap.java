@@ -25,8 +25,8 @@ public class GameMap {
   }
 
   public Grid toCostgrid() {
-    int[][] rawCostGrid = new int[cells.length][cells[0].length];
-    Grid grid = new Grid(rawCostGrid);
+    Integer[][] rawCostGrid = new Integer[cells.length][cells[0].length];
+    Grid<Integer> grid = new Grid(rawCostGrid);
     return grid;
   }
 

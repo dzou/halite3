@@ -10,7 +10,7 @@ public class CostGridTest {
 
   @Test
   public void testCostGridCreate() {
-    int[][] rawGrid = {
+    Integer[][] rawGrid = {
         {5, 2, 3, 4, 2},
         {1, 1, 1, 4, 2},
         {1, 1, 1, 4, 2},
@@ -18,7 +18,7 @@ public class CostGridTest {
         {0, 1, 1, 4, 2}
     };
 
-    Grid grid = new Grid(rawGrid);
+    Grid<Integer> grid = new Grid(rawGrid);
     CostGrid costGrid = CostGrid.create(grid, Position.at(0, 4));
     assertThat(costGrid.get(3,1)).isEqualTo(5);
 
@@ -29,7 +29,7 @@ public class CostGridTest {
 
   @Test
   public void testCostGridNavigate() {
-    int[][] rawGrid = {
+    Integer[][] rawGrid = {
         {5, 2, 3, 4, 2},
         {2, 1, 1, 4, 2},
         {1, 1, 1, 4, 2},

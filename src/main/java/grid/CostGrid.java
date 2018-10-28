@@ -9,7 +9,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.PriorityQueue;
 
-public class CostGrid extends Grid {
+public class CostGrid extends Grid<Integer> {
 
   private static final int MAX_VAL = 999999;
 
@@ -61,7 +61,7 @@ public class CostGrid extends Grid {
     return origin;
   }
 
-  public static CostGrid create(Grid inputGrid, Position origin) {
+  static CostGrid create(Grid<Integer> inputGrid, Position origin) {
     CostGrid costGrid = new CostGrid(inputGrid.width, inputGrid.height, MAX_VAL, origin);
     costGrid.set(origin.x, origin.y, 0);
 

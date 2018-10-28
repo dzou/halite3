@@ -7,16 +7,16 @@ import hlt.Position;
 
 public class GoalGenerator {
 
-  private final Grid resourceMap;
   private final CostGrid costGrid;
   private final Position home;
 
-  public GoalGenerator(Grid resourceMap, CostGrid costGrid, Position home) {
-    this.resourceMap = resourceMap;
+  public GoalGenerator(GameMap gameMap, Position home) {
+    this(CostGrid.create(gameMap.toHaliteGrid(), home), home);
+  }
+
+  public GoalGenerator(CostGrid costGrid, Position home) {
     this.costGrid = costGrid;
     this.home = home;
   }
-
-
 
 }

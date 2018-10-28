@@ -20,7 +20,7 @@ public class CostGridTest {
 
     Grid<Integer> grid = new Grid(rawGrid);
     CostGrid costGrid = CostGrid.create(grid, Position.at(0, 4));
-    assertThat(costGrid.get(3,1)).isEqualTo(5);
+    assertThat(costGrid.get(2,4)).isEqualTo(1);
 
 //    System.out.println(costGrid);
 //    Path p = Navigator.findShortestPath(Position.at(0, 4), Position.at(3, 1), costGrid);

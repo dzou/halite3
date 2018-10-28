@@ -24,7 +24,7 @@ public class GameMap {
     return cells[normalized.y][normalized.x];
   }
 
-  public Grid toCostgrid() {
+  public Grid<Integer> toHaliteGrid() {
     Integer[][] rawCostGrid = new Integer[cells.length][cells[0].length];
     Grid<Integer> grid = new Grid(rawCostGrid);
     return grid;

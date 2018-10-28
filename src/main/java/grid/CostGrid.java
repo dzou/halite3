@@ -13,15 +13,16 @@ public class CostGrid extends Grid<Integer> {
 
   private static final int MAX_VAL = 999999;
 
+  public final Grid haliteGrid;
+
   private final Position origin;
+  private final Direction[][] prevGrid;
 
-  final Direction[][] prevGrid;
+  private CostGrid(Grid<Integer> haliteGrid, Position origin) {
+    super(haliteGrid.width, haliteGrid.height, MAX_VAL);
 
-  private CostGrid(int width, int height, int initValue, Position origin) {
-    super(width, height, initValue);
-
+    this.haliteGrid = haliteGrid;
     this.origin = origin;
-
     this.prevGrid = new Direction[width][height];
     for (int i = 0; i < prevGrid.length; i++) {
       Arrays.fill(prevGrid[i], Direction.STILL);
@@ -61,8 +62,8 @@ public class CostGrid extends Grid<Integer> {
     return origin;
   }
 
-  static CostGrid create(Grid<Integer> inputGrid, Position origin) {
-    CostGrid costGrid = new CostGrid(inputGrid.width, inputGrid.height, MAX_VAL, origin);
+  public static CostGrid create(Grid<Integer> inputGrid, Position origin) {
+    CostGrid costGrid = new CostGrid(inputGrid, origin);
     costGrid.set(origin.x, origin.y, 0);
 
     HashSet<Position> visited = new HashSet<>();

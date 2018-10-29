@@ -52,4 +52,10 @@ public class Ship extends Entity {
     result = 31 * result + halite;
     return result;
   }
+
+  @Override
+  public String toString() {
+    String formt = "Ship: %d - (%d, %d) [%d]";
+    return String.format(formt, this.id.id, this.position.x, this.position.y, this.halite);
+  }
 }

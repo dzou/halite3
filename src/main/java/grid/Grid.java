@@ -6,7 +6,9 @@ import hlt.Position;
 
 import java.text.DecimalFormat;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Generic grid representing the map. It self-contains the wrap-around map logic doing
@@ -55,6 +57,28 @@ public class Grid<T> {
     return neighbors.build();
   }
 
+  public Position normalize(final Position position) {
+    int x = ((position.x % width) + width) % width;
+    int y = ((position.y % height) + height) % height;
+    return new Position(x, y);
+  }
+
+  public int distance(final Position source, final Position target) {
+    int sx = normalizeX(source.x);
+    int sy = normalizeY(source.y);
+
+    int tx = normalizeX(target.x);
+    int ty = normalizeY(target.y);
+
+    final int dx = Math.abs(sx - tx);
+    final int dy = Math.abs(sy - ty);
+
+    final int toroidal_dx = Math.min(dx, width - dx);
+    final int toroidal_dy = Math.min(dy, height - dy);
+
+    return toroidal_dx + toroidal_dy;
+  }
+
   public Position normalize(int x, int y) {
     return new Position(normalizeX(x), normalizeY(y));
   }
@@ -83,6 +107,21 @@ public class Grid<T> {
     }
 
     return Direction.STILL;
+  }
+
+  public Optional<Position> findClosestPosition(Position origin, Collection<Position> candidates) {
+    Position best = null;
+    int bestDist = Integer.MAX_VALUE;
+
+    for (Position p : candidates) {
+      int dist = distance(origin, p);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = p;
+      }
+    }
+
+    return Optional.ofNullable(best);
   }
 
   @Override

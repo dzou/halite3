@@ -5,29 +5,40 @@ import hlt.Position;
 import map.Path;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.PriorityQueue;
+import java.util.*;
 
 public class DjikstraGrid {
 
   public final Position origin;
+  public final Optional<Position> goal;
+
   public final Grid<Integer> haliteGrid;
   public final Grid<Direction> directionCache;
   public final Grid<Integer> costCache;
 
   private DjikstraGrid(
-      Position origin, Grid<Integer> haliteGrid, Grid<Direction> directionCache, Grid<Integer> costCache) {
+      Position origin,
+      @Nullable Position goal,
+      Grid<Integer> haliteGrid,
+      Grid<Direction> directionCache,
+      Grid<Integer> costCache) {
+
     this.origin = origin;
+    this.goal = Optional.ofNullable(goal);
+
     this.haliteGrid = haliteGrid;
     this.directionCache = directionCache;
     this.costCache = costCache;
   }
 
+  public static Path findPath(Position start, Position end, Grid<Integer> haliteGrid) {
+    DjikstraGrid djikstraGrid = DjikstraGrid.create(haliteGrid, start, end);
+    return djikstraGrid.findPath(end);
+  }
+
   public Path findPath(Position destination) {
-    if (!destination.equals(origin) && directionCache.get(destination.x, destination.y) == Direction.STILL) {
-      throw new RuntimeException("Tried to route to destination which was never cached.");
+    if (this.goal.isPresent() && !this.goal.get().equals(destination)) {
+      throw new RuntimeException("Tried to route to goal which was never cached.");
     }
 
     Path path = new Path();
@@ -100,6 +111,11 @@ public class DjikstraGrid {
       }
     }
 
-    return new DjikstraGrid(origin, haliteGrid, directionCache, cache);
+    return new DjikstraGrid(origin, goal, haliteGrid, directionCache, cache);
+  }
+
+  @Override
+  public String toString() {
+    return costCache.toString();
   }
 }

@@ -47,17 +47,30 @@ public class DjikstraGridTest {
     Integer[][] rawGrid = {
         {5, 2, 3, 4, 2},
         {2, 1, 1, 4, 2},
-        {1, 1, 0, 4, 2},
+        {1, 1, 0, 10, 2},
+        {1, 1, 1, 4, 2},
+        {1, 1, 1, 4, 2}
+    };
+    DjikstraGrid djikstraGrid = DjikstraGrid.create(rawGrid, Position.at(2, 2), Position.at(4, 2));
+
+    Path path = djikstraGrid.findPath(Position.at(4, 2));
+    assertThat(path.toString()).isEqualTo("[(2, 2), (6, 2), (5, 2), (4, 2)]");
+  }
+
+  @Test
+  public void testEarlyExitWithDestination() {
+    Integer[][] rawGrid = {
+        {5, 2, 3, 4, 2},
+        {2, 1, 1, 4, 2},
+        {1, 1, 0, 10, 2},
         {1, 1, 1, 4, 2},
         {1, 1, 1, 4, 2}
     };
     DjikstraGrid djikstraGrid = DjikstraGrid.create(rawGrid, Position.at(2, 2), Position.at(0, 2));
 
-    Path path = djikstraGrid.findPath(Position.at(4, 2));
-    System.out.println(path);
-    System.out.println(djikstraGrid.costCache);
-    System.out.println(djikstraGrid.directionCache);
-  }
+    Path path = djikstraGrid.findPath(Position.at(0, 2));
+    assertThat(djikstraGrid.costCache.get(0, 4)).isEqualTo(Integer.MAX_VALUE);
+ }
 
 //  @Test
 //  public void testCostGridBig() {

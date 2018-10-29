@@ -13,6 +13,10 @@ public class Path {
     path.push(position);
   }
 
+  public Position pop() {
+    return path.pop();
+  }
+
   public Path reversed() {
     Path result = new Path();
     for (Position pos : path) {

@@ -26,6 +26,11 @@ public class GameMap {
 
   public Grid<Integer> toHaliteGrid() {
     Integer[][] rawCostGrid = new Integer[cells.length][cells[0].length];
+    for (int i = 0; i < cells.length; i++) {
+      for (int j = 0; j < cells[i].length; j++) {
+        rawCostGrid[i][j] = cells[i][j].halite;
+      }
+    }
     Grid<Integer> grid = new Grid(rawCostGrid);
     return grid;
   }

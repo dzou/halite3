@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import grid.DjikstraGrid;
 import grid.Grid;
 import hlt.Constants;
+import hlt.Log;
 import hlt.Position;
 import hlt.Ship;
 import map.GoalGenerator;
@@ -35,8 +36,9 @@ public class ShipRouter {
     for (Ship ship : ships) {
       ImmutableList<GatherDecision> decisions = getDecisions(ship, bestSquares);
 
-      // TODO: rmv plz
-      // debugDecisions(decisions);
+      for (GatherDecision decision : decisions) {
+        Log.log(decision.toString());
+      }
 
       GatherDecision decision = decisions.stream()
           .max(Comparator.comparingDouble(g -> g.decisionScore))
@@ -114,7 +116,7 @@ public class ShipRouter {
 
     double score = 0;
     if (pathToHome.path.size() > 0) {
-      score = Math.max(0, 1.0 * (ship.halite - estimatedBurn) / pathToHome.path.size());
+      score = Math.max(0, 1.0 * (ship.halite - estimatedBurn) / (1 + pathToHome.path.size()));
     }
 
     return new GatherDecision(GatherDecision.Type.RETURN, gridToHome.origin, pathToHome, score);

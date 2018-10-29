@@ -1,10 +1,15 @@
 package bot;
 
 import com.google.common.collect.ImmutableList;
+import grid.Grid;
 import hlt.*;
+import shipagent.GatherDecision;
+import shipagent.ShipMover;
+import shipagent.ShipRouter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 // This Java API uses camelCase instead of the snake_case as documented in the API docs.
@@ -42,19 +47,18 @@ public class MyBot {
 
       final ArrayList<Command> commandQueue = new ArrayList<>();
 
-      for (final Ship ship : me.ships.values()) {
-        commandQueue.add(ship.move(Direction.EAST));
-//        if (gameMap.at(ship).halite < Constants.MAX_HALITE / 10 || ship.isFull()) {
-//          final Direction randomDirection = Direction.ALL_CARDINALS.get(rng.nextInt(4));
-//        } else {
-//          commandQueue.add(ship.stayStill());
-//        }
-      }
+      Grid<Integer> haliteGrid = gameMap.toHaliteGrid();
+      ShipRouter shipRouter = new ShipRouter(haliteGrid, game.me.shipyard.position);
+      Map<Ship, GatherDecision> mappings = shipRouter.routeShips(me.ships.values());
 
-      if (
-        game.turnNumber <= 200 &&
-        me.halite >= Constants.SHIP_COST &&
-        !gameMap.at(me.shipyard).isOccupied())
+      ShipMover shipMover = new ShipMover(haliteGrid);
+      List<Command> moveCommands = shipMover.moveShips(mappings);
+      commandQueue.addAll(moveCommands);
+
+      if (game.turnNumber <= 200
+          && me.halite >= Constants.SHIP_COST
+          && !shipMover.usedPositions.contains(me.shipyard.position)
+          && me.ships.size() == 0)
       {
         commandQueue.add(me.shipyard.spawn());
       }

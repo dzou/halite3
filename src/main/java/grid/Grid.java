@@ -92,14 +92,15 @@ public class Grid<T> {
   }
 
   public Direction calculateDirection(Position start, Position end) {
-    if (start.x != end.x) {
-      if (normalizeX(start.x + 1) == normalizeX(end.x)) {
+
+    if (normalizeX(start.x - end.x) != 0) {
+      if (normalizeX(start.x + 1 - end.x) == 0) {
         return Direction.EAST;
       } else {
         return Direction.WEST;
       }
-    } else if (start.y != end.y) {
-      if (normalizeY(start.y + 1) == normalizeY(end.y)) {
+    } else if (normalizeY(start.y - end.y) != 0) {
+      if (normalizeY(start.y + 1 - end.y) == 0) {
         return Direction.SOUTH;
       } else {
         return Direction.NORTH;

@@ -30,7 +30,7 @@ public class ShipRouter {
   }
 
   public Map<Ship, GatherDecision> routeShips(Collection<Ship> ships) {
-    HashSet<Position> bestSquares = new HashSet<>(goalGenerator.getBestPositions(ships.size() * 2));
+    HashSet<Position> bestSquares = new HashSet<>(goalGenerator.getBestPositions(ships.size() * 5));
     HashMap<Ship, GatherDecision> decisionMap = new HashMap<>();
 
     for (Ship ship : ships) {
@@ -65,10 +65,30 @@ public class ShipRouter {
     return result.build();
   }
 
+//  private GatherDecision exploreScore(Ship ship, Position exploreDest) {
+//    DjikstraGrid exploreGrid = DjikstraGrid.create(this.gridToHome.haliteGrid, ship.position, exploreDest);
+//
+//    Path pathToDest = exploreGrid.findPath(exploreDest);
+//    double burnShipToDest = 0.1 * exploreGrid.costCache.get(exploreDest.x, exploreDest.y);
+//
+//    double gain = Math.min(
+//        MAX_HALITE_CAPACITY - ship.halite,
+//        PERCENT_MINED_FROM_NODE * exploreGrid.haliteGrid.get(exploreDest.x, exploreDest.y) - burnShipToDest);
+//
+//    int stepsTaken = pathToDest.path.size() + AVG_TURNS_ON_NODE;
+//
+//    double score = 0;
+//    if (!ship.position.equals(exploreDest)) {
+//      score = Math.max(0, 1.0 * (ship.halite + gain) / stepsTaken);
+//    }
+//
+//    return new GatherDecision(GatherDecision.Type.EXPLORE, exploreDest, pathToDest, score);
+//  }
+
   private GatherDecision exploreScore(Ship ship, Position exploreDest) {
     DjikstraGrid exploreGrid = DjikstraGrid.create(this.gridToHome.haliteGrid, ship.position, exploreDest);
 
-    Path pathToHome = gridToHome.findPath(exploreDest).reversed();
+    // Path pathToHome = gridToHome.findPath(exploreDest).reversed();
     Path pathToDest = exploreGrid.findPath(exploreDest);
 
     double burnShipToDest = 0.1 * exploreGrid.costCache.get(exploreDest.x, exploreDest.y);
@@ -76,35 +96,40 @@ public class ShipRouter {
 
     double gain = Math.min(
         MAX_HALITE_CAPACITY - ship.halite,
-        PERCENT_MINED_FROM_NODE * exploreGrid.haliteGrid.get(exploreDest.x, exploreDest.y) - burnShipToDest);
+        PERCENT_MINED_FROM_NODE * exploreGrid.haliteGrid.get(exploreDest.x, exploreDest.y) - burnShipToDest) - burnDestToHome;
 
-    int stepsTaken = pathToHome.path.size() + pathToDest.path.size() + AVG_TURNS_ON_NODE;
+    int stepsTaken = pathToDest.path.size() + AVG_TURNS_ON_NODE;
 
     double score = 0;
     if (!ship.position.equals(exploreDest)) {
-      score = Math.max(0, 1.0 * (ship.halite + gain - burnDestToHome) / stepsTaken);
+      score = Math.max(0, 1.0 * gain / stepsTaken);
     }
 
     return new GatherDecision(GatherDecision.Type.EXPLORE, exploreDest, pathToDest, score);
   }
 
   private GatherDecision stayScore(Ship ship) {
-    Path pathToHome = gridToHome.findPath(ship.position).reversed();
-    pathToHome.push(ship.position);
+//    Path pathToHome = gridToHome.findPath(ship.position).reversed();
+//    pathToHome.push(ship.position);
+
+    Path pathToStay = new Path();
+    pathToStay.push(ship.position);
+    pathToStay.push(ship.position);
 
     double gain = Math.min(
         MAX_HALITE_CAPACITY - ship.halite,
-        PERCENT_MINED_FROM_NODE * gridToHome.haliteGrid.get(ship.position.x, ship.position.y));
+        0.25 * gridToHome.haliteGrid.get(ship.position.x, ship.position.y))
+        + 0.075 * gridToHome.haliteGrid.get(ship.position.x, ship.position.y);
 
-    double estimatedBurn =
-        0.1 * gridToHome.costCache.get(ship.position.x, ship.position.y)
-        + 0.1 * (gridToHome.haliteGrid.get(ship.position.x, ship.position.y) - gain);
+//    double estimatedBurn =
+//        0.1 * gridToHome.costCache.get(ship.position.x, ship.position.y)
+//        + 0.1 * (gridToHome.haliteGrid.get(ship.position.x, ship.position.y) - gain);
+//
+//    double score = (pathToHome.path.size() == 0)
+//        ? 0
+//        : Math.max(0, (1.0 * ship.halite + gain - estimatedBurn) / pathToHome.path.size());
 
-    double score = (pathToHome.path.size() == 0)
-        ? 0
-        : Math.max(0, (1.0 * ship.halite + gain - estimatedBurn) / (pathToHome.path.size() + AVG_TURNS_ON_NODE));
-
-    return new GatherDecision(GatherDecision.Type.STAY, ship.position, pathToHome, score);
+    return new GatherDecision(GatherDecision.Type.STAY, ship.position, pathToStay, gain);
   }
 
   private GatherDecision goHomeScore(Ship ship) {
@@ -116,7 +141,7 @@ public class ShipRouter {
 
     double score = 0;
     if (pathToHome.path.size() > 0) {
-      score = Math.max(0, 1.0 * (ship.halite - estimatedBurn) / (1 + pathToHome.path.size()));
+      score = Math.max(0, 1.0 * (ship.halite - estimatedBurn) / (1 + pathToHome.path.size() * 2));
     }
 
     return new GatherDecision(GatherDecision.Type.RETURN, gridToHome.origin, pathToHome, score);

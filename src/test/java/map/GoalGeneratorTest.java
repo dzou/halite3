@@ -27,7 +27,7 @@ public class GoalGeneratorTest {
     ImmutableList<Position> positions = ImmutableList.sortedCopyOf(
         comparator, goalGenerator.getBestPositions(5));
 
-    assertThat(positions.toString()).isEqualTo("[(2, 0), (4, 2), (0, 2), (4, 4), (2, 4)]");
+    assertThat(positions.toString()).isEqualTo("[(4, 4), (2, 0), (4, 2), (0, 2), (2, 4)]");
 
 //    System.out.println(positions);
 //    for (Position position : positions) {

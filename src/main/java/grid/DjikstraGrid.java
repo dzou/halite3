@@ -83,7 +83,10 @@ public class DjikstraGrid {
     cache.set(origin.x, origin.y, 0);
 
     HashSet<Position> visited = new HashSet<>();
-    PriorityQueue<PositionEntry> queue = new PriorityQueue<>(Comparator.comparingInt(p -> p.costToPosition));
+
+    Comparator<PositionEntry> positionEntryComparator = Comparator.<PositionEntry>comparingInt(p -> p.costToPosition + haliteGrid.get(p.position.x, p.position.y))
+        .thenComparing(p -> goal != null ? haliteGrid.distance(p.position, goal) : 0);
+    PriorityQueue<PositionEntry> queue = new PriorityQueue<>(positionEntryComparator);
     queue.offer(PositionEntry.of(origin, 0));
 
     while (!queue.isEmpty()) {

@@ -30,10 +30,10 @@ public class Grid<T> {
     }
   }
 
-  public Grid(T[][] costGrid) {
-    this.costGrid = costGrid;
-    this.height = costGrid.length;
-    this.width = costGrid[0].length;
+  public Grid(T[][] grid) {
+    this.costGrid = grid;
+    this.height = grid.length;
+    this.width = grid[0].length;
   }
 
   public void set(int x, int y, T value) {

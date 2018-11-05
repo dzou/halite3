@@ -7,10 +7,9 @@ import hlt.Command;
 import hlt.Direction;
 import hlt.Position;
 import hlt.Ship;
+import map.Path;
 
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class ShipMover {
 
@@ -23,7 +22,7 @@ public class ShipMover {
     this.usedPositions = new HashSet<>();
   }
 
-  public List<Command> moveShips(Map<Ship, GatherDecision> mappings) {
+  public List<Command> moveShips(Map<Ship, Decision> mappings) {
     ImmutableList.Builder<Command> commands = ImmutableList.builder();
 
     Set<Position> previousPositions = mappings.keySet()
@@ -34,12 +33,12 @@ public class ShipMover {
     Map<Position, ArrayList<Ship>> blockedCommandMap = new HashMap<>();
     Map<Position, ArrayList<Ship>> freedPositions = new HashMap<>();
 
-    for (Map.Entry<Ship, GatherDecision> entry : mappings.entrySet()) {
+    for (Map.Entry<Ship, Decision> entry : mappings.entrySet()) {
       Ship ship = entry.getKey();
-      GatherDecision gatherDecision = entry.getValue();
+      Path path = entry.getValue().path;
 
-      Position from = gatherDecision.path.pop();
-      Position to = gatherDecision.path.pop();
+      Position from = path.pop();
+      Position to = path.path.isEmpty() ? from : path.pop();
 
       if (!previousPositions.contains(to)) {
         if (!freedPositions.containsKey(to)) {
@@ -94,25 +93,5 @@ public class ShipMover {
     }
 
     return commands.build();
-  }
-
-  private static class DecisionMapEntryComparator implements Comparator<GatherDecision> {
-
-    @Override
-    public int compare(GatherDecision d1, GatherDecision d2) {
-      if (d1.type == GatherDecision.Type.STAY && d2.type != GatherDecision.Type.STAY) {
-        return -1;
-      } else if (d1.type != GatherDecision.Type.STAY && d2.type == GatherDecision.Type.STAY) {
-        return 1;
-      }
-
-      if (d1.decisionScore > d2.decisionScore) {
-        return -1;
-      } else if (d1.decisionScore < d2.decisionScore) {
-        return 1;
-      } else {
-        return 0;
-      }
-    }
   }
 }

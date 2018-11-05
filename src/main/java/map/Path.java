@@ -1,13 +1,15 @@
 package map;
 
-import hlt.Direction;
 import hlt.Position;
 
 import java.util.ArrayDeque;
-import java.util.Iterator;
 
 public class Path {
   public final ArrayDeque<Position> path = new ArrayDeque<>();
+
+  public Position getDestination() {
+    return path.getLast();
+  }
 
   public void push(Position position) {
     path.push(position);

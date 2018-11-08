@@ -63,6 +63,22 @@ public class Grid<T> {
     return new Position(x, y);
   }
 
+  public int distance(int sx, int sy, int tx, int ty) {
+    sx = normalizeX(sx);
+    sy = normalizeY(sy);
+
+    tx = normalizeX(tx);
+    ty = normalizeY(ty);
+
+    final int dx = Math.abs(sx - tx);
+    final int dy = Math.abs(sy - ty);
+
+    final int toroidal_dx = Math.min(dx, width - dx);
+    final int toroidal_dy = Math.min(dy, height - dy);
+
+    return toroidal_dx + toroidal_dy;
+  }
+
   public int distance(final Position source, final Position target) {
     int sx = normalizeX(source.x);
     int sy = normalizeY(source.y);

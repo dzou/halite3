@@ -1,23 +1,26 @@
 package bot;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import grid.DjikstraGrid;
 import grid.Grid;
 import hlt.*;
 import map.Path;
-import ml.ExploreModel;
+import ml.*;
 import shipagent.Decision;
 import shipagent.ShipMover;
 import shipagent.ShipRouter;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-// This Java API uses camelCase instead of the snake_case as documented in the API docs.
-//   Otherwise the names of methods are consistent.
-public class MyBot {
-  public static void main(final String[] args) {
+public class MLTrainerBot {
+
+  public static void main(final String[] args) throws IOException {
     final long rngSeed;
     if (args.length > 1) {
       rngSeed = Integer.parseInt(args[1]);
@@ -30,15 +33,14 @@ public class MyBot {
     // At this point "game" variable is populated with initial map data.
     // This is a good place to do computationally expensive start-up pre-processing.
     // As soon as you call "ready" function below, the 2 second per turn timer will start.
-    game.ready("WorkingVersion_Curr");
+    game.ready("ML_TRAINER");
 
     Log.log("Successfully created bot! My Player ID is " + game.myId + ". Bot rng seed is " + rngSeed + ".");
 
-    /**
-     * 1. Generate and assign goals.
-     * 2. Do Path finding
-     * 3. Resolve moves for each path that you stored.
-     */
+    File weightsFile = new File("weights.txt");
+    ExploreModel model = new ExploreModel(weightsFile);
+    ExploreTrainer trainer = new ExploreTrainer(model);
+
 
     for (; ; ) {
       game.updateFrame();
@@ -49,10 +51,35 @@ public class MyBot {
 
       Grid<Integer> haliteGrid = gameMap.toHaliteGrid();
 
-      ExploreModel model = new ExploreModel();
-
       ShipRouter shipRouter = new ShipRouter(haliteGrid, game.me.shipyard.position, model);
       Map<Ship, Decision> mappings = shipRouter.routeShips(me.ships.values());
+
+      for (Map.Entry<Ship, Decision> entry : mappings.entrySet()) {
+        Ship ship = entry.getKey();
+        Decision decision = entry.getValue();
+
+        Position next = ship.position;
+        if (decision.path.path.size() >= 2) {
+          next = Iterables.get(decision.path.path, 1);
+        }
+
+        trainer.addStateActionPair(decision.type, decision.state);
+        if (next.equals(me.shipyard.position)) {
+          if (ship.halite <= 0) {
+            trainer.updateWeights(-10);
+          } else {
+            trainer.updateWeights(ship.halite);
+          }
+        }
+//        else {
+//          if (decision.type != ActionType.STAY) {
+//        trainer.updateSingle(
+//            -3.0,
+//            decision.type,
+//            decision.state);
+//          }
+//        }
+      }
 
       ShipMover shipMover = new ShipMover(haliteGrid);
       List<Command> moveCommands = shipMover.moveShips(mappings);
@@ -65,7 +92,13 @@ public class MyBot {
         commandQueue.add(me.shipyard.spawn());
       }
 
+
       game.endTurn(commandQueue);
+      Log.log(model.toString());
+
+      if (game.turnNumber == Constants.MAX_TURNS - 1) {
+        trainer.writeWeights();
+      }
     }
   }
 }

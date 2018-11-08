@@ -47,7 +47,7 @@ public class GoalGenerator {
 
     public double getScore(Position a) {
       return 1.0 * (djikstraGrid.haliteGrid.get(a.x, a.y) - 0.1 * djikstraGrid.costCache.get(a.x, a.y))
-          / djikstraGrid.haliteGrid.distance(djikstraGrid.origin, a);
+          / Math.max(1, djikstraGrid.haliteGrid.distance(djikstraGrid.origin, a));
     }
 
     @Override

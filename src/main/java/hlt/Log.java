@@ -7,6 +7,8 @@ import java.util.ArrayList;
 public class Log {
   private final FileWriter file;
 
+  private static int currentBotId = -1;
+
   private static Log INSTANCE;
   private static ArrayList<String> LOG_BUFFER = new ArrayList<>();
 
@@ -21,15 +23,15 @@ public class Log {
         return;
       }
 
-      final long now_in_nanos = System.nanoTime();
-      final String filename = "bot-unknown-" + now_in_nanos + ".log";
-      try (final FileWriter writer = new FileWriter(filename)) {
-        for (final String message : LOG_BUFFER) {
-          writer.append(message).append('\n');
-        }
-      } catch (final IOException e) {
-        // Nothing much we can do here.
-      }
+//      final long now_in_nanos = System.nanoTime();
+//      final String filename = "bot-unknown-" + now_in_nanos + ".log";
+//      try (final FileWriter writer = new FileWriter(filename)) {
+//        for (final String message : LOG_BUFFER) {
+//          writer.append(message).append('\n');
+//        }
+//      } catch (final IOException e) {
+//        // Nothing much we can do here.
+//      }
     }
   }
 
@@ -51,6 +53,7 @@ public class Log {
       throw new IllegalStateException(e);
     }
     INSTANCE = new Log(writer);
+    currentBotId = botId;
 
     try {
       for (final String message : LOG_BUFFER) {
@@ -63,6 +66,10 @@ public class Log {
   }
 
   public static void log(final String message) {
+    if (currentBotId == -1) {
+      return;
+    }
+
     if (INSTANCE == null) {
       LOG_BUFFER.add(message);
       return;

@@ -5,10 +5,7 @@ import hlt.Direction;
 import hlt.Position;
 
 import java.text.DecimalFormat;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Generic grid representing the map. It self-contains the wrap-around map logic doing
@@ -156,5 +153,22 @@ public class Grid<T> {
       stringBuilder.append("\n");
     }
     return stringBuilder.toString();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Grid<?> grid = (Grid<?>) o;
+    return height == grid.height &&
+        width == grid.width &&
+        Arrays.deepEquals(costGrid, grid.costGrid);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = Objects.hash(height, width);
+    result = 31 * result + Arrays.hashCode(costGrid);
+    return result;
   }
 }

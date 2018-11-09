@@ -15,16 +15,18 @@ public class GravityGrids {
     Grid<Double> gravityGrid = new Grid<>(haliteGrid.width, haliteGrid.height, 0.0);
     for (int a = 0; a < haliteGrid.height; a++) {
       for (int b = 0; b < haliteGrid.width; b++) {
-        setInfluence(a, b, haliteGrid);
+        updateInfluence(a, b, haliteGrid, gravityGrid);
       }
     }
+
+    return gravityGrid;
   }
 
-  private static double setInfluence(int originX, int originY, Grid<Integer> haliteGrid, Grid<Double> gravityGridBuilder) {
-
+  private static void updateInfluence(
+      int originX, int originY, Grid<Integer> haliteGrid, Grid<Double> gravityGrid) {
     for (int x = 0; x < haliteGrid.height; x++) {
       for (int y = 0; y < haliteGrid.width; y++) {
-        int distanceFromOrigin = Math.min(haliteGrid.distance(origin), MAX_EXPONENT);
+        int distanceFromOrigin = Math.min(haliteGrid.distance(originX, originY, x, y), MAX_EXPONENT);
 
         if (powerCache[distanceFromOrigin] == 0) {
           powerCache[distanceFromOrigin] = Math.pow(DECAY_CONST, distanceFromOrigin);
@@ -32,9 +34,8 @@ public class GravityGrids {
 
         double multiplier = powerCache[distanceFromOrigin];
 
-        return value * multiplier;
+        gravityGrid.set(x, y, gravityGrid.get(x, y) + haliteGrid.get(originX, originY) * multiplier);
       }
     }
-
   }
 }

@@ -1,10 +1,7 @@
 package bot;
 
-import com.google.common.collect.ImmutableList;
 import grid.Grid;
 import hlt.*;
-import map.Path;
-import ml.ExploreModel;
 import shipagent.Decision;
 import shipagent.ShipMover;
 import shipagent.ShipRouter;
@@ -49,9 +46,13 @@ public class MyBot {
 
       Grid<Integer> haliteGrid = gameMap.toHaliteGrid();
 
-      ExploreModel model = new ExploreModel();
+      final long startTime = System.currentTimeMillis();
 
-      ShipRouter shipRouter = new ShipRouter(haliteGrid, game.me.shipyard.position, model);
+      ShipRouter shipRouter = new ShipRouter(haliteGrid, game.me.shipyard.position);
+
+      final long endTime = System.currentTimeMillis();
+      Log.log("Total execution time: " + (endTime - startTime));
+
       Map<Ship, Decision> mappings = shipRouter.routeShips(me.ships.values());
 
       ShipMover shipMover = new ShipMover(haliteGrid);

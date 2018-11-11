@@ -7,7 +7,6 @@ import hlt.Command;
 import hlt.Direction;
 import hlt.Position;
 import hlt.Ship;
-import map.Path;
 
 import java.util.*;
 
@@ -35,21 +34,18 @@ public class ShipMover {
 
     for (Map.Entry<Ship, Decision> entry : mappings.entrySet()) {
       Ship ship = entry.getKey();
-      Path path = entry.getValue().path;
+      Decision decision = entry.getValue();
 
-      Position from = path.pop();
-      Position to = path.path.isEmpty() ? from : path.pop();
-
-      if (!previousPositions.contains(to)) {
-        if (!freedPositions.containsKey(to)) {
-          freedPositions.put(to, new ArrayList<>());
+      if (!previousPositions.contains(decision.destination)) {
+        if (!freedPositions.containsKey(decision.destination)) {
+          freedPositions.put(decision.destination, new ArrayList<>());
         }
-        freedPositions.get(to).add(ship);
+        freedPositions.get(decision.destination).add(ship);
       } else {
-        if (!blockedCommandMap.containsKey(to)) {
-          blockedCommandMap.put(to, new ArrayList<>());
+        if (!blockedCommandMap.containsKey(decision.destination)) {
+          blockedCommandMap.put(decision.destination, new ArrayList<>());
         }
-        blockedCommandMap.get(to).add(ship);
+        blockedCommandMap.get(decision.destination).add(ship);
       }
     }
 

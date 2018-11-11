@@ -1,83 +1,57 @@
 package shipagent;
 
-import grid.DjikstraGrid;
 import grid.Grid;
-import hlt.Log;
+import hlt.Direction;
 import hlt.Position;
 import hlt.Ship;
-import map.GoalGenerator;
-import map.Path;
-import ml.ActionType;
-import ml.ExploreModel;
-import ml.ExploreVector;
-import ml.FeatureExtractor;
+import map.GravityGrids;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
 /**
  * This guy tells ships what to do.
  */
 public class ShipRouter {
 
-  private final DjikstraGrid gridToHome;
-  private final GoalGenerator goalGenerator;
+  private final Position home;
 
-  private final ExploreModel exploreModel;
-  private final FeatureExtractor featureExtractor;
+  private final Grid<Integer> haliteGrid;
+  private final Grid<Double> gravityGrid;
 
-  public ShipRouter(Grid<Integer> haliteGrid, Position myBase, ExploreModel exploreModel) {
-    this.gridToHome = DjikstraGrid.create(haliteGrid, myBase, null);
-    this.goalGenerator = new GoalGenerator(this.gridToHome);
-    this.exploreModel = exploreModel;
-    this.featureExtractor = new FeatureExtractor(this.gridToHome, myBase);
+  public ShipRouter(Grid<Integer> haliteGrid, Position home) {
+    this.haliteGrid = haliteGrid;
+    this.home = home;
+    this.gravityGrid = GravityGrids.createGravityGrid(haliteGrid);
   }
 
-  // TODO: Fix how some ships might flip flop back and forth between 2 goals.
-  public Map<Ship, Decision> routeShips(Collection<Ship> ships) {
-    HashSet<Position> bestSquares = new HashSet<>(goalGenerator.getBestPositions(ships.size()));
-    HashMap<Ship, Decision> decisionMap = new HashMap<>();
+  private Decision makeDecision(Ship ship) {
+    HashSet<Decision> allDecisions = new HashSet<>();
+    allDecisions.add(new Decision(
+        Direction.STILL,
+        ship.position,
+        gravityGrid.get(ship.position.x, ship.position.y)
+            + haliteGrid.get(ship.position.x, ship.position.y) * 0.25));
 
-    for (Ship ship : ships) {
-      Position exploreChoice =
-          gridToHome.haliteGrid
-              .findClosestPosition(ship.position, bestSquares)
-              .orElse(ship.position);
 
-      DjikstraGrid gridToShip = DjikstraGrid.create(this.gridToHome.haliteGrid, ship.position, exploreChoice);
-      Path pathToExplore = gridToShip.findPath(exploreChoice);
-
-      ExploreVector vector = featureExtractor.extractVector(ship, pathToExplore);
-
-      ActionType actionType;
-      if (gridToHome.haliteGrid.get(ship.position.x, ship.position.y) / 10 > ship.halite) {
-        actionType = ActionType.STAY;
-        Log.log("Forced stay. ");
-      } else {
-        actionType = exploreModel.sampleAction(vector);
-      }
-
-      if (actionType == ActionType.STAY) {
-        Path path = new Path();
-        path.push(ship.position);
-        decisionMap.put(ship, new Decision(ActionType.STAY, vector, path));
-        Log.log(ship.id + " - " + ship.position + " STAY");
-      } else if (actionType == ActionType.EXPLORE) {
-        decisionMap.put(ship, new Decision(ActionType.EXPLORE, vector, pathToExplore));
-        bestSquares.remove(pathToExplore.getDestination());
-        Log.log(ship.id + " - " + ship.position + " EXPLORE " + pathToExplore.getDestination());
-      } else if (actionType == ActionType.RETURN) {
-        decisionMap.put(ship, new Decision(ActionType.RETURN, vector, gridToHome.findPath(ship.position).reversed()));
-        Log.log(ship.id + " - " + ship.position + " RETURN");
+    if (ship.halite >= haliteGrid.get(ship.position.x, ship.position.y) / 10) {
+      for (Direction offset : Direction.ALL_CARDINALS) {
+        Position neighbor = ship.position.directionalOffset(offset);
+        Decision decision = new Decision(
+            offset,
+            neighbor,
+            gravityGrid.get(neighbor.x, neighbor.y));
+        allDecisions.add(decision);
       }
     }
 
-    return decisionMap;
+    return allDecisions.stream().max(Comparator.comparingDouble(d -> d.score)).get();
   }
 
-  private static void debugDecisions(Collection<Decision> decisions) {
-    decisions.stream().forEach(c -> System.out.println(c));
+  public Map<Ship, Decision> routeShips(Collection<Ship> ships) {
+    HashMap<Ship, Decision> shipDecisions = new HashMap<>();
+    for (Ship ship : ships) {
+      shipDecisions.put(ship, makeDecision(ship));
+    }
+    return shipDecisions;
   }
 }

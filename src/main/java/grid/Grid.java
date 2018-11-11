@@ -141,11 +141,15 @@ public class Grid<T> {
   @Override
   public String toString() {
     DecimalFormat df = new DecimalFormat("0000");
+    DecimalFormat doubleFormat = new DecimalFormat("##00.0#");
+
     StringBuilder stringBuilder = new StringBuilder();
     for (int i = 0; i < costGrid.length; i++) {
       for (int j = 0; j < costGrid[i].length; j++) {
         if (costGrid[i][j] instanceof Integer) {
           stringBuilder.append(df.format(costGrid[i][j]) + " ");
+        } else if (costGrid[i][j] instanceof Double) {
+          stringBuilder.append(doubleFormat.format(costGrid[i][j]) + " ");
         } else {
           stringBuilder.append(costGrid[i][j] + " ");
         }

@@ -23,7 +23,7 @@ public class Vertex {
 
   @Override
   public String toString() {
-    DecimalFormat df = new DecimalFormat("#.00");
+    DecimalFormat df = new DecimalFormat("####0.#####");
     StringBuilder stringBuilder = new StringBuilder();
     stringBuilder.append("VERTEX: " + position + " - " + df.format(label) + "\n");
     for (Edge edge : edges) {

@@ -13,7 +13,7 @@ public class Edge {
 
   @Override
   public String toString() {
-    DecimalFormat df = new DecimalFormat("#.00");
-    return "Edge to: " + destination + " - " + df.format(weight);
+    DecimalFormat df = new DecimalFormat("0.0####");
+    return "Edge to: " + destination.position + " - " + df.format(weight);
   }
 }

@@ -28,7 +28,7 @@ public class ShipRouter {
     return shipDecisions;
   }
 
-  private Decision makeDecision(Ship ship) {
+  public HashSet<Decision> getDecisions(Ship ship) {
     HashSet<Decision> allDecisions = new HashSet<>();
     allDecisions.add(new Decision(
         Direction.STILL,
@@ -37,7 +37,7 @@ public class ShipRouter {
 
     if (ship.halite >= haliteGrid.get(ship.position.x, ship.position.y) / 10) {
       for (Direction offset : Direction.ALL_CARDINALS) {
-        Position neighbor = ship.position.directionalOffset(offset);
+        Position neighbor = haliteGrid.normalize(ship.position.directionalOffset(offset));
         Decision decision = new Decision(
             offset,
             neighbor,
@@ -46,11 +46,16 @@ public class ShipRouter {
       }
     }
 
+    return allDecisions;
+  }
+
+  private Decision makeDecision(Ship ship) {
+    HashSet<Decision> allDecisions = getDecisions(ship);
+
     Log.log("Moves for ship: " + ship.id);
     for (Decision d : allDecisions) {
       Log.log(d.toString());
     }
-
     return allDecisions.stream().max(Comparator.comparingDouble(d -> d.score)).get();
   }
 

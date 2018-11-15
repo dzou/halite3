@@ -1,5 +1,7 @@
 package matching;
 
+import java.text.DecimalFormat;
+
 public class Edge {
   public final Vertex destination;
   public final double weight;
@@ -7,5 +9,11 @@ public class Edge {
   public Edge(Vertex destination, double weight) {
     this.destination = destination;
     this.weight = weight;
+  }
+
+  @Override
+  public String toString() {
+    DecimalFormat df = new DecimalFormat("#.00");
+    return "Edge to: " + destination + " - " + df.format(weight);
   }
 }

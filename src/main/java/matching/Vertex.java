@@ -1,6 +1,8 @@
 package matching;
 
 import hlt.Position;
+
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 public class Vertex {
@@ -17,5 +19,16 @@ public class Vertex {
 
   public void addNeighbor(Vertex dest, double weight) {
     edges.add(new Edge(dest, weight));
+  }
+
+  @Override
+  public String toString() {
+    DecimalFormat df = new DecimalFormat("#.00");
+    StringBuilder stringBuilder = new StringBuilder();
+    stringBuilder.append("VERTEX: " + position + " - " + df.format(label) + "\n");
+    for (Edge edge : edges) {
+      stringBuilder.append(edge + "\n");
+    }
+    return stringBuilder.toString();
   }
 }

@@ -46,12 +46,7 @@ public class MyBot {
 
       Grid<Integer> haliteGrid = gameMap.toHaliteGrid();
 
-      final long startTime = System.currentTimeMillis();
-
       ShipRouter shipRouter = new ShipRouter(haliteGrid, game.me.shipyard.position);
-
-      final long endTime = System.currentTimeMillis();
-      Log.log("Total execution time: " + (endTime - startTime));
 
       Map<Ship, Decision> mappings = shipRouter.routeShips(me.ships.values());
 

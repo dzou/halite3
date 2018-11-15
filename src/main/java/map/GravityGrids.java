@@ -6,7 +6,7 @@ public class GravityGrids {
 
   private static final double DECAY_CONST = 0.25;
 
-  private static final int MAX_EXPONENT = 32;
+  private static final int MAX_EXPONENT = 10;
 
   private static final double[] powerCache = new double[MAX_EXPONENT + 1];
 
@@ -23,16 +23,18 @@ public class GravityGrids {
 
   private static void updateInfluence(
       int originX, int originY, Grid<Integer> haliteGrid, Grid<Double> gravityGrid) {
+
+    double bestHalitePotential = -9999999;
     for (int y = 0; y < haliteGrid.height; y++) {
       for (int x = 0; x < haliteGrid.width; x++) {
-        int distanceFromOrigin = Math.min(haliteGrid.distance(originX, originY, x, y), MAX_EXPONENT);
-        if (powerCache[distanceFromOrigin] == 0) {
-          powerCache[distanceFromOrigin] = Math.pow(DECAY_CONST, distanceFromOrigin);
+        int turnsSpent = haliteGrid.distance(originX, originY, x, y) + 3;
+        double halitePotential = 0.58 * haliteGrid.get(x, y) / turnsSpent;
+        if (halitePotential > bestHalitePotential) {
+          bestHalitePotential = halitePotential;
         }
-
-        double multiplier = powerCache[distanceFromOrigin];
-        gravityGrid.set(x, y, gravityGrid.get(x, y) + haliteGrid.get(originX, originY) * 0.25 * multiplier);
       }
     }
+
+    gravityGrid.set(originX, originY, bestHalitePotential);
   }
 }

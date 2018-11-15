@@ -35,7 +35,7 @@ public class GravityGridsTest {
         haliteField[i][j] = 1000;
       }
     }
-    haliteField[0][0] = 500;
+    haliteField[0][0] = 250;
 
     Grid<Integer> grid = new Grid<>(haliteField);
     Grid<Double> influenceMap = GravityGrids.createGravityGrid(grid);

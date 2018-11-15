@@ -1,36 +1,30 @@
 package shipagent;
 
+import com.google.common.collect.ImmutableList;
+import grid.Grid;
+import hlt.Position;
+import hlt.Ship;
 import org.junit.Test;
+import util.TestUtil;
 
 public class ShipRouterTest {
 
   @Test
   public void testShipRouting() {
-//    // 9 x 9 map.
-//    Integer[][] rawGrid = {
-//        {10, 10, 10, 10, 10, 10, 10, 10, 10},
-//        {10, 10, 10, 10, 10, 10, 10, 10, 10},
-//        {10, 7, 00, 10, 10, 10, 10, 10, 10},
-//        {10, 10, 10, 10, 10, 10, 10, 10, 10},
-//        {10, 10, 10, 10, 10, 10, 10, 10, 10},
-//        {10, 10, 10, 10, 10, 10, 10, 10, 10},
-//        {10, 10, 10, 10, 10, 10, 10, 10, 10},
-//        {10, 10, 10, 10, 10, 10, 10, 10, 10},
-//        {10, 10, 10, 10, 10, 10, 10, 10, 10},
-//    };
-//
-//    Position base = Position.at(2, 2);
-//    Grid<Integer> grid = new Grid(rawGrid);
-//    ShipRouter shipRouter = new ShipRouter(grid, base);
-//
-//    ImmutableList<Ship> ships = ImmutableList.of(
-//        ship(1, 2, 2),
-//        ship(8, 0)
-//    );
-//
-//    Map<Ship, Decision> mappings =  shipRouter.routeShips(ships);
-//
-//    mappings.entrySet().forEach(e -> System.out.println(e.getKey() + " + " + e.getValue()));
+
+    Integer[][] haliteField = {
+        {100, 100, 100, 100, 100},
+        {100, 100, 100, 200, 100},
+        {000, 000, 000, 000, 000},
+        {000, 000, 000, 000, 000},
+        {000, 000, 000, 000, 000},
+    };
+    Grid<Integer> grid = new Grid<>(haliteField);
+
+    ShipRouter shipRouter = new ShipRouter(grid, Position.at(2, 2));
+    Ship ship = TestUtil.ship(2, 2);
+
+    shipRouter.routeShips(ImmutableList.of(ship));
   }
 
 }

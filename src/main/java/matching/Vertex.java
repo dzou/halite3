@@ -8,17 +8,23 @@ import java.util.ArrayList;
 public class Vertex {
 
   public final Position position;
-  public double label;
-  public ArrayList<Edge> edges;
 
-  public Vertex(Position position, double label) {
+  public double label;
+
+  public final Type type;
+
+  public final ArrayList<Edge> edges;
+
+
+  public Vertex(Position position, double label, Type type) {
     this.position = position;
     this.label = label;
     this.edges = new ArrayList<>();
+    this.type = type;
   }
 
   public void addNeighbor(Vertex dest, double weight) {
-    edges.add(new Edge(dest, weight));
+    edges.add(new Edge(this, dest, weight));
   }
 
   @Override
@@ -30,5 +36,9 @@ public class Vertex {
       stringBuilder.append(edge + "\n");
     }
     return stringBuilder.toString();
+  }
+
+  enum Type {
+    SHIP, DESTINATION;
   }
 }

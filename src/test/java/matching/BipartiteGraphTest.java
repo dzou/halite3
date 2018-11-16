@@ -3,6 +3,7 @@ package matching;
 import grid.Grid;
 import hlt.Position;
 import hlt.Ship;
+import matching.BipartiteGraph.ForestPartition;
 import org.junit.Test;
 import shipagent.ShipRouter;
 
@@ -33,5 +34,8 @@ public class BipartiteGraphTest {
 
     assertThat(bipartiteGraph.ships).hasSize(2);
     assertThat(bipartiteGraph.destinations).hasSize(8);
+
+    ForestPartition forestPartition = bipartiteGraph.findAlternatingForestScope();
+    System.out.println(forestPartition);
   }
 }

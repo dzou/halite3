@@ -3,6 +3,8 @@ package shipagent;
 import grid.Grid;
 import hlt.*;
 import map.GravityGrids;
+import matching.BipartiteGraph;
+import matching.Edge;
 
 import java.util.*;
 
@@ -20,10 +22,25 @@ public class ShipRouter {
     this.home = home;
   }
 
-  public Map<Ship, Decision> routeShips(Collection<Ship> ships) {
-    HashMap<Ship, Decision> shipDecisions = new HashMap<>();
+  public HashMap<Ship, Position> routeShips(Collection<Ship> ships) {
+    BipartiteGraph bipartiteGraph = new BipartiteGraph();
     for (Ship ship : ships) {
-      shipDecisions.put(ship, makeDecision(ship));
+      HashSet<Decision> decisions = getDecisions(ship);
+      bipartiteGraph.addShip(ship, decisions);
+
+      if (ship.halite == 1000) {
+        Log.log("ship: " + ship.id);
+        for (Decision d : decisions) {
+          Log.log(d.toString());
+        }
+      }
+    }
+
+    HashSet<Edge> edges = bipartiteGraph.matchShipsToDestinations();
+
+    HashMap<Ship, Position> shipDecisions = new HashMap<>();
+    for (Edge e : edges) {
+      shipDecisions.put(e.start.ship.get(), e.destination.position);
     }
     return shipDecisions;
   }
@@ -49,20 +66,9 @@ public class ShipRouter {
     return allDecisions;
   }
 
-  private Decision makeDecision(Ship ship) {
-    HashSet<Decision> allDecisions = getDecisions(ship);
-
-    Log.log("Moves for ship: " + ship.id);
-    for (Decision d : allDecisions) {
-      Log.log(d.toString());
-    }
-    return allDecisions.stream().max(Comparator.comparingDouble(d -> d.score)).get();
-  }
-
-
-
   private double scorePosition(Ship ship, Position destination) {
     int haliteUnderShip = haliteGrid.get(ship.position.x, ship.position.y);
+    int haliteCost = haliteUnderShip / 10;
 
     double score = 0;
 
@@ -74,10 +80,10 @@ public class ShipRouter {
       for (int y = 0; y < haliteGrid.height; y++) {
         for (int x = 0; x < haliteGrid.width; x++) {
           double haliteCollectedEstimate = Math.min(
-              Constants.MAX_HALITE - ship.halite, haliteGrid.get(x, y) * 0.58);
-          int turnsFromDest = haliteGrid.distance(x, y, destination.x, destination.y) + 3;
+              Constants.MAX_HALITE - ship.halite, haliteGrid.get(x, y) * 0.77);
+          int turnsFromDest = haliteGrid.distance(x, y, destination.x, destination.y) + 5;
 
-          double haliteRate = haliteCollectedEstimate / turnsFromDest;
+          double haliteRate = (haliteCollectedEstimate - haliteCost) / turnsFromDest;
           if (haliteRate > bestHaliteRate) {
             bestHaliteRate = haliteRate;
           }
@@ -86,9 +92,10 @@ public class ShipRouter {
 
       double moveScore = Math.max(
           bestHaliteRate,    // Move elsewhere and mine
-          1.0 * ship.halite / (haliteGrid.distance(destination, home) + 3)
+          1.0 * (ship.halite - haliteCost) / (2.0 * haliteGrid.distance(destination, home) + 4)
       );
-      score += moveScore - haliteUnderShip / 10;
+
+      score += moveScore;
     }
 
 

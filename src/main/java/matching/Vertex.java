@@ -1,9 +1,12 @@
 package matching;
 
 import hlt.Position;
+import hlt.Ship;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Objects;
+import java.util.Optional;
 
 public class Vertex {
 
@@ -15,12 +18,14 @@ public class Vertex {
 
   public final ArrayList<Edge> edges;
 
+  public final Optional<Ship> ship;
 
-  public Vertex(Position position, double label, Type type) {
+  public Vertex(Position position, double label, Type type, Ship ship) {
     this.position = position;
     this.label = label;
     this.edges = new ArrayList<>();
     this.type = type;
+    this.ship = Optional.ofNullable(ship);
   }
 
   public void addNeighbor(Vertex dest, double weight) {
@@ -29,9 +34,9 @@ public class Vertex {
 
   @Override
   public String toString() {
-    DecimalFormat df = new DecimalFormat("####0.#####");
+    DecimalFormat df = new DecimalFormat("####0.##");
     StringBuilder stringBuilder = new StringBuilder();
-    stringBuilder.append("VERTEX: " + position + " - " + df.format(label) + "\n");
+    stringBuilder.append("VERTEX: " + position + " (" + df.format(label) + ")\n");
     for (Edge edge : edges) {
       stringBuilder.append(edge + "\n");
     }

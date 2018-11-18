@@ -2,15 +2,11 @@ package matching;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import hlt.Log;
 import hlt.Position;
 import hlt.Ship;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+
+import java.util.*;
 import java.util.stream.Collectors;
 import matching.Vertex.Type;
 import shipagent.Decision;
@@ -40,52 +36,94 @@ public class BipartiteGraph {
     this.assignmentEdges = new HashSet<>();
   }
 
-  public void matchShipsToDestinations() {
+  public HashSet<Edge> matchShipsToDestinations() {
     while (assignmentEdges.size() < ships.size()) {
-      ImmutableList<Vertex> unassignedVertices = ships.values().stream()
-          .filter(v -> !assignedVertices.contains(v))
+      List<Vertex> unassignedShips = ships.values()
+          .stream()
+          .filter(s -> !assignedVertices.contains(s))
           .collect(ImmutableList.toImmutableList());
 
-      for (Vertex unassignedShip : unassignedVertices) {
-
+      for (Vertex s : unassignedShips) {
+        ArrayList<Edge> path = findAugmentingPath(s);
+        for (Edge e : path) {
+          if (assignmentEdges.contains(e)) {
+            assignmentEdges.remove(e);
+          } else {
+            assignedVertices.add(e.start);
+            assignedDestinations.add(e.destination);
+            assignmentEdges.add(e);
+          }
+        }
       }
 
+      relabelGraph();
+    }
 
+    return assignmentEdges;
+  }
+
+  void relabelGraph() {
+    ForestPartition forestPartition = findAlternatingForestScope();
+
+    double globalBestAlpha = 99999999;
+
+    for (Vertex shipVertex : forestPartition.ships) {
+      for (Edge e : shipVertex.edges) {
+        if (!isIncludedInEqualitySubgraph(e)) {
+          double alpha = e.start.label + e.destination.label - e.weight;
+          if (alpha < globalBestAlpha) {
+            globalBestAlpha = alpha;
+          }
+        }
+      }
+    }
+
+    for (Vertex v : forestPartition.ships) {
+      v.label -= globalBestAlpha;
+    }
+
+    for (Vertex v : forestPartition.dests) {
+      v.label += globalBestAlpha;
     }
   }
 
-  public void relabelGraph() {
-    ForestPartition forestPartition = findAlternatingForestScope();
+  ArrayList<Edge> findAugmentingPath(Vertex ship) {
+    HashMap<Vertex, Edge> prevMap = new HashMap<>();
 
-
-  }
-
-  public ArrayList<Edge> findAugmentingPath(Vertex ship) {
     ArrayDeque<Vertex> stack = new ArrayDeque<>();
     stack.push(ship);
 
     ArrayList<Edge> path = new ArrayList<>();
 
-    while(!stack.isEmpty()) {
+    while (!stack.isEmpty()) {
       Vertex curr = stack.pop();
 
       if (curr.type == Type.DESTINATION && !assignedDestinations.contains(curr)) {
-
+        Edge originEdge = prevMap.get(curr);
+        while (originEdge != null) {
+          path.add(originEdge);
+          originEdge = prevMap.get(originEdge.start);
+        }
+        break;
       }
 
       for (Edge e : curr.edges) {
-        if (curr.type == Type.SHIP && assignmentEdges.contains(e)
-            || curr.type == Type.DESTINATION && !assignmentEdges.contains(e)) {
+        if (prevMap.containsKey(e.destination)
+            || curr.type == Type.SHIP && assignmentEdges.contains(e)
+            || curr.type == Type.DESTINATION && !assignmentEdges.contains(e)
+            || !isIncludedInEqualitySubgraph(e)) {
           continue;
         }
 
         stack.push(e.destination);
+        prevMap.put(e.destination, e);
       }
     }
 
+    return path;
   }
 
-  public ForestPartition findAlternatingForestScope() {
+  ForestPartition findAlternatingForestScope() {
     ForestPartition forestPartition = new ForestPartition();
 
     for (Vertex shipPosition : ships.values()) {
@@ -109,10 +147,18 @@ public class BipartiteGraph {
         }
 
         for (Edge e : current.edges) {
-          if (current.type == Type.SHIP && assignmentEdges.contains(e)
-              || current.type == Type.DESTINATION && !assignmentEdges.contains(e)) {
+          if (current.type == Type.SHIP && assignmentEdges.contains(e)) {
             continue;
           }
+
+          if (current.type == Type.DESTINATION && !assignmentEdges.contains(e)) {
+            continue;
+          }
+
+          if (!isIncludedInEqualitySubgraph(e)) {
+            continue;
+          }
+
           stack.push(e.destination);
         }
       }
@@ -122,18 +168,18 @@ public class BipartiteGraph {
   }
 
   private static boolean isIncludedInEqualitySubgraph(Edge e) {
-    return e.weight >= e.start.label + e.destination.label;
+    return e.weight + 0.000001 >= e.start.label + e.destination.label;
   }
 
   public void addShip(Ship ship, Collection<Decision> neighbors) {
-    Vertex shipVertex = new Vertex(ship.position,0, Type.SHIP);
+    Vertex shipVertex = new Vertex(ship.position,0, Type.SHIP, ship);
 
     for (Decision decision : neighbors) {
       shipVertex.label = Math.max(shipVertex.label, decision.score);
 
       Vertex destVertex = destinations.get(decision.destination);
       if (destVertex == null) {
-        destVertex = new Vertex(decision.destination, 0, Type.DESTINATION);
+        destVertex = new Vertex(decision.destination, 0, Type.DESTINATION, null);
         destinations.put(decision.destination, destVertex);
       }
 

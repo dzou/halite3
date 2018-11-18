@@ -3,7 +3,6 @@ package bot;
 import grid.Grid;
 import hlt.*;
 import shipagent.Decision;
-import shipagent.ShipMover;
 import shipagent.ShipRouter;
 
 import java.util.ArrayList;
@@ -48,16 +47,23 @@ public class MyBot {
 
       ShipRouter shipRouter = new ShipRouter(haliteGrid, game.me.shipyard.position);
 
-      Map<Ship, Decision> mappings = shipRouter.routeShips(me.ships.values());
 
-      ShipMover shipMover = new ShipMover(haliteGrid);
-      List<Command> moveCommands = shipMover.moveShips(mappings);
-      commandQueue.addAll(moveCommands);
+      Map<Ship, Position> mappings = shipRouter.routeShips(me.ships.values());
 
-      if (game.turnNumber <= 200
-          && me.halite >= Constants.SHIP_COST
-          && !shipMover.usedPositions.contains(me.shipyard.position)
-          && me.ships.size() == 0) {
+      boolean movedOnBase = false;
+
+      for (Map.Entry<Ship, Position> mapping : mappings.entrySet()) {
+        Ship ship = mapping.getKey();
+        Position destination = mapping.getValue();
+        if (destination.equals(me.shipyard.position)) {
+          movedOnBase = true;
+        }
+
+        Direction direction = haliteGrid.calculateDirection(ship.position, destination);
+        commandQueue.add(Command.move(ship.id, direction));
+      }
+
+      if (game.turnNumber <= 200 && me.halite >= Constants.SHIP_COST && !movedOnBase) {
         commandQueue.add(me.shipyard.spawn());
       }
 

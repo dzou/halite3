@@ -3,6 +3,7 @@ package hlt;
 import grid.Grid;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 public class GameMap {
   public final int width;

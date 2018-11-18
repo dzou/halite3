@@ -1,5 +1,6 @@
 package hlt;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -13,6 +14,14 @@ public class Player {
   private Player(final PlayerId id, final Shipyard shipyard) {
     this.id = id;
     this.shipyard = shipyard;
+  }
+
+  public Map<Position, Ship> getShipPositionsMap() {
+    HashMap<Position, Ship> result = new HashMap<>();
+    for (Ship ship : ships.values()) {
+      result.put(ship.position, ship);
+    }
+    return result;
   }
 
   void _update(final int numShips, final int numDropoffs, final int halite) {

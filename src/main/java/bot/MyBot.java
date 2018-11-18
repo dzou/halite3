@@ -1,18 +1,12 @@
 package bot;
 
-import com.google.common.collect.ImmutableList;
-import grid.Grid;
+import map.Grid;
 import hlt.*;
-import map.Path;
-import ml.ExploreModel;
 import shipagent.Decision;
-import shipagent.ShipMover;
 import shipagent.ShipRouter;
+import shipagent.Spawner;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 // This Java API uses camelCase instead of the snake_case as documented in the API docs.
 //   Otherwise the names of methods are consistent.
@@ -30,15 +24,10 @@ public class MyBot {
     // At this point "game" variable is populated with initial map data.
     // This is a good place to do computationally expensive start-up pre-processing.
     // As soon as you call "ready" function below, the 2 second per turn timer will start.
-    game.ready("WorkingVersion_Curr");
+    game.ready("Alpha1");
 
     Log.log("Successfully created bot! My Player ID is " + game.myId + ". Bot rng seed is " + rngSeed + ".");
 
-    /**
-     * 1. Generate and assign goals.
-     * 2. Do Path finding
-     * 3. Resolve moves for each path that you stored.
-     */
 
     for (; ; ) {
       game.updateFrame();
@@ -49,19 +38,25 @@ public class MyBot {
 
       Grid<Integer> haliteGrid = gameMap.toHaliteGrid();
 
-      ExploreModel model = new ExploreModel();
+      ShipRouter shipRouter = new ShipRouter(haliteGrid, game.me.shipyard.position, Constants.MAX_TURNS - game.turnNumber);
+      Map<Ship, Position> mappings = shipRouter.routeShips(me.ships.values());
 
-      ShipRouter shipRouter = new ShipRouter(haliteGrid, game.me.shipyard.position, model);
-      Map<Ship, Decision> mappings = shipRouter.routeShips(me.ships.values());
+      boolean movedOnBase = false;
 
-      ShipMover shipMover = new ShipMover(haliteGrid);
-      List<Command> moveCommands = shipMover.moveShips(mappings);
-      commandQueue.addAll(moveCommands);
+      for (Map.Entry<Ship, Position> mapping : mappings.entrySet()) {
+        Ship ship = mapping.getKey();
+        Position destination = mapping.getValue();
+        if (destination.equals(me.shipyard.position)) {
+          movedOnBase = true;
+        }
 
-      if (game.turnNumber <= 200
-          && me.halite >= Constants.SHIP_COST
-          && !shipMover.usedPositions.contains(me.shipyard.position)
-          && me.ships.size() == 0) {
+        Direction direction = haliteGrid.calculateDirection(ship.position, destination);
+        commandQueue.add(Command.move(ship.id, direction));
+      }
+
+      if (me.halite >= Constants.SHIP_COST
+          && !movedOnBase
+          && Spawner.shouldMakeShip(game.turnNumber, haliteGrid)) {
         commandQueue.add(me.shipyard.spawn());
       }
 

@@ -1,6 +1,6 @@
 package hlt;
 
-import grid.Grid;
+import map.Grid;
 
 import java.util.ArrayList;
 

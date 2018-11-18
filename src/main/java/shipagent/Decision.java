@@ -1,30 +1,28 @@
 package shipagent;
 
+import hlt.Direction;
 import hlt.Position;
-import map.Path;
-import ml.ActionType;
-import ml.ExploreVector;
 
 public class Decision {
 
-  public final ActionType type;
+  public final Direction direction;
 
-  public final ExploreVector state;
+  public final Position destination;
 
-  public final Path path;
+  public final double score;
 
-  public Decision(ActionType type, ExploreVector state, Path path) {
-    this.type = type;
-    this.state = state;
-    this.path = path;
+  public Decision(Direction direction, Position destination, double score) {
+    this.direction = direction;
+    this.destination = destination;
+    this.score = score;
   }
 
   @Override
   public String toString() {
     return "Decision{" +
-        "type=" + type +
-        ", state=" + state +
-        ", path=" + path +
+        "direction=" + direction +
+        ", destination=" + destination +
+        ", score=" + score +
         '}';
   }
 }

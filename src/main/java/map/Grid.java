@@ -1,14 +1,11 @@
-package grid;
+package map;
 
 import com.google.common.collect.ImmutableList;
 import hlt.Direction;
 import hlt.Position;
 
 import java.text.DecimalFormat;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Generic grid representing the map. It self-contains the wrap-around map logic doing
@@ -51,7 +48,7 @@ public class Grid<T> {
   public List<Position> getNeighbors(Position position) {
     ImmutableList.Builder<Position> neighbors = ImmutableList.builder();
     for (Direction d : Direction.ALL_CARDINALS) {
-      Position neighbor = position.directionalOffset(d);
+      Position neighbor = normalize(position.directionalOffset(d));
       neighbors.add(neighbor);
     }
     return neighbors.build();
@@ -61,6 +58,22 @@ public class Grid<T> {
     int x = ((position.x % width) + width) % width;
     int y = ((position.y % height) + height) % height;
     return new Position(x, y);
+  }
+
+  public int distance(int sx, int sy, int tx, int ty) {
+    sx = normalizeX(sx);
+    sy = normalizeY(sy);
+
+    tx = normalizeX(tx);
+    ty = normalizeY(ty);
+
+    final int dx = Math.abs(sx - tx);
+    final int dy = Math.abs(sy - ty);
+
+    final int toroidal_dx = Math.min(dx, width - dx);
+    final int toroidal_dy = Math.min(dy, height - dy);
+
+    return toroidal_dx + toroidal_dy;
   }
 
   public int distance(final Position source, final Position target) {
@@ -128,11 +141,15 @@ public class Grid<T> {
   @Override
   public String toString() {
     DecimalFormat df = new DecimalFormat("0000");
+    DecimalFormat doubleFormat = new DecimalFormat("##00.0#");
+
     StringBuilder stringBuilder = new StringBuilder();
     for (int i = 0; i < costGrid.length; i++) {
       for (int j = 0; j < costGrid[i].length; j++) {
         if (costGrid[i][j] instanceof Integer) {
           stringBuilder.append(df.format(costGrid[i][j]) + " ");
+        } else if (costGrid[i][j] instanceof Double) {
+          stringBuilder.append(doubleFormat.format(costGrid[i][j]) + " ");
         } else {
           stringBuilder.append(costGrid[i][j] + " ");
         }
@@ -140,5 +157,22 @@ public class Grid<T> {
       stringBuilder.append("\n");
     }
     return stringBuilder.toString();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Grid<?> grid = (Grid<?>) o;
+    return height == grid.height &&
+        width == grid.width &&
+        Arrays.deepEquals(costGrid, grid.costGrid);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = Objects.hash(height, width);
+    result = 31 * result + Arrays.hashCode(costGrid);
+    return result;
   }
 }

@@ -1,83 +1,130 @@
 package shipagent;
 
-import grid.DjikstraGrid;
-import grid.Grid;
-import hlt.Log;
-import hlt.Position;
-import hlt.Ship;
-import map.GoalGenerator;
-import map.Path;
-import ml.ActionType;
-import ml.ExploreModel;
-import ml.ExploreVector;
-import ml.FeatureExtractor;
+import map.DjikstraGrid;
+import map.Grid;
+import hlt.*;
+import matching.BipartiteGraph;
+import matching.Edge;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
 /**
  * This guy tells ships what to do.
  */
 public class ShipRouter {
 
-  private final DjikstraGrid gridToHome;
-  private final GoalGenerator goalGenerator;
+  private final Position home;
 
-  private final ExploreModel exploreModel;
-  private final FeatureExtractor featureExtractor;
+  private final Grid<Integer> haliteGrid;
 
-  public ShipRouter(Grid<Integer> haliteGrid, Position myBase, ExploreModel exploreModel) {
-    this.gridToHome = DjikstraGrid.create(haliteGrid, myBase, null);
-    this.goalGenerator = new GoalGenerator(this.gridToHome);
-    this.exploreModel = exploreModel;
-    this.featureExtractor = new FeatureExtractor(this.gridToHome, myBase);
+  private final DjikstraGrid djikstraGrid;
+
+  private final int turnsRemaining;
+
+  public ShipRouter(Grid<Integer> haliteGrid, Position home, int turnsRemaining) {
+    this.haliteGrid = haliteGrid;
+    this.home = home;
+    this.djikstraGrid = DjikstraGrid.create(haliteGrid, home);
+    this.turnsRemaining = turnsRemaining;
   }
 
-  // TODO: Fix how some ships might flip flop back and forth between 2 goals.
-  public Map<Ship, Decision> routeShips(Collection<Ship> ships) {
-    HashSet<Position> bestSquares = new HashSet<>(goalGenerator.getBestPositions(ships.size()));
-    HashMap<Ship, Decision> decisionMap = new HashMap<>();
+  public HashMap<Ship, Position> routeShips(Collection<Ship> ships) {
+    HashSet<Edge> result = new HashSet<>();
 
+    BipartiteGraph bipartiteGraph = new BipartiteGraph();
     for (Ship ship : ships) {
-      Position exploreChoice =
-          gridToHome.haliteGrid
-              .findClosestPosition(ship.position, bestSquares)
-              .orElse(ship.position);
-
-      DjikstraGrid gridToShip = DjikstraGrid.create(this.gridToHome.haliteGrid, ship.position, exploreChoice);
-      Path pathToExplore = gridToShip.findPath(exploreChoice);
-
-      ExploreVector vector = featureExtractor.extractVector(ship, pathToExplore);
-
-      ActionType actionType;
-      if (gridToHome.haliteGrid.get(ship.position.x, ship.position.y) / 10 > ship.halite) {
-        actionType = ActionType.STAY;
-        Log.log("Forced stay. ");
+      if (isTimeToEndGame(ship, ships.size()) && haliteGrid.distance(ship.position, home) <= 1) {
+        result.add(Edge.manualEdge(ship, home));
       } else {
-        actionType = exploreModel.sampleAction(vector);
-      }
+        HashSet<Decision> decisions = getDecisions(ship, ships.size());
+        bipartiteGraph.addShip(ship, decisions);
 
-      if (actionType == ActionType.STAY) {
-        Path path = new Path();
-        path.push(ship.position);
-        decisionMap.put(ship, new Decision(ActionType.STAY, vector, path));
-        Log.log(ship.id + " - " + ship.position + " STAY");
-      } else if (actionType == ActionType.EXPLORE) {
-        decisionMap.put(ship, new Decision(ActionType.EXPLORE, vector, pathToExplore));
-        bestSquares.remove(pathToExplore.getDestination());
-        Log.log(ship.id + " - " + ship.position + " EXPLORE " + pathToExplore.getDestination());
-      } else if (actionType == ActionType.RETURN) {
-        decisionMap.put(ship, new Decision(ActionType.RETURN, vector, gridToHome.findPath(ship.position).reversed()));
-        Log.log(ship.id + " - " + ship.position + " RETURN");
+        Log.log("SHIP " + ship.id);
+        for (Decision d : decisions) {
+          Log.log(d.toString());
+        }
       }
     }
 
-    return decisionMap;
+    result.addAll(bipartiteGraph.matchShipsToDestinations());
+
+    HashMap<Ship, Position> shipDecisions = new HashMap<>();
+    for (Edge e : result) {
+      shipDecisions.put(e.start.ship.get(), e.destination.position);
+    }
+    return shipDecisions;
   }
 
-  private static void debugDecisions(Collection<Decision> decisions) {
-    decisions.stream().forEach(c -> System.out.println(c));
+  public HashSet<Decision> getDecisions(Ship ship, int totalShipCount) {
+    HashSet<Decision> allDecisions = new HashSet<>();
+    allDecisions.add(new Decision(
+        Direction.STILL,
+        ship.position,
+        scorePosition(ship, ship.position, totalShipCount)));
+
+    if (ship.halite >= haliteGrid.get(ship.position.x, ship.position.y) / 10) {
+      for (Direction offset : Direction.ALL_CARDINALS) {
+        Position neighbor = haliteGrid.normalize(ship.position.directionalOffset(offset));
+        Decision decision = new Decision(
+            offset,
+            neighbor,
+            scorePosition(ship, neighbor, totalShipCount));
+        allDecisions.add(decision);
+      }
+    }
+
+    return allDecisions;
   }
+
+  private double scorePosition(Ship ship, Position destination, int totalShipCount) {
+    boolean endTheGame = isTimeToEndGame(ship, totalShipCount);
+
+    double homeScore = goHomeScore(ship, destination, endTheGame);
+    double mineScore = endTheGame ? 0 : goMineScore(ship, destination);
+    return Math.max(homeScore, mineScore);
+  }
+
+  private boolean isTimeToEndGame(Ship ship, int shipCount) {
+    return haliteGrid.distance(ship.position, home) + 5 + (shipCount / 5) >= turnsRemaining;
+  }
+
+  private double goHomeScore(Ship ship, Position destination, boolean endTheGame) {
+    int haliteCostToHome = endTheGame
+        ? 0 : djikstraGrid.costCache.get(ship.position.x, ship.position.y) / 10;
+
+    double moveHomeOpportunityCost = 1.0 * ship.halite / Constants.MAX_HALITE;
+    return moveHomeOpportunityCost * (ship.halite - haliteCostToHome) / (haliteGrid.distance(destination, home) + 5);
+  }
+
+  private double goMineScore(Ship ship, Position destination) {
+    if (ship.position.equals(destination)) {
+      return Math.min(Constants.MAX_HALITE - ship.halite, haliteGrid.get(ship.position.x, ship.position.y) / 3);
+    }
+
+
+//    if (turnsRemaining < 150) {
+//      Log.log("haliteCostTOHome Ship " + ship.position);
+//      Log.log("Cost: " + haliteCostToHome);
+//    }
+
+    double bestHaliteRate = -9999999;
+    for (int y = 0; y < haliteGrid.height; y++) {
+      for (int x = 0; x < haliteGrid.width; x++) {
+        double haliteCollectedEstimate = Math.min(
+            Constants.MAX_HALITE - ship.halite, haliteGrid.get(x, y) * 0.58);
+        int turnsFromDest = haliteGrid.distance(x, y, destination.x, destination.y) + 3;
+
+        double tollAfterMining = 0.1 * (haliteGrid.get(x, y) - haliteCollectedEstimate);
+
+        double haliteRate = (haliteCollectedEstimate - tollAfterMining) / turnsFromDest;
+        if (haliteRate > bestHaliteRate) {
+          bestHaliteRate = haliteRate;
+        }
+      }
+    }
+
+    return bestHaliteRate;
+  }
+
+
 }

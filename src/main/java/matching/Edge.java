@@ -1,5 +1,8 @@
 package matching;
 
+import hlt.Position;
+import hlt.Ship;
+
 import java.text.DecimalFormat;
 import java.util.Objects;
 
@@ -12,6 +15,12 @@ public class Edge {
     this.start = start;
     this.destination = destination;
     this.weight = weight;
+  }
+
+  public static Edge manualEdge(Ship start, Position destination) {
+    Vertex startV = new Vertex(start.position, 0, Vertex.Type.SHIP, start);
+    Vertex destV = new Vertex(destination, 0, Vertex.Type.DESTINATION, null);
+    return new Edge(startV, destV, 0);
   }
 
   @Override

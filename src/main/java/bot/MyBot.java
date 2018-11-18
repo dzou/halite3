@@ -4,6 +4,7 @@ import map.Grid;
 import hlt.*;
 import shipagent.Decision;
 import shipagent.ShipRouter;
+import shipagent.Spawner;
 
 import java.util.*;
 
@@ -23,7 +24,7 @@ public class MyBot {
     // At this point "game" variable is populated with initial map data.
     // This is a good place to do computationally expensive start-up pre-processing.
     // As soon as you call "ready" function below, the 2 second per turn timer will start.
-    game.ready("ShipSpawnStrat");
+    game.ready("Alpha1");
 
     Log.log("Successfully created bot! My Player ID is " + game.myId + ". Bot rng seed is " + rngSeed + ".");
 
@@ -37,9 +38,7 @@ public class MyBot {
 
       Grid<Integer> haliteGrid = gameMap.toHaliteGrid();
 
-      ShipRouter shipRouter = new ShipRouter(haliteGrid, game.me.shipyard.position);
-
-
+      ShipRouter shipRouter = new ShipRouter(haliteGrid, game.me.shipyard.position, Constants.MAX_TURNS - game.turnNumber);
       Map<Ship, Position> mappings = shipRouter.routeShips(me.ships.values());
 
       boolean movedOnBase = false;
@@ -57,29 +56,11 @@ public class MyBot {
 
       if (me.halite >= Constants.SHIP_COST
           && !movedOnBase
-          && shouldMakeShips(shipRouter, game)) {
+          && Spawner.shouldMakeShip(game.turnNumber, haliteGrid)) {
         commandQueue.add(me.shipyard.spawn());
       }
 
       game.endTurn(commandQueue);
-    }
-  }
-
-  private static boolean shouldMakeShips(ShipRouter shipRouter, Game game) {
-    Ship ship = new Ship(null, null, game.me.shipyard.position, 0);
-    double halitePerTurn = shipRouter.getDecisions(ship).stream()
-        .mapToDouble(d -> d.score)
-        .average()
-        .orElse(0);
-
-    int turnsRemaining = Constants.MAX_TURNS - game.turnNumber;
-
-    Log.log("New Ship Potential: " + halitePerTurn * turnsRemaining);
-
-    if (halitePerTurn > 0 && halitePerTurn * turnsRemaining > 1000) {
-      return true;
-    } else {
-      return false;
     }
   }
 }

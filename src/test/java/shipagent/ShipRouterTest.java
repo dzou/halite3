@@ -26,10 +26,10 @@ public class ShipRouterTest {
     };
     Grid<Integer> grid = new Grid<>(haliteField);
 
-    ShipRouter shipRouter = new ShipRouter(grid, Position.at(0, 0));
+    ShipRouter shipRouter = new ShipRouter(grid, Position.at(0, 0), 9999);
     Ship ship = TestUtil.ship(3, 1, 250);
 
-    Set<Decision> decisionSet = shipRouter.getDecisions(ship);
+    Set<Decision> decisionSet = shipRouter.getDecisions(ship, 1);
     decisionSet.stream().forEach(s -> System.out.println(s));
   }
 

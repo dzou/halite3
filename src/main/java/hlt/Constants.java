@@ -20,7 +20,7 @@ public class Constants {
   /**
    * The maximum number of turns a game can last.
    */
-  public static int MAX_TURNS;
+  public static int MAX_TURNS = 400;
   /**
    * 1/EXTRACT_RATIO halite (rounded) is collected from a square per turn.
    */

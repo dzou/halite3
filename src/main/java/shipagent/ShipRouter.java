@@ -31,12 +31,12 @@ public class ShipRouter {
       HashSet<Decision> decisions = getDecisions(ship);
       bipartiteGraph.addShip(ship, decisions);
 
-      if (ship.halite < 1000) {
-        Log.log("ship: " + ship.id);
-        for (Decision d : decisions) {
-          Log.log(d.toString());
-        }
-      }
+//      if (ship.halite < 1000) {
+//        Log.log("ship: " + ship.id);
+//        for (Decision d : decisions) {
+//          Log.log(d.toString());
+//        }
+//      }
     }
 
     HashSet<Edge> edges = bipartiteGraph.matchShipsToDestinations();

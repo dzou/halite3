@@ -1,12 +1,10 @@
 package bot;
 
-import grid.Grid;
+import map.Grid;
 import hlt.*;
-import shipagent.Decision;
 import shipagent.ShipRouter;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Random;
 

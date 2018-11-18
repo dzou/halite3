@@ -1,4 +1,4 @@
-package grid;
+package map;
 
 import com.google.common.collect.ImmutableList;
 import hlt.Direction;
@@ -48,7 +48,7 @@ public class Grid<T> {
   public List<Position> getNeighbors(Position position) {
     ImmutableList.Builder<Position> neighbors = ImmutableList.builder();
     for (Direction d : Direction.ALL_CARDINALS) {
-      Position neighbor = position.directionalOffset(d);
+      Position neighbor = normalize(position.directionalOffset(d));
       neighbors.add(neighbor);
     }
     return neighbors.build();

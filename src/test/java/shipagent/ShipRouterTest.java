@@ -1,20 +1,21 @@
 package shipagent;
 
 import com.google.common.collect.ImmutableList;
-import grid.Grid;
+import map.Grid;
 import hlt.Position;
 import hlt.Ship;
 import org.junit.Test;
 import util.TestUtil;
 
 import java.util.HashSet;
+import java.util.Set;
 
 import static util.TestUtil.ship;
 
 public class ShipRouterTest {
 
   @Test
-  public void testShipRouting() {
+  public void testShipRoutingScores() {
 
     Integer[][] haliteField = {
         {100, 100, 100, 100, 100},
@@ -25,28 +26,12 @@ public class ShipRouterTest {
     };
     Grid<Integer> grid = new Grid<>(haliteField);
 
-    ShipRouter shipRouter = new ShipRouter(grid, Position.at(2, 2));
-    Ship ship = TestUtil.ship(2, 2);
+    ShipRouter shipRouter = new ShipRouter(grid, Position.at(0, 0));
+    Ship ship = TestUtil.ship(3, 1, 250);
 
-    shipRouter.routeShips(ImmutableList.of(ship));
+    Set<Decision> decisionSet = shipRouter.getDecisions(ship);
+    decisionSet.stream().forEach(s -> System.out.println(s));
   }
 
-  @Test
-  public void testShipRouterScoring() {
-
-    Integer[][] simpleGrid = {
-        {000, 500, 000, 500},
-        {000, 000, 500, 000},
-        {000, 100, 000, 100},
-        {000, 000, 000, 000},
-    };
-    Grid<Integer> grid = new Grid(simpleGrid);
-    ShipRouter router = new ShipRouter(grid, Position.at(0, 3));
-
-    Ship s4 = ship(3, 1, 000);
-    HashSet<Decision> decisions = router.getDecisions(s4);
-
-    decisions.forEach(d -> System.out.println(d.direction + d.destination.toString() + ": " + d.score));
-  }
 
 }

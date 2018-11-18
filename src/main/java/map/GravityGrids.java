@@ -1,7 +1,5 @@
 package map;
 
-import grid.Grid;
-
 public class GravityGrids {
 
   private static final double DECAY_CONST = 0.25;

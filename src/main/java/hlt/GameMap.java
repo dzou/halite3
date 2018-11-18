@@ -1,9 +1,8 @@
 package hlt;
 
-import grid.Grid;
+import map.Grid;
 
 import java.util.ArrayList;
-import java.util.Map;
 
 public class GameMap {
   public final int width;

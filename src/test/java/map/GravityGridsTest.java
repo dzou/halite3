@@ -1,6 +1,5 @@
 package map;
 
-import grid.Grid;
 import org.junit.Test;
 
 public class GravityGridsTest {

@@ -1,14 +1,12 @@
 package matching;
 
-import grid.Grid;
+import map.Grid;
 import hlt.Position;
 import hlt.Ship;
-import matching.BipartiteGraph.ForestPartition;
 import org.junit.Test;
 import shipagent.ShipRouter;
 
 import java.util.HashSet;
-import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
 import static matching.Vertex.Type.SHIP;

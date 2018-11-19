@@ -38,8 +38,14 @@ public class MyBot {
 
       Grid<Integer> haliteGrid = gameMap.toHaliteGrid();
 
-      ShipRouter shipRouter = new ShipRouter(haliteGrid, game.me.shipyard.position, Constants.MAX_TURNS - game.turnNumber);
-      Map<Ship, Position> mappings = shipRouter.routeShips(me.ships.values());
+      ShipRouter shipRouter = new ShipRouter(
+          haliteGrid,
+          game.me.shipyard.position,
+          Constants.MAX_TURNS - game.turnNumber,
+          game.me.ships.values(),
+          game.getEnemyShips());
+
+      Map<Ship, Position> mappings = shipRouter.routeShips();
 
       boolean movedOnBase = false;
 

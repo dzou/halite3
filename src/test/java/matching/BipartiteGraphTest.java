@@ -1,12 +1,16 @@
 package matching;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import map.Grid;
 import hlt.Position;
 import hlt.Ship;
 import org.junit.Test;
 import shipagent.ShipRouter;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 import static com.google.common.truth.Truth.assertThat;
 import static matching.Vertex.Type.SHIP;
@@ -34,14 +38,16 @@ public class BipartiteGraphTest {
         {100, 100, 100, 100},
     };
     Grid<Integer> grid = new Grid(simpleGrid);
-    ShipRouter router = new ShipRouter(grid, Position.at(0, 3), 9999);
 
     Ship s1 = ship(0, 0, 200);
     Ship s2 = ship(2, 0, 200);
+    ImmutableSet<Ship> myShips = ImmutableSet.of(s1, s2);
+
+    ShipRouter router = new ShipRouter(grid, Position.at(0, 3), 9999, myShips, ImmutableSet.of());
 
     BipartiteGraph bipartiteGraph = new BipartiteGraph();
-    bipartiteGraph.addShip(s1, router.getDecisions(s1, 1));
-    bipartiteGraph.addShip(s2, router.getDecisions(s2, 1));
+    bipartiteGraph.addShip(s1, router.getDecisions(s1));
+    bipartiteGraph.addShip(s2, router.getDecisions(s2));
 
     assertThat(bipartiteGraph.ships).hasSize(2);
     assertThat(bipartiteGraph.destinations).hasSize(8);
@@ -66,21 +72,24 @@ public class BipartiteGraphTest {
         {000, 000, 000, 000, 000}
     };
     Grid<Integer> grid = new Grid(simpleGrid);
-    ShipRouter router = new ShipRouter(grid, Position.at(0, 0), 9999);
 
-    BipartiteGraph bipartiteGraph = new BipartiteGraph();
-
+    HashSet<Ship> ships = new HashSet<>();
     for (int i = 1; i < simpleGrid.length; i++) {
       for (int j = 1; j < simpleGrid.length; j++) {
         Ship ship = ship(i, j, 1000);
-        bipartiteGraph.addShip(ship, router.getDecisions(ship, 1));
+        ships.add(ship);
       }
     }
 
-    HashSet<Edge> edges = bipartiteGraph.matchShipsToDestinations();
-    for (Edge e : edges) {
-      System.out.println(e);
-    }
+    ShipRouter router = new ShipRouter(
+        grid,
+        Position.at(0, 0),
+        9999,
+        ships,
+        ImmutableSet.of());
+
+    Map<Ship, Position> moves = router.routeShips();
+    assertThat(moves).hasSize(16);
   }
 
 
@@ -93,16 +102,27 @@ public class BipartiteGraphTest {
         {10, 0, 10, 000, 500},
     };
     Grid<Integer> grid = new Grid(simpleGrid);
-    ShipRouter router = new ShipRouter(grid, Position.at(0, 3), 9999);
 
     Ship s1 = ship(0, 3, 000);
     Ship s2 = ship(1, 3, 000);
+    ImmutableSet<Ship> myShips = ImmutableSet.of(s1, s2);
+
+    ShipRouter router = new ShipRouter(grid, Position.at(0, 3), 9999, myShips, ImmutableSet.of());
 
     BipartiteGraph bipartiteGraph = new BipartiteGraph();
-    bipartiteGraph.addShip(s1, router.getDecisions(s1, 1));
-    bipartiteGraph.addShip(s2, router.getDecisions(s2, 1));
+    bipartiteGraph.addShip(s1, router.getDecisions(s1));
+    bipartiteGraph.addShip(s2, router.getDecisions(s2));
 
     HashSet<Edge> edges = bipartiteGraph.matchShipsToDestinations();
-    System.out.println(edges);
+
+    HashMap<Position, Position> assignment = new HashMap<>();
+    for (Edge e : edges) {
+      assignment.put(e.start.position, e.destination.position);
+    }
+
+    assertThat(assignment).isEqualTo(ImmutableMap.of(
+        Position.at(0, 3), Position.at(0, 3),
+        Position.at(1, 3), Position.at(2, 3)
+    ));
   }
 }

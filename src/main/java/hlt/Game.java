@@ -2,6 +2,7 @@ package hlt;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 
 public class Game {
   public int turnNumber;
@@ -24,6 +25,16 @@ public class Game {
     }
     me = players.get(myId.id);
     gameMap = GameMap._generate();
+  }
+
+  public HashSet<Ship> getEnemyShips() {
+    HashSet<Ship> enemyShips = new HashSet<>();
+    for (Player player : players) {
+      if (player.id.id != me.id.id) {
+        enemyShips.addAll(player.ships.values());
+      }
+    }
+    return enemyShips;
   }
 
   public void ready(final String name) {

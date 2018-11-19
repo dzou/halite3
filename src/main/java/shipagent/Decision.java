@@ -9,12 +9,12 @@ public class Decision {
 
   public final Position destination;
 
-  public final double score;
+  public final DecisionVector scoreVector;
 
-  public Decision(Direction direction, Position destination, double score) {
+  public Decision(Direction direction, Position destination, DecisionVector score) {
     this.direction = direction;
     this.destination = destination;
-    this.score = score;
+    this.scoreVector = score;
   }
 
   @Override
@@ -22,7 +22,7 @@ public class Decision {
     return "Decision{" +
         "direction=" + direction +
         ", destination=" + destination +
-        ", score=" + score +
+        ", score=" + scoreVector +
         '}';
   }
 }

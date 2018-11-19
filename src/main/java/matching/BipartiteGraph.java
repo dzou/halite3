@@ -175,7 +175,7 @@ public class BipartiteGraph {
     Vertex shipVertex = new Vertex(ship.position,0, Type.SHIP, ship);
 
     for (Decision decision : neighbors) {
-      shipVertex.label = Math.max(shipVertex.label, decision.score);
+      shipVertex.label = Math.max(shipVertex.label, decision.scoreVector.score());
 
       Vertex destVertex = destinations.get(decision.destination);
       if (destVertex == null) {
@@ -183,8 +183,8 @@ public class BipartiteGraph {
         destinations.put(decision.destination, destVertex);
       }
 
-      shipVertex.addNeighbor(destVertex, decision.score);
-      destVertex.addNeighbor(shipVertex, decision.score);
+      shipVertex.addNeighbor(destVertex, decision.scoreVector.score());
+      destVertex.addNeighbor(shipVertex, decision.scoreVector.score());
     }
 
     ships.put(ship.position, shipVertex);

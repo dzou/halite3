@@ -45,13 +45,13 @@ public class Grid<T> {
     return costGrid[adjY][adjX];
   }
 
-  public List<Position> getNeighbors(Position position) {
-    ImmutableList.Builder<Position> neighbors = ImmutableList.builder();
+  public HashSet<Position> getNeighbors(Position position) {
+    HashSet<Position> neighbors = new HashSet<>();
     for (Direction d : Direction.ALL_CARDINALS) {
       Position neighbor = normalize(position.directionalOffset(d));
       neighbors.add(neighbor);
     }
-    return neighbors.build();
+    return neighbors;
   }
 
   public Position normalize(final Position position) {

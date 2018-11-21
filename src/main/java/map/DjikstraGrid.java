@@ -86,7 +86,7 @@ public class DjikstraGrid {
     return neighbors.build();
   }
 
-  private static int getAxisDirection(int start, int goal, int max) {
+  public static int getAxisDirection(int start, int goal, int max) {
     int basicDelta = goal - start;
     int toroidalDelta = 0;
     if (goal > start) {

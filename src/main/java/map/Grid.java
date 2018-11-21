@@ -1,6 +1,5 @@
 package map;
 
-import com.google.common.collect.ImmutableList;
 import hlt.Direction;
 import hlt.Position;
 
@@ -140,8 +139,8 @@ public class Grid<T> {
 
   @Override
   public String toString() {
-    DecimalFormat df = new DecimalFormat("0000");
-    DecimalFormat doubleFormat = new DecimalFormat("##00.0#");
+    DecimalFormat df = new DecimalFormat("#");
+    DecimalFormat doubleFormat = new DecimalFormat("0.000");
 
     StringBuilder stringBuilder = new StringBuilder();
     for (int i = 0; i < costGrid.length; i++) {

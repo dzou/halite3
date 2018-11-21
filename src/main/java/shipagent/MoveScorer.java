@@ -1,10 +1,7 @@
 package shipagent;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import hlt.Constants;
-import hlt.Position;
-import hlt.Ship;
+import hlt.*;
 import map.DjikstraGrid;
 import map.Grid;
 
@@ -19,26 +16,59 @@ public class MoveScorer {
   private final Position home;
   private final int turnsRemaining;
   private final Set<Ship> myShips;
-  private final Map<Position, Ship> enemyShips;
 
   final DjikstraGrid djikstraGrid;
-  final Grid<Double> shipInfluenceGrid;
+
+  final Grid<Double> shipInfluenceMap;
+  final Grid<Integer> enemyThreatMap;
+  final Grid<Integer> enemyRetreatMap;
+  final Grid<Integer> inspireMap;
+
 
   public MoveScorer(
       Grid<Integer> haliteGrid,
       Position home,
       int turnsRemaining,
       Collection<Ship> myShips,
-      Collection<Ship> enemyShips) {
+      Collection<Ship> enemyShips,
+      Map<PlayerId, Set<Position>> playerDropOffs) {
 
     this.haliteGrid = haliteGrid;
     this.home = home;
     this.turnsRemaining = turnsRemaining;
     this.myShips = ImmutableSet.copyOf(myShips);
-    this.enemyShips = enemyShips.stream().collect(ImmutableMap.toImmutableMap(e -> e.position, e -> e));
 
     this.djikstraGrid = DjikstraGrid.create(haliteGrid, home);
-    this.shipInfluenceGrid = buildShipInfluenceGrid(haliteGrid, myShips);
+
+    HashSet<Ship> allShips = new HashSet<>();
+    allShips.addAll(myShips);
+    allShips.addAll(enemyShips);
+
+    this.shipInfluenceMap = InfluenceMaps.buildShipInfluenceMap(allShips, haliteGrid);
+    this.enemyThreatMap = InfluenceMaps.threatMap(enemyShips, haliteGrid);
+    this.enemyRetreatMap = InfluenceMaps.retreatMap(enemyShips, playerDropOffs, haliteGrid);
+    this.inspireMap = InfluenceMaps.inspiredMap(enemyShips, haliteGrid);
+  }
+
+  public HashSet<Decision> getDecisions(Ship ship) {
+    HashSet<Decision> allDecisions = new HashSet<>();
+    allDecisions.add(new Decision(
+        Direction.STILL,
+        ship.position,
+        scorePosition(ship, ship.position)));
+
+    if (ship.halite >= haliteGrid.get(ship.position.x, ship.position.y) / 10) {
+      for (Direction offset : Direction.ALL_CARDINALS) {
+        Position neighbor = haliteGrid.normalize(ship.position.directionalOffset(offset));
+        Decision decision = new Decision(
+            offset,
+            neighbor,
+            scorePosition(ship, neighbor));
+        allDecisions.add(decision);
+      }
+    }
+
+    return allDecisions;
   }
 
   DecisionVector scorePosition(Ship ship, Position destination) {
@@ -48,15 +78,20 @@ public class MoveScorer {
     double homeScore = goHomeScore(ship, destination, endTheGame);
     double mineScore = endTheGame ? 0 : goMineScore(ship, destination);
     double enemyInfluence = getEnemyInfluence(ship, destination);
+    double killScore = killScore(ship, destination);
 
-    return new DecisionVector(homeScore, mineScore, enemyInfluence);
+    return new DecisionVector(
+        homeScore,
+        mineScore,
+        enemyInfluence,
+        killScore);
   }
 
   private double goHomeScore(Ship ship, Position destination, boolean endTheGame) {
-    int haliteCostToHome = endTheGame
-        ? 0 : djikstraGrid.costCache.get(ship.position.x, ship.position.y) / 10;
+    double haliteCostToHome = endTheGame
+        ? 0 : djikstraGrid.costCache.get(destination.x, destination.y) * 0.10;
 
-    double moveHomeOpportunityCost = 1.0 * ship.halite / Constants.MAX_HALITE;
+    double moveHomeOpportunityCost = 1.0 * (ship.halite * ship.halite) / (Constants.MAX_HALITE * Constants.MAX_HALITE);
     return moveHomeOpportunityCost * (ship.halite - haliteCostToHome) / (haliteGrid.distance(destination, home) + 5);
   }
 
@@ -64,21 +99,57 @@ public class MoveScorer {
     double stayMineScore = 0;
     if (ship.position.equals(destination)) {
       stayMineScore = Math.min(Constants.MAX_HALITE - ship.halite, haliteGrid.get(ship.position.x, ship.position.y) / 3);
+      if (inspireMap.get(destination.x, destination.y) > 1) {
+        stayMineScore *= 3;
+      }
+    }
+
+    int xStart = ship.position.x - (haliteGrid.width / 2);
+    int xEnd = ship.position.x + (haliteGrid.height / 2);
+
+    int yStart = ship.position.y - (haliteGrid.height / 2);
+    int yEnd = ship.position.y + (haliteGrid.height / 2);
+
+    Direction d = haliteGrid.calculateDirection(ship.position, destination);
+    if (d == Direction.EAST) {
+      xStart = ship.position.x + 1;
+    } else if (d == Direction.WEST) {
+      xEnd = ship.position.x - 1;
+    } else if (d == Direction.SOUTH) {
+      yStart = ship.position.y + 1;
+    } else if (d == Direction.NORTH) {
+      yEnd = ship.position.y - 1;
     }
 
     double bestHaliteRate = -9999999;
-    for (int y = 0; y < haliteGrid.height; y++) {
-      for (int x = 0; x < haliteGrid.width; x++) {
-        double adjustedHalite =
-            Math.min(1000, Math.max(0, haliteGrid.get(x, y) - shipInfluenceGrid.get(x, y)));
+    for (int y = yStart; y <= yEnd; y++) {
+      for (int x = xStart; x <= xEnd; x++) {
+
+
+//        if (haliteGrid.distance(x, y, ship.position.x, ship.position.y) > 4
+//            && shipInfluenceMap.get(x, y) > 1.5) {
+//          continue;
+//        }
+
+        double multiplier = Math.min(1.0, 1.0 / shipInfluenceMap.get(x, y));
+        double adjustedHalite = haliteGrid.get(x, y) * multiplier;
+        double haliteReward = inspireMap.get(x, y) > 1 ? adjustedHalite * 2.2 : adjustedHalite;
 
         double haliteCollectedEstimate = Math.min(
             Constants.MAX_HALITE - ship.halite, adjustedHalite * 0.58);
+        double haliteRewardEstimate = Math.min(
+            Constants.MAX_HALITE - ship.halite, haliteReward * 0.58);
+
         int turnsFromDest = haliteGrid.distance(x, y, destination.x, destination.y) + 3;
 
-        double tollAfterMining = 0.1 * (haliteGrid.get(x, y) - haliteCollectedEstimate);
+        double moveToll = destination.x == x && destination.y == y
+            ? 0 : haliteGrid.get(destination.x, destination.y) / 10;
 
-        double haliteRate = (haliteCollectedEstimate - tollAfterMining) / turnsFromDest;
+        double tollAfterMining = Math.min(
+            haliteGrid.get(x, y),
+            (djikstraGrid.costCache.get(x, y) - haliteCollectedEstimate) * 0.10 + moveToll);
+
+        double haliteRate = (haliteRewardEstimate - tollAfterMining) / turnsFromDest;
         if (haliteRate > bestHaliteRate) {
           bestHaliteRate = haliteRate;
         }
@@ -89,49 +160,25 @@ public class MoveScorer {
   }
 
   private double getEnemyInfluence(Ship ship, Position destination) {
-    HashSet<Position> influencedPositions = haliteGrid.getNeighbors(destination);
-    influencedPositions.add(destination);
-
-    int minEnemyHalite = influencedPositions.stream()
-        .map(pos -> enemyShips.get(pos))
-        .filter(s -> s != null)
-        .mapToInt(s -> s.halite)
-        .min()
-        .orElse(-1);
-
-    if (minEnemyHalite == -1) {
-      return 0;
+    int enemyMinHalite = enemyThreatMap.get(destination.x, destination.y);
+    if (enemyMinHalite >= 0) {
+      return enemyMinHalite - ship.halite;
     }
 
-    int haliteDiff = minEnemyHalite - ship.halite;
-    if (haliteDiff > 0) {
-      return 0.1 * haliteDiff;
+    return 0;
+  }
+
+  private double killScore(Ship ship, Position destination) {
+    int killPotentialGain = enemyRetreatMap.get(destination.x, destination.y);
+    if (killPotentialGain == -1) {
+      return 0;
     } else {
-      return haliteDiff;
+      return killPotentialGain - ship.halite;
     }
   }
 
   boolean isTimeToEndGame(Ship ship, int shipCount) {
     return haliteGrid.distance(ship.position, home) + 5 + (shipCount / 5) >= turnsRemaining;
-  }
-
-  static Grid<Double> buildShipInfluenceGrid(Grid<Integer> haliteGrid, Collection<Ship> myShips) {
-    Grid<Double> shipInfluenceGrid = new Grid<Double>(haliteGrid.width, haliteGrid.height, 0.0);
-
-    for (Ship ship : myShips) {
-      for (int y = ship.position.y - 3; y <= ship.position.y + 3; y++) {
-        for (int x = ship.position.x - 3; x <= ship.position.x + 3; x++) {
-          double miningPotential = Math.min(
-              haliteGrid.get(x, y) / 4,
-              (Constants.MAX_HALITE - ship.halite) * 0.125 / (haliteGrid.distance(x, y, ship.position.x, ship.position.y) + 1)
-          );
-
-          double prev = shipInfluenceGrid.get(x, y);
-          shipInfluenceGrid.set(x, y, prev + miningPotential);
-        }
-      }
-    }
-    return shipInfluenceGrid;
   }
 }
 

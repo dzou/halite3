@@ -1,8 +1,9 @@
 package hlt;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+
+import java.util.*;
 
 public class Game {
   public int turnNumber;
@@ -25,6 +26,21 @@ public class Game {
     }
     me = players.get(myId.id);
     gameMap = GameMap._generate();
+  }
+
+  public Map<PlayerId, Set<Position>> getPlayerBases() {
+    ImmutableMap.Builder<PlayerId, Set<Position>> allBases = ImmutableMap.builder();
+    for (Player player : players) {
+      ImmutableSet.Builder<Position> playerBases = ImmutableSet.builder();
+      playerBases.add(player.shipyard.position);
+      for (Dropoff dropoff : player.dropoffs.values()) {
+        playerBases.add(dropoff.position);
+      }
+
+      allBases.put(player.id, playerBases.build());
+    }
+
+    return allBases.build();
   }
 
   public HashSet<Ship> getEnemyShips() {

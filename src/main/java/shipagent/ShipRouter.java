@@ -1,7 +1,10 @@
 package shipagent;
 
+import hlt.Log;
+import hlt.PlayerId;
+import hlt.Position;
+import hlt.Ship;
 import map.Grid;
-import hlt.*;
 import matching.BipartiteGraph;
 import matching.Edge;
 
@@ -25,12 +28,13 @@ public class ShipRouter {
       Position home,
       int turnsRemaining,
       Collection<Ship> myShips,
-      Collection<Ship> enemyShips) {
+      Collection<Ship> enemyShips,
+      Map<PlayerId, Set<Position>> playerBases) {
 
     this.haliteGrid = haliteGrid;
     this.home = home;
     this.myShips = myShips;
-    this.moveScorer = new MoveScorer(haliteGrid, home, turnsRemaining, myShips, enemyShips);
+    this.moveScorer = new MoveScorer(haliteGrid, home, turnsRemaining, myShips, enemyShips, playerBases);
   }
 
   public HashMap<Ship, Position> routeShips() {
@@ -41,7 +45,7 @@ public class ShipRouter {
       if (moveScorer.isTimeToEndGame(ship, myShips.size()) && haliteGrid.distance(ship.position, home) <= 1) {
         result.add(Edge.manualEdge(ship, home));
       } else {
-        HashSet<Decision> decisions = getDecisions(ship);
+        HashSet<Decision> decisions = moveScorer.getDecisions(ship);
         bipartiteGraph.addShip(ship, decisions);
 
         Log.log("SHIP " + ship.id);
@@ -58,26 +62,4 @@ public class ShipRouter {
     }
     return shipDecisions;
   }
-
-  public HashSet<Decision> getDecisions(Ship ship) {
-    HashSet<Decision> allDecisions = new HashSet<>();
-    allDecisions.add(new Decision(
-        Direction.STILL,
-        ship.position,
-        moveScorer.scorePosition(ship, ship.position)));
-
-    if (ship.halite >= haliteGrid.get(ship.position.x, ship.position.y) / 10) {
-      for (Direction offset : Direction.ALL_CARDINALS) {
-        Position neighbor = haliteGrid.normalize(ship.position.directionalOffset(offset));
-        Decision decision = new Decision(
-            offset,
-            neighbor,
-            moveScorer.scorePosition(ship, neighbor));
-        allDecisions.add(decision);
-      }
-    }
-
-    return allDecisions;
-  }
-
 }

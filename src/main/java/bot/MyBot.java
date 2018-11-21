@@ -1,12 +1,13 @@
 package bot;
 
-import map.Grid;
 import hlt.*;
-import shipagent.Decision;
+import map.Grid;
 import shipagent.ShipRouter;
 import shipagent.Spawner;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Random;
 
 // This Java API uses camelCase instead of the snake_case as documented in the API docs.
 //   Otherwise the names of methods are consistent.
@@ -24,7 +25,7 @@ public class MyBot {
     // At this point "game" variable is populated with initial map data.
     // This is a good place to do computationally expensive start-up pre-processing.
     // As soon as you call "ready" function below, the 2 second per turn timer will start.
-    game.ready("Alpha1");
+    game.ready("Alpha2");
 
     Log.log("Successfully created bot! My Player ID is " + game.myId + ". Bot rng seed is " + rngSeed + ".");
 
@@ -43,7 +44,8 @@ public class MyBot {
           game.me.shipyard.position,
           Constants.MAX_TURNS - game.turnNumber,
           game.me.ships.values(),
-          game.getEnemyShips());
+          game.getEnemyShips(),
+          game.getPlayerBases());
 
       Map<Ship, Position> mappings = shipRouter.routeShips();
 

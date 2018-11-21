@@ -2,10 +2,11 @@ package matching;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import map.Grid;
 import hlt.Position;
 import hlt.Ship;
+import map.Grid;
 import org.junit.Test;
+import shipagent.MoveScorer;
 import shipagent.ShipRouter;
 
 import java.util.HashMap;
@@ -43,11 +44,11 @@ public class BipartiteGraphTest {
     Ship s2 = ship(2, 0, 200);
     ImmutableSet<Ship> myShips = ImmutableSet.of(s1, s2);
 
-    ShipRouter router = new ShipRouter(grid, Position.at(0, 3), 9999, myShips, ImmutableSet.of());
+    MoveScorer scorer = new MoveScorer(grid, Position.at(0, 3), 9999, myShips, ImmutableSet.of(), ImmutableMap.of());
 
     BipartiteGraph bipartiteGraph = new BipartiteGraph();
-    bipartiteGraph.addShip(s1, router.getDecisions(s1));
-    bipartiteGraph.addShip(s2, router.getDecisions(s2));
+    bipartiteGraph.addShip(s1, scorer.getDecisions(s1));
+    bipartiteGraph.addShip(s2, scorer.getDecisions(s2));
 
     assertThat(bipartiteGraph.ships).hasSize(2);
     assertThat(bipartiteGraph.destinations).hasSize(8);
@@ -86,7 +87,8 @@ public class BipartiteGraphTest {
         Position.at(0, 0),
         9999,
         ships,
-        ImmutableSet.of());
+        ImmutableSet.of(),
+        ImmutableMap.of());
 
     Map<Ship, Position> moves = router.routeShips();
     assertThat(moves).hasSize(16);
@@ -107,11 +109,11 @@ public class BipartiteGraphTest {
     Ship s2 = ship(1, 3, 000);
     ImmutableSet<Ship> myShips = ImmutableSet.of(s1, s2);
 
-    ShipRouter router = new ShipRouter(grid, Position.at(0, 3), 9999, myShips, ImmutableSet.of());
+    MoveScorer scorer = new MoveScorer(grid, Position.at(0, 0), 9999, myShips, ImmutableSet.of(), ImmutableMap.of());
 
     BipartiteGraph bipartiteGraph = new BipartiteGraph();
-    bipartiteGraph.addShip(s1, router.getDecisions(s1));
-    bipartiteGraph.addShip(s2, router.getDecisions(s2));
+    bipartiteGraph.addShip(s1, scorer.getDecisions(s1));
+    bipartiteGraph.addShip(s2, scorer.getDecisions(s2));
 
     HashSet<Edge> edges = bipartiteGraph.matchShipsToDestinations();
 
@@ -122,7 +124,7 @@ public class BipartiteGraphTest {
 
     assertThat(assignment).isEqualTo(ImmutableMap.of(
         Position.at(0, 3), Position.at(0, 3),
-        Position.at(1, 3), Position.at(2, 3)
+        Position.at(1, 3), Position.at(1, 3)
     ));
   }
 }

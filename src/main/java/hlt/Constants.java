@@ -34,11 +34,11 @@ public class Constants {
    */
   public static boolean INSPIRATION_ENABLED;
   /**
-   * A ship is inspired if at least INSPIRATION_SHIP_COUNT opponent ships are within this Manhattan distance.
-   */
-  public static int INSPIRATION_RADIUS;
-  /**
    * A ship is inspired if at least this many opponent ships are within INSPIRATION_RADIUS distance.
+   */
+  public static int INSPIRATION_RADIUS = 4;
+  /**
+   * A ship is inspired if at least INSPIRATION_SHIP_COUNT opponent ships are within this Manhattan distance.
    */
   public static int INSPIRATION_SHIP_COUNT;
   /**

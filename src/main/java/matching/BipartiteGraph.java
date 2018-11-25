@@ -168,7 +168,7 @@ public class BipartiteGraph {
   }
 
   private static boolean isIncludedInEqualitySubgraph(Edge e) {
-    return e.weight + 0.00000001 >= e.start.label + e.destination.label;
+    return e.weight + 0.000001 >= e.start.label + e.destination.label;
   }
 
   public void addShip(Ship ship, Collection<Decision> neighbors) {

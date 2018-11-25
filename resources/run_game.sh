@@ -4,7 +4,7 @@ set -e
 
 ./halite --replay-directory replays/ -vvv --width 48 --height 48 \
 "java -jar ../target/MyBot.jar" \
-"java -jar bot_versions/alpha1.jar"
+"java -jar bot_versions/alpha2.jar"
 #"java -jar bot_versions/spawner.jar" \
 #"java -jar bot_versions/hungarian.jar"
 

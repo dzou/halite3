@@ -1,41 +1,46 @@
 package shipagent;
 
+import com.google.common.collect.ImmutableList;
+
 import java.text.DecimalFormat;
+import java.util.stream.DoubleStream;
 
 public class DecisionVector {
 
   public final double goHomeScore;
-
-  public final double exploreScore;
-
+  public final double localMoveScore;
+  public final double explorePotentialScore;
   public final double enemyThreatScore;
-
   public final double killScore;
+  public final double shipCrowdScore;
 
-  public DecisionVector(double goHomeScore, double exploreScore, double enemyThreatScore, double killScore) {
+  public DecisionVector(double goHomeScore, double localMoveScore, double explorePotentialScore, double enemyThreatScore, double killScore, double crowding) {
     this.goHomeScore = goHomeScore;
-    this.exploreScore = exploreScore;
+    this.localMoveScore = localMoveScore;
+    this.explorePotentialScore = explorePotentialScore;
     this.enemyThreatScore = enemyThreatScore;
     this.killScore = killScore;
+    this.shipCrowdScore = crowding;
   }
 
   public double score() {
-    if (enemyThreatScore < 0) {
-      return enemyThreatScore;
-    } else {
-      return Math.max(goHomeScore, exploreScore) + 0.10 * killScore;
-    }
+    double result = DoubleStream.of(goHomeScore, explorePotentialScore).max().getAsDouble();
+    return result
+        + enemyThreatScore
+        + 0.10 * killScore;
   }
 
   @Override
   public String toString() {
     DecimalFormat df = new DecimalFormat("#.000");
     String vectorFormat = String.format(
-        "Vector{home=%s, exp=%s, ene=%s, kil=%s}[T=%s]",
+        "Vector{home=%s, lcl=%s, exp=%s, ene=%s, kill=%s, ships=%s}[T=%s]",
         df.format(goHomeScore),
-        df.format(exploreScore),
+        df.format(localMoveScore),
+        df.format(explorePotentialScore),
         df.format(enemyThreatScore),
         df.format(killScore),
+        df.format(shipCrowdScore),
         df.format(score()));
     return vectorFormat;
   }

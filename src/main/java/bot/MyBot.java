@@ -25,12 +25,14 @@ public class MyBot {
     // At this point "game" variable is populated with initial map data.
     // This is a good place to do computationally expensive start-up pre-processing.
     // As soon as you call "ready" function below, the 2 second per turn timer will start.
-    game.ready("Alpha2");
+    game.ready("AlphaSpread");
 
     Log.log("Successfully created bot! My Player ID is " + game.myId + ". Bot rng seed is " + rngSeed + ".");
 
 
     for (; ; ) {
+      long startTime = System.currentTimeMillis();
+
       game.updateFrame();
       final Player me = game.me;
       final GameMap gameMap = game.gameMap;
@@ -69,6 +71,8 @@ public class MyBot {
       }
 
       game.endTurn(commandQueue);
+      long endTime = System.currentTimeMillis();
+      Log.log("Time taken: " + (endTime - startTime));
     }
   }
 }

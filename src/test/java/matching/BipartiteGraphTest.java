@@ -93,38 +93,4 @@ public class BipartiteGraphTest {
     Map<Ship, Position> moves = router.routeShips();
     assertThat(moves).hasSize(16);
   }
-
-
-  @Test
-  public void testShipMatchEmptyHalite() {
-    Integer[][] simpleGrid = {
-        {000, 000, 000, 000, 000},
-        {000, 000, 000, 000, 000},
-        {000, 000, 000, 000, 000},
-        {10, 0, 10, 000, 500},
-    };
-    Grid<Integer> grid = new Grid(simpleGrid);
-
-    Ship s1 = ship(0, 3, 000);
-    Ship s2 = ship(1, 3, 000);
-    ImmutableSet<Ship> myShips = ImmutableSet.of(s1, s2);
-
-    MoveScorer scorer = new MoveScorer(grid, Position.at(0, 0), 9999, myShips, ImmutableSet.of(), ImmutableMap.of());
-
-    BipartiteGraph bipartiteGraph = new BipartiteGraph();
-    bipartiteGraph.addShip(s1, scorer.getDecisions(s1));
-    bipartiteGraph.addShip(s2, scorer.getDecisions(s2));
-
-    HashSet<Edge> edges = bipartiteGraph.matchShipsToDestinations();
-
-    HashMap<Position, Position> assignment = new HashMap<>();
-    for (Edge e : edges) {
-      assignment.put(e.start.position, e.destination.position);
-    }
-
-    assertThat(assignment).isEqualTo(ImmutableMap.of(
-        Position.at(0, 3), Position.at(0, 3),
-        Position.at(1, 3), Position.at(1, 3)
-    ));
-  }
 }

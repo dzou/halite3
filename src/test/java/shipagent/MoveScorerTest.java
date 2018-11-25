@@ -10,6 +10,7 @@ import hlt.Ship;
 import map.Grid;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -60,12 +61,10 @@ public class MoveScorerTest {
     haliteGrid.set(10, 20, 100);
 
 
-    Ship s1 = ship(10, 0);
-    Ship s2 = ship(10, 1);
+    Ship s1 = ship(10, 0, 500);
+    Ship s2 = ship(10, 1, 500);
     Ship me = ship(10, 10);
     ImmutableList<Ship> myShips = ImmutableList.of(s1, s2, me);
-
-    // System.out.println(InfluenceMaps.buildShipInfluenceMap(myShips, haliteGrid));
 
     MoveScorer moveScorer = new MoveScorer(haliteGrid, Position.at(0, 0), 9999, myShips, ImmutableList.of(), ImmutableMap.of());
 
@@ -75,7 +74,7 @@ public class MoveScorerTest {
   }
 
   @Test
-  public void testShouldWaitToMine() {
+  public void testAvoidCrowding2() {
     Integer[][] rawHaliteGrid = {
         {0, 0, 0, 0, 1000, 0, 0, 0, 0},
         {0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -94,23 +93,110 @@ public class MoveScorerTest {
     Ship s3 = ship(5, 1, 0);
     Ship s4 = ship(4, 1, 0);
 
-    Ship me = ship(4, 4);
+    Ship me = ship(4, 4, 0);
 
     ImmutableList<Ship> myShips = ImmutableList.of(s1, s2, s3, s4, me);
 
     MoveScorer moveScorer = new MoveScorer(haliteGrid, Position.at(0, 0), 9999, myShips, ImmutableList.of(), ImmutableMap.of());
+    System.out.println(moveScorer.shipInfluenceMap);
 
     Set<Decision> decisionSet = moveScorer.getDecisions(s3);
-    decisionSet.stream().forEach(s -> System.out.println(s));
-    assertThat(getBest(decisionSet) == NORTH || getBest(decisionSet) == WEST).isTrue();
+    assertThat(getBest(decisionSet) == WEST || getBest(decisionSet) == NORTH).isTrue();
 
     decisionSet = moveScorer.getDecisions(s2);
     assertThat(getBest(decisionSet)).isEqualTo(WEST);
+  }
+
+  @Test
+  public void testShipInfluenceScoring() {
+    Grid<Integer> haliteGrid = new Grid<>(21, 21, 0);
+
+    List<Ship> ships = new ArrayList<>();
+    for (int i = 0; i < 3; i++) {
+      for (int j = 0; j < 3; j++) {
+        ships.add(ship(i, j));
+      }
+    }
+
+    System.out.println(InfluenceMaps.buildShipInfluenceMap(ships, haliteGrid));
+
+//    MoveScorer moveScorer = new MoveScorer(haliteGrid, Position.at(0, 0), 9999, ships, ImmutableList.of(), ImmutableMap.of());
+//
+//    Set<Decision> decisionSet = moveScorer.getDecisions(me);
+//    decisionSet.stream().forEach(s -> System.out.println(s));
+//    assertThat(getBest(decisionSet)).isEqualTo(EAST);
+  }
+
+  @Test
+  public void exploreMoveScore() {
+    Integer[][] rawHaliteGrid = {
+        { 0,  0,  0,  0, 70,  0, 70,  0,  0},
+        { 0,  0,  0, 40,  0,  0,  0,  0,  0},
+        { 0,  0,  0,  0,  0,  0,  0,  0, 70},
+        { 0,  0,  0,  0,  0,  0,  0,  0,  0},
+        { 0,  0,  0,  0,100,  0,  0,  0, 70},
+        { 0,  0,  0,  0,  0,  0,  0, 40,  0},
+        { 0,  0,  0,  0,  0,  0,  0,  0,  0},
+        { 0,  0,100,  0,  0,  0,  0,  0,  0},
+        { 0,  0,  0,300,400,  0,  0,  0,  0},
+    };
+
+    Grid<Integer> haliteGrid = new Grid<>(rawHaliteGrid);
+
+    Ship ship = ship(4, 4, 100);
+    ImmutableList<Ship> myShips = ImmutableList.of(ship);
+
+    MoveScorer moveScorer = new MoveScorer(haliteGrid, Position.at(0, 0), 9999, myShips, ImmutableList.of(), ImmutableMap.of());
+
+    Set<Decision> decisions = moveScorer.getDecisions(ship);
+
+    ImmutableMap<Direction, Double> directionScores = decisions.stream().collect(
+        ImmutableMap.toImmutableMap(
+            e -> e.direction,
+            e -> e.scoreVector.explorePotentialScore));
+
+    assertThat(directionScores.get(NORTH))
+        .isWithin(0.0001)
+        .of(directionScores.get(EAST));
+
+    assertThat(directionScores.entrySet()
+            .stream()
+            .max(Comparator.comparingDouble(e -> e.getValue()))
+            .get()
+            .getKey())
+        .isEqualTo(SOUTH);
+  }
+
+  @Test
+  public void testLocalMoveScore() {
+    Integer[][] rawHaliteGrid = {
+        {0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 200, 0, 0, 0, 0},
+        {50, 0, 0, 0, 50, 0, 0, 0, 70},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 10, 0, 0, 0, 0},
+    };
+
+    Grid<Integer> haliteGrid = new Grid<>(rawHaliteGrid);
+
+    Ship ship = ship(4, 4, 100);
+    ImmutableList<Ship> myShips = ImmutableList.of(ship);
+
+    MoveScorer moveScorer = new MoveScorer(haliteGrid, Position.at(0, 0), 9999, myShips, ImmutableList.of(), ImmutableMap.of());
+
+    Set<Decision> decisions = moveScorer.getDecisions(ship);
+    decisions.stream().forEach(s -> System.out.println(s));
+    double best = decisions.stream().max(Comparator.comparingDouble(d -> d.scoreVector.localMoveScore)).get().scoreVector.localMoveScore;
+    assertThat(best).isEqualTo((88 - 5) / 3.0);
 
   }
 
   @Test
-  public void testDirectionalMoveScoreFilter() {
+  public void testExplorePotentialGreedyFirst() {
     Integer[][] rawHaliteGrid = {
         {0, 0, 0, 0, 1000, 0, 0, 0, 0},
         {0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -133,11 +219,11 @@ public class MoveScorerTest {
     Set<Decision> decisionSet = moveScorer.getDecisions(ship);
 
     List<Direction> dirList = decisionSet.stream()
-        .sorted(Comparator.comparingDouble(d -> d.scoreVector.exploreScore))
+        .sorted(Comparator.comparingDouble(d -> d.scoreVector.explorePotentialScore))
         .map(d -> d.direction)
         .collect(ImmutableList.toImmutableList());
     assertThat(dirList)
-        .containsExactly(SOUTH, WEST, EAST, STILL, NORTH)
+        .containsExactly(SOUTH, STILL, WEST, EAST, NORTH)
         .inOrder();
 
     // decisionSet.stream().forEach(s -> System.out.println(s));

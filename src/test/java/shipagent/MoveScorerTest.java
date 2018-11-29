@@ -191,7 +191,7 @@ public class MoveScorerTest {
     Set<Decision> decisions = moveScorer.getDecisions(ship);
     decisions.stream().forEach(s -> System.out.println(s));
     double best = decisions.stream().max(Comparator.comparingDouble(d -> d.scoreVector.localMoveScore)).get().scoreVector.localMoveScore;
-    assertThat(best).isEqualTo((88 - 5) / 3.0);
+    assertThat(best).isWithin(0.0001).of((116 - 5 - 8.4) / 4.0);
 
   }
 
@@ -217,16 +217,16 @@ public class MoveScorerTest {
     MoveScorer moveScorer = new MoveScorer(haliteGrid, Position.at(0, 0), 9999, myShips, ImmutableList.of(), ImmutableMap.of());
 
     Set<Decision> decisionSet = moveScorer.getDecisions(ship);
+    decisionSet.stream().forEach(s -> System.out.println(s));
 
     List<Direction> dirList = decisionSet.stream()
-        .sorted(Comparator.comparingDouble(d -> d.scoreVector.explorePotentialScore))
+        .sorted(Comparator.comparingDouble(d -> d.scoreVector.localMoveScore))
         .map(d -> d.direction)
         .collect(ImmutableList.toImmutableList());
     assertThat(dirList)
-        .containsExactly(SOUTH, STILL, WEST, EAST, NORTH)
+        .containsExactly(STILL, SOUTH, WEST, EAST, NORTH)
         .inOrder();
 
-    // decisionSet.stream().forEach(s -> System.out.println(s));
   }
 
   @Test

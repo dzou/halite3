@@ -1,5 +1,6 @@
 package shipagent;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import hlt.*;
 import map.DjikstraGrid;
@@ -11,13 +12,12 @@ public class MoveScorer {
 
   private static final int LOCAL_DISTANCE = 4;
 
-  private static final int SHIP_CROWDING_RANGE = 8;
-
   private final Grid<Integer> haliteGrid;
   private final Position home;
   private final int turnsRemaining;
   private final ImmutableSet<Ship> myShips;
 
+  final ImmutableMap<Position, Ship> myShipPositionsMap;
   final DjikstraGrid djikstraGrid;
 
   final Grid<Double> shipInfluenceMap;
@@ -39,6 +39,7 @@ public class MoveScorer {
     this.turnsRemaining = turnsRemaining;
     this.myShips = ImmutableSet.copyOf(myShips);
 
+    this.myShipPositionsMap = myShips.stream().collect(ImmutableMap.toImmutableMap(ship -> ship.position, s -> s));
     this.djikstraGrid = DjikstraGrid.create(haliteGrid, home);
 
     HashSet<Ship> allShips = new HashSet<>();
@@ -105,14 +106,15 @@ public class MoveScorer {
     double haliteCostToHome = endTheGame
         ? 0 : djikstraGrid.costCache.get(destination.x, destination.y) * 0.10;
 
-    double moveHomeOpportunityCost = 1.0 * (ship.halite * ship.halite) / (Constants.MAX_HALITE * Constants.MAX_HALITE);
+    double moveHomeOpportunityCost = 1.0 * (ship.halite * ship.halite * ship.halite) / (Constants.MAX_HALITE * Constants.MAX_HALITE * Constants.MAX_HALITE);
     return moveHomeOpportunityCost * (ship.halite - haliteCostToHome) / (haliteGrid.distance(destination, home) + 5);
   }
 
   private double crowdScore(Ship ship, Position destination) {
     double shipInfluence = shipInfluenceMap.get(destination.x, destination.y)
         - InfluenceMaps.getCrowdFactor(ship, destination.x, destination.y, haliteGrid);
-    return shipInfluence;
+    double crowdMultiplier = 1.0 - (1.0 * ship.halite * ship.halite) / (Constants.MAX_HALITE * Constants.MAX_HALITE);
+    return crowdMultiplier * shipInfluence;
   }
 
 //  private double crowdScore(Ship currentShip, Position destination) {
@@ -134,27 +136,38 @@ public class MoveScorer {
 //
 //    return count;
 //  }
-
-  private static boolean isRightDelta(int xDelta, int yDelta, Direction direction) {
-    if (direction == Direction.EAST && xDelta > 0
-        || direction == Direction.WEST && xDelta < 0
-        || direction == Direction.NORTH && yDelta < 0
-        || direction == Direction.SOUTH && yDelta > 0
-        || direction == Direction.STILL && xDelta == 0 && yDelta == 0) {
-      return true;
-    } else {
-      return false;
-    }
-  }
+//
+//  private static boolean isRightDelta(int xDelta, int yDelta, Direction direction) {
+//    if (direction == Direction.EAST && xDelta > 0
+//        || direction == Direction.WEST && xDelta < 0
+//        || direction == Direction.NORTH && yDelta < 0
+//        || direction == Direction.SOUTH && yDelta > 0
+//        || direction == Direction.STILL && xDelta == 0 && yDelta == 0) {
+//      return true;
+//    } else {
+//      return false;
+//    }
+//  }
 
   private double localMoveScore(Ship ship, Position destination) {
     Direction d = haliteGrid.calculateDirection(ship.position, destination);
+    if (d == Direction.STILL) {
+      double haliteMinedPotential = haliteGrid.get(ship.position.x, ship.position.y) * 0.25;
+      double actualHaliteMined = Math.min(
+          Constants.MAX_HALITE - ship.halite,
+          inspireMap.get(ship.position.x, ship.position.y) > 1 ? haliteMinedPotential * 3 : haliteMinedPotential);
+      return actualHaliteMined;
+    }
 
     int xStart = (d == Direction.EAST) ? 1 : -LOCAL_DISTANCE;
     int xEnd = (d == Direction.WEST) ? -1 : LOCAL_DISTANCE;
 
     int yStart = (d == Direction.SOUTH) ? 1 : -LOCAL_DISTANCE;
     int yEnd = (d == Direction.NORTH) ? -1 : LOCAL_DISTANCE;
+
+    Position projectionDestination = Position.at(0, 0).directionalOffset(d);
+    Grid<Integer> subGrid = haliteGrid.subGrid(ship.position, LOCAL_DISTANCE);
+    DjikstraGrid subGridCosts = DjikstraGrid.create(subGrid, projectionDestination);
 
     double bestHaliteRate = -999999;
     for (int y = yStart; y <= yEnd; y++) {
@@ -165,29 +178,29 @@ public class MoveScorer {
         int dx = ship.position.x + x;
         int dy = ship.position.y + y;
 
-        int haliteUnderShip = haliteGrid.get(dx, dy);
-
-        double haliteMined;
-        int turnsFromDest;
-
-        if (x == 0 && y == 0) {
-          haliteMined = Math.min(Constants.MAX_HALITE - ship.halite, haliteUnderShip / 4);
-          turnsFromDest = 1;
-        } else {
-          haliteMined = Math.min(Constants.MAX_HALITE - ship.halite, haliteUnderShip * 0.44);
-          turnsFromDest = haliteGrid.distance(dx, dy, destination.x, destination.y) + 2 + 1;
+        int haliteOnTile = haliteGrid.get(dx, dy);
+        Ship shipOnTile = myShipPositionsMap.get(Position.at(dx, dy));
+        if (shipOnTile != null) {
+          int haliteCapacity = Constants.MAX_HALITE - shipOnTile.halite;
+          haliteOnTile = Math.max(0, haliteOnTile - haliteCapacity);
         }
+
+        double haliteMined = Math.min(Constants.MAX_HALITE - ship.halite, haliteOnTile * 0.44);
+        int turnsFromDest = haliteGrid.distance(dx, dy, destination.x, destination.y) + 2 + 1;
 
         double haliteReward = Math.min(
             Constants.MAX_HALITE - ship.halite,
-            inspireMap.get(dx, dy) > 1 ? haliteMined * 3 : haliteMined);
+            inspireMap.get(dx, dy) > 1 ? haliteMined * 2.0 : haliteMined);
 
-//        double tollAfterMining = Math.min(
-//            haliteGrid.get(dx, dy), (djikstraGrid.costCache.get(dx, dy) - haliteMined) * 0.10);
+        double tollAfterMining = Math.max(0, (djikstraGrid.costCache.get(dx, dy) - haliteMined) * 0.10);
+        double tollToTile = (subGridCosts.costCache.get(x, y)
+            - subGrid.get(x, y)
+            + subGrid.get(projectionDestination.x, projectionDestination.y)
+            /* + haliteGrid.get(ship.position.x, ship.position.y) */) * 0.10;
 
-        int toll = (x != 0 || y != 0) ? haliteGrid.get(ship.position.x, ship.position.y) / 10 : 0;
+        // int tollToLeaveTile = (x != 0 || y != 0) ? haliteGrid.get(ship.position.x, ship.position.y) / 40 : 0;
 
-        double haliteRate = (haliteReward - toll) / turnsFromDest;
+        double haliteRate = (haliteReward - tollAfterMining - tollToTile) / turnsFromDest;
         if (haliteRate > bestHaliteRate) {
           bestHaliteRate = haliteRate;
         }
@@ -198,13 +211,17 @@ public class MoveScorer {
   }
 
   private double explorePotentialScore(Ship ship, Position destination) {
+    Direction d = haliteGrid.calculateDirection(ship.position, destination);
+    if (d == Direction.STILL) {
+      return 0.0;
+    }
+
     int xStart = ship.position.x - (haliteGrid.width / 2);
     int xEnd = ship.position.x + (haliteGrid.height / 2);
 
     int yStart = ship.position.y - (haliteGrid.height / 2);
     int yEnd = ship.position.y + (haliteGrid.height / 2);
 
-    Direction d = haliteGrid.calculateDirection(ship.position, destination);
     if (d == Direction.EAST) {
       xStart = ship.position.x + 1;
     } else if (d == Direction.WEST) {
@@ -218,27 +235,30 @@ public class MoveScorer {
     PriorityQueue<Double> topNRates = new PriorityQueue<>();
     for (int y = yStart; y <= yEnd; y++) {
       for (int x = xStart; x <= xEnd; x++) {
-        double multiplier = inspireMap.get(x, y) > 1 ? 3.0 : 1.0;
-        double adjustedHalite = haliteGrid.get(x, y) * multiplier;
+        double inspireMultiplier = inspireMap.get(x, y) > 1 ? 2.0 : 1.0;
+
+        double crowdFactor = shipInfluenceMap.get(x, y)
+            - InfluenceMaps.getCrowdFactor(ship, x, y, haliteGrid);
+        double crowdMultiplier = 1.0 / (1.0 + crowdFactor * 0.5);
+        double adjustedHalite = haliteGrid.get(x, y) * inspireMultiplier * crowdMultiplier;
 
         double haliteCollectedEstimate = Math.min(
-            Constants.MAX_HALITE - ship.halite, haliteGrid.get(x, y) * 0.44);
+            Constants.MAX_HALITE - ship.halite, haliteGrid.get(x, y) * 0.58);
         double haliteRewardEstimate = Math.min(
-            Constants.MAX_HALITE - ship.halite, adjustedHalite * 0.44);
+            Constants.MAX_HALITE - ship.halite, adjustedHalite * 0.58);
 
         int turnsFromDest = haliteGrid.distance(x, y, destination.x, destination.y) + 3;
 
-        double moveToll = turnsFromDest <= 4 ? 0 : haliteGrid.get(destination.x, destination.y) / 10;
+        // double moveToll = turnsFromDest <= 4 ? 0 : haliteGrid.get(destination.x, destination.y) / 10;
 
         double tollAfterMining = Math.min(
             haliteGrid.get(x, y),
-            (djikstraGrid.costCache.get(x, y) - haliteCollectedEstimate) * 0.10 + moveToll);
+            (djikstraGrid.costCache.get(x, y) - haliteCollectedEstimate) * 0.10);
 
         double haliteRate = (haliteRewardEstimate - tollAfterMining) / turnsFromDest;
 
         topNRates.add(haliteRate);
-        int queueSize = (d == Direction.STILL) ? 24 : 6;
-        if (topNRates.size() > queueSize) {
+        if (topNRates.size() > 5) {
           topNRates.poll();
         }
       }

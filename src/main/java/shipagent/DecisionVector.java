@@ -24,7 +24,7 @@ public class DecisionVector {
   }
 
   public double score() {
-    double result = DoubleStream.of(goHomeScore, explorePotentialScore).max().getAsDouble();
+    double result = DoubleStream.of(goHomeScore, localMoveScore, explorePotentialScore).max().getAsDouble();
     return result
         + enemyThreatScore
         + 0.10 * killScore;

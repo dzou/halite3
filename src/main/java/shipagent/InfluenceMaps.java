@@ -112,8 +112,18 @@ public class InfluenceMaps {
 
     BaseManager baseManager = new BaseManager(playerDropOffs, haliteGrid);
     Grid<Integer> myThreatMap = threatMap(myShips, haliteGrid);
+    Grid<Double> myInfluenceMap = buildShipInfluenceMap(myShips, haliteGrid);
+    Grid<Double> enemyInfluenceMap = buildShipInfluenceMap(enemyShips, haliteGrid);
 
     for (Ship enemy : enemyShips) {
+      double enemyInfluenceAtPoint =
+          enemyInfluenceMap.get(enemy.position.x, enemy.position.y)
+              - getCrowdFactor(enemy, enemy.position.x, enemy.position.y, haliteGrid);
+      double myInfluenceAtPoint = myInfluenceMap.get(enemy.position.x, enemy.position.y);
+      if (enemyInfluenceAtPoint > myInfluenceAtPoint) {
+        continue;
+      }
+
       int bestDifference = 0;
 
       Set<Position> enemyNeighbors = haliteGrid.getNeighbors(enemy.position);
@@ -133,8 +143,16 @@ public class InfluenceMaps {
       if (coveredPositions.size() >= 3 && coveredPositions.containsAll(positionsToCover)) {
         for (Position neighbor : coveredPositions) {
           int prev = killMap.get(neighbor.x, neighbor.y);
-          killMap.set(neighbor.x, neighbor.y, Math.max(prev, bestDifference));
+          double scaledDifference;
+
+          if (positionsToCover.contains(neighbor)) {
+            scaledDifference = 0.75 * bestDifference;
+          } else {
+            scaledDifference = 0.5 * bestDifference;
+          }
+          killMap.set(neighbor.x, neighbor.y, Math.max(prev, (int) scaledDifference));
         }
+        killMap.set(enemy.position.x, enemy.position.y, bestDifference);
       }
     }
 

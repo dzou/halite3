@@ -41,6 +41,31 @@ public class InfluenceMapsTest {
   }
 
   @Test
+  public void testKillMapIgnoreEnemyCrowded() {
+    Grid<Integer> haliteGrid = new Grid<>(32, 32, 0);
+
+    ImmutableList<Ship> myShips = ImmutableList.of(
+        ship(2, 0, 100),
+        ship(0, 2, 200),
+        ship(2, 4, 300)
+    );
+
+    ImmutableList<Ship> enemyShips = ImmutableList.of(
+        ship(2, 2, 500),
+        ship(3, 2, 100),
+        ship(4, 2, 200)
+    );
+
+    Map<PlayerId, Set<Position>> playerBases = ImmutableMap.of(
+        new PlayerId(0),
+        ImmutableSet.of(Position.at(8, 23), Position.at(0, 0)));
+
+
+    Grid<Integer> killMap = InfluenceMaps.killMap(myShips, enemyShips, playerBases, haliteGrid);
+    System.out.println(killMap);
+  }
+
+  @Test
   public void testKillMap() {
     Grid<Integer> haliteGrid = new Grid<>(32, 32, 0);
 
@@ -59,9 +84,10 @@ public class InfluenceMapsTest {
         new PlayerId(0),
         ImmutableSet.of(Position.at(8, 23), Position.at(0, 0)));
 
+
     Grid<Integer> killMap = InfluenceMaps.killMap(myShips, enemyShips, playerBases, haliteGrid);
-    assertThat(killMap.get(2, 1)).isEqualTo(400);
-    assertThat(killMap.get(1, 2)).isEqualTo(400);
+    assertThat(killMap.get(2, 1)).isEqualTo(300);
+    assertThat(killMap.get(1, 2)).isEqualTo(300);
   }
 
   @Test
@@ -83,9 +109,9 @@ public class InfluenceMapsTest {
         ImmutableSet.of(Position.at(8, 23), Position.at(0, 0)));
 
     Grid<Integer> killMap = InfluenceMaps.killMap(myShips, enemyShips, playerBases, haliteGrid);
-    // System.out.println(killMap);
-    assertThat(killMap.get(2, 1)).isEqualTo(400);
-    assertThat(killMap.get(1, 2)).isEqualTo(400);
+    System.out.println(killMap);
+    assertThat(killMap.get(2, 1)).isEqualTo(300);
+    assertThat(killMap.get(1, 2)).isEqualTo(300);
   }
 
   @Test

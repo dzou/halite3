@@ -40,8 +40,8 @@ public class LocalMiningTest {
     Ship myShip = ship(4, 4, 217);
 
     MoveScorer scorer = new MoveScorer(
+        new PlayerId(0),
         haliteGrid,
-        Position.at(0, 0),
         9999,
         ImmutableList.of(myShip),
         ImmutableList.of(),

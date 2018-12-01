@@ -5,7 +5,7 @@ import hlt.Game;
 import hlt.Log;
 import map.Grid;
 
-public class Spawner {
+public class HaliteSpender {
 
   public static boolean shouldMakeShip(
       int currentTurnNumber,

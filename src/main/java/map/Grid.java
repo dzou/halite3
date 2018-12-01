@@ -104,6 +104,8 @@ public class Grid<T> {
     return toroidal_dx + toroidal_dy;
   }
 
+
+
   public Position normalize(int x, int y) {
     return new Position(normalizeX(x), normalizeY(y));
   }

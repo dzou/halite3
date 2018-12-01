@@ -3,7 +3,7 @@ package bot;
 import hlt.*;
 import map.Grid;
 import shipagent.ShipRouter;
-import shipagent.Spawner;
+import shipagent.HaliteSpender;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -42,8 +42,8 @@ public class MyBot {
       Grid<Integer> haliteGrid = gameMap.toHaliteGrid();
 
       ShipRouter shipRouter = new ShipRouter(
+          me.id,
           haliteGrid,
-          game.me.shipyard.position,
           Constants.MAX_TURNS - game.turnNumber,
           game.me.ships.values(),
           game.getEnemyShips(),
@@ -66,7 +66,7 @@ public class MyBot {
 
       if (me.halite >= Constants.SHIP_COST
           && !movedOnBase
-          && Spawner.shouldMakeShip(game.turnNumber, haliteGrid)) {
+          && HaliteSpender.shouldMakeShip(game.turnNumber, haliteGrid)) {
         commandQueue.add(me.shipyard.spawn());
       }
 

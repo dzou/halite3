@@ -2,6 +2,7 @@ package matching;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import hlt.PlayerId;
 import hlt.Position;
 import hlt.Ship;
 import map.Grid;
@@ -44,7 +45,7 @@ public class BipartiteGraphTest {
     Ship s2 = ship(2, 0, 200);
     ImmutableSet<Ship> myShips = ImmutableSet.of(s1, s2);
 
-    MoveScorer scorer = new MoveScorer(grid, Position.at(0, 3), 9999, myShips, ImmutableSet.of(), ImmutableMap.of());
+    MoveScorer scorer = new MoveScorer(new PlayerId(0), grid, 9999, myShips, ImmutableSet.of(), ImmutableMap.of(new PlayerId(0), ImmutableSet.of(Position.at(0, 0))));
 
     BipartiteGraph bipartiteGraph = new BipartiteGraph();
     bipartiteGraph.addShip(s1, scorer.getDecisions(s1));
@@ -83,12 +84,12 @@ public class BipartiteGraphTest {
     }
 
     ShipRouter router = new ShipRouter(
+        new PlayerId(0),
         grid,
-        Position.at(0, 0),
         9999,
         ships,
         ImmutableSet.of(),
-        ImmutableMap.of());
+        ImmutableMap.of(new PlayerId(0), ImmutableSet.of(Position.at(0, 0))));
 
     Map<Ship, Position> moves = router.routeShips();
     assertThat(moves).hasSize(16);

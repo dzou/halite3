@@ -17,24 +17,21 @@ public class ShipRouter {
 
   private final Grid<Integer> haliteGrid;
 
-  private final Position home;
-
   private final Collection<Ship> myShips;
 
   private final MoveScorer moveScorer;
 
   public ShipRouter(
+      PlayerId playerId,
       Grid<Integer> haliteGrid,
-      Position home,
       int turnsRemaining,
       Collection<Ship> myShips,
       Collection<Ship> enemyShips,
       Map<PlayerId, Set<Position>> playerBases) {
 
     this.haliteGrid = haliteGrid;
-    this.home = home;
     this.myShips = myShips;
-    this.moveScorer = new MoveScorer(haliteGrid, home, turnsRemaining, myShips, enemyShips, playerBases);
+    this.moveScorer = new MoveScorer(playerId, haliteGrid, turnsRemaining, myShips, enemyShips, playerBases);
   }
 
   public HashMap<Ship, Position> routeShips() {
@@ -42,6 +39,7 @@ public class ShipRouter {
 
     BipartiteGraph bipartiteGraph = new BipartiteGraph();
     for (Ship ship : myShips) {
+      Position home = moveScorer.getNearestHome(ship.position);
       if (moveScorer.isTimeToEndGame(ship, myShips.size()) && haliteGrid.distance(ship.position, home) <= 1) {
         result.add(Edge.manualEdge(ship, home));
       } else {

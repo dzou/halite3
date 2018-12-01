@@ -1,5 +1,6 @@
 package matching;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import hlt.PlayerId;
@@ -7,6 +8,7 @@ import hlt.Position;
 import hlt.Ship;
 import map.Grid;
 import org.junit.Test;
+import shipagent.MapOracle;
 import shipagent.MoveScorer;
 import shipagent.ShipRouter;
 
@@ -45,7 +47,14 @@ public class BipartiteGraphTest {
     Ship s2 = ship(2, 0, 200);
     ImmutableSet<Ship> myShips = ImmutableSet.of(s1, s2);
 
-    MoveScorer scorer = new MoveScorer(new PlayerId(0), grid, 9999, myShips, ImmutableSet.of(), ImmutableMap.of(new PlayerId(0), ImmutableSet.of(Position.at(0, 0))));
+    MapOracle mapOracle = new MapOracle(
+        new PlayerId(0),
+        grid,
+        9999,
+        myShips,
+        ImmutableList.of(),
+        ImmutableMap.of(new PlayerId(0), ImmutableSet.of(Position.at(0, 0))));
+    MoveScorer scorer = new MoveScorer(mapOracle);
 
     BipartiteGraph bipartiteGraph = new BipartiteGraph();
     bipartiteGraph.addShip(s1, scorer.getDecisions(s1));
@@ -83,13 +92,14 @@ public class BipartiteGraphTest {
       }
     }
 
-    ShipRouter router = new ShipRouter(
+    MapOracle mapOracle = new MapOracle(
         new PlayerId(0),
         grid,
         9999,
         ships,
         ImmutableSet.of(),
         ImmutableMap.of(new PlayerId(0), ImmutableSet.of(Position.at(0, 0))));
+    ShipRouter router = new ShipRouter(mapOracle);
 
     Map<Ship, Position> moves = router.routeShips();
     assertThat(moves).hasSize(16);

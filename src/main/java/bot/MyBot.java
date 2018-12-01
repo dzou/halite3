@@ -2,6 +2,7 @@ package bot;
 
 import hlt.*;
 import map.Grid;
+import shipagent.MapOracle;
 import shipagent.ShipRouter;
 import shipagent.HaliteSpender;
 
@@ -41,13 +42,15 @@ public class MyBot {
 
       Grid<Integer> haliteGrid = gameMap.toHaliteGrid();
 
-      ShipRouter shipRouter = new ShipRouter(
+      MapOracle mapOracle = new MapOracle(
           me.id,
           haliteGrid,
           Constants.MAX_TURNS - game.turnNumber,
           game.me.ships.values(),
           game.getEnemyShips(),
           game.getPlayerBases());
+
+      ShipRouter shipRouter = new ShipRouter(mapOracle);
 
       Map<Ship, Position> mappings = shipRouter.routeShips();
 

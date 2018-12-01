@@ -39,13 +39,14 @@ public class LocalMiningTest {
 
     Ship myShip = ship(4, 4, 217);
 
-    MoveScorer scorer = new MoveScorer(
+    MapOracle mapOracle = new MapOracle(
         new PlayerId(0),
         haliteGrid,
         9999,
         ImmutableList.of(myShip),
         ImmutableList.of(),
         ImmutableMap.of(new PlayerId(0), ImmutableSet.of(Position.at(0, 0))));
+    MoveScorer scorer = new MoveScorer(mapOracle);
 
     Set<Decision> decisionSet = scorer.getDecisions(myShip);
     decisionSet.stream().forEach(d -> System.out.println(d));

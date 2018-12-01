@@ -10,10 +10,7 @@ import hlt.Ship;
 import map.Grid;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.google.common.truth.Truth.assertThat;
 import static hlt.Direction.*;
@@ -36,13 +33,14 @@ public class MoveScorerTest {
         ship(2, 2, 500)
     );
 
-    MoveScorer scorer = new MoveScorer(
+    MapOracle mapOracle = new MapOracle(
         new PlayerId(0),
         haliteGrid,
         9999,
         myShips,
         enemyShips,
         ImmutableMap.of(new PlayerId(0), ImmutableSet.of(Position.at(0, 0))));
+    MoveScorer scorer = new MoveScorer(mapOracle);
 
     Set<Decision> decisionSet = scorer.getDecisions(ship(2, 0));
     assertThat(getBest(decisionSet)).isEqualTo(SOUTH);
@@ -67,7 +65,9 @@ public class MoveScorerTest {
     ImmutableList<Ship> myShips = ImmutableList.of(s1, s2, me);
     System.out.println(InfluenceMaps.buildShipInfluenceMap(ImmutableList.of(s1, s2, me), haliteGrid));
 
-    MoveScorer moveScorer = new MoveScorer(new PlayerId(0), haliteGrid, 9999, myShips, ImmutableList.of(), ImmutableMap.of(new PlayerId(0), ImmutableSet.of(Position.at(0, 0))));
+    MapOracle mapOracle = new MapOracle(new PlayerId(0), haliteGrid, 9999, myShips, ImmutableList.of(), ImmutableMap.of(new PlayerId(0), ImmutableSet.of(Position.at(0, 0))));
+    MoveScorer moveScorer = new MoveScorer(mapOracle);
+
 
     Set<Decision> decisionSet = moveScorer.getDecisions(me);
     decisionSet.stream().forEach(s -> System.out.println(s));
@@ -98,8 +98,9 @@ public class MoveScorerTest {
 
     ImmutableList<Ship> myShips = ImmutableList.of(s1, s2, s3, s4, me);
 
-    MoveScorer moveScorer = new MoveScorer(new PlayerId(0), haliteGrid, 9999, myShips, ImmutableList.of(), ImmutableMap.of(new PlayerId(0), ImmutableSet.of(Position.at(0, 0))));
-    System.out.println(moveScorer.shipInfluenceMap);
+    MapOracle mapOracle = new MapOracle(new PlayerId(0), haliteGrid, 9999, myShips, ImmutableList.of(), ImmutableMap.of(new PlayerId(0), ImmutableSet.of(Position.at(0, 0))));
+    MoveScorer moveScorer = new MoveScorer(mapOracle);
+    System.out.println(mapOracle.shipInfluenceMap);
 
     Set<Decision> decisionSet = moveScorer.getDecisions(s3);
     assertThat(getBest(decisionSet) == WEST || getBest(decisionSet) == NORTH).isTrue();
@@ -147,7 +148,8 @@ public class MoveScorerTest {
     Ship ship = ship(4, 4, 100);
     ImmutableList<Ship> myShips = ImmutableList.of(ship);
 
-    MoveScorer moveScorer = new MoveScorer(new PlayerId(0), haliteGrid, 9999, myShips, ImmutableList.of(), ImmutableMap.of(new PlayerId(0), ImmutableSet.of(Position.at(0, 0))));
+    MapOracle mapOracle = new MapOracle(new PlayerId(0), haliteGrid, 9999, myShips, ImmutableList.of(), ImmutableMap.of(new PlayerId(0), ImmutableSet.of(Position.at(0, 0))));
+    MoveScorer moveScorer = new MoveScorer(mapOracle);
 
     Set<Decision> decisions = moveScorer.getDecisions(ship);
 
@@ -187,7 +189,8 @@ public class MoveScorerTest {
     Ship ship = ship(4, 4, 100);
     ImmutableList<Ship> myShips = ImmutableList.of(ship);
 
-    MoveScorer moveScorer = new MoveScorer(new PlayerId(0), haliteGrid, 9999, myShips, ImmutableList.of(), ImmutableMap.of(new PlayerId(0), ImmutableSet.of(Position.at(0, 0))));
+    MapOracle mapOracle = new MapOracle(new PlayerId(0), haliteGrid, 9999, myShips, ImmutableList.of(), ImmutableMap.of(new PlayerId(0), ImmutableSet.of(Position.at(0, 0))));
+    MoveScorer moveScorer = new MoveScorer(mapOracle);
 
     Set<Decision> decisions = moveScorer.getDecisions(ship);
     decisions.stream().forEach(s -> System.out.println(s));
@@ -215,7 +218,8 @@ public class MoveScorerTest {
     Ship ship = ship(4, 4);
     ImmutableList<Ship> myShips = ImmutableList.of(ship);
 
-    MoveScorer moveScorer = new MoveScorer(new PlayerId(0), haliteGrid,9999, myShips, ImmutableList.of(), ImmutableMap.of(new PlayerId(0), ImmutableSet.of(Position.at(0, 0))));
+    MapOracle mapOracle = new MapOracle(new PlayerId(0), haliteGrid,9999, myShips, ImmutableList.of(), ImmutableMap.of(new PlayerId(0), ImmutableSet.of(Position.at(0, 0))));
+    MoveScorer moveScorer = new MoveScorer(mapOracle);
 
     Set<Decision> decisionSet = moveScorer.getDecisions(ship);
     decisionSet.stream().forEach(s -> System.out.println(s));
@@ -245,7 +249,8 @@ public class MoveScorerTest {
     Ship ship = ship(3, 1, 250);
     ImmutableList<Ship> myShips = ImmutableList.of(ship);
 
-    MoveScorer moveScorer = new MoveScorer(new PlayerId(0), grid,9999, myShips, ImmutableList.of(), ImmutableMap.of(new PlayerId(0), ImmutableSet.of(Position.at(0, 0))));
+    MapOracle mapOracle = new MapOracle(new PlayerId(0), grid,9999, myShips, ImmutableList.of(), ImmutableMap.of(new PlayerId(0), ImmutableSet.of(Position.at(0, 0))));
+    MoveScorer moveScorer = new MoveScorer(mapOracle);
 
     Set<Decision> decisionSet = moveScorer.getDecisions(ship);
 

@@ -15,32 +15,23 @@ import java.util.*;
  */
 public class ShipRouter {
 
-  private final Grid<Integer> haliteGrid;
-
-  private final Collection<Ship> myShips;
+  private final MapOracle mapOracle;
 
   private final MoveScorer moveScorer;
 
-  public ShipRouter(
-      PlayerId playerId,
-      Grid<Integer> haliteGrid,
-      int turnsRemaining,
-      Collection<Ship> myShips,
-      Collection<Ship> enemyShips,
-      Map<PlayerId, Set<Position>> playerBases) {
-
-    this.haliteGrid = haliteGrid;
-    this.myShips = myShips;
-    this.moveScorer = new MoveScorer(playerId, haliteGrid, turnsRemaining, myShips, enemyShips, playerBases);
+  public ShipRouter(MapOracle mapOracle) {
+    this.mapOracle = mapOracle;
+    this.moveScorer = new MoveScorer(mapOracle);
   }
 
   public HashMap<Ship, Position> routeShips() {
     HashSet<Edge> result = new HashSet<>();
 
     BipartiteGraph bipartiteGraph = new BipartiteGraph();
-    for (Ship ship : myShips) {
-      Position home = moveScorer.getNearestHome(ship.position);
-      if (moveScorer.isTimeToEndGame(ship, myShips.size()) && haliteGrid.distance(ship.position, home) <= 1) {
+    for (Ship ship : mapOracle.myShips) {
+      Position home = mapOracle.getNearestHome(ship.position);
+      if (mapOracle.isTimeToEndGame(ship, mapOracle.myShips.size())
+          && mapOracle.haliteGrid.distance(ship.position, home) <= 1) {
         result.add(Edge.manualEdge(ship, home));
       } else {
         HashSet<Decision> decisions = moveScorer.getDecisions(ship);

@@ -2,7 +2,7 @@
 
 set -e
 
-./halite --replay-directory replays/ -vvv --width 40 --height 40 \
+./halite --replay-directory replays/ -vvv --width 64 --height 64 \
 "java -jar ../target/MyBot.jar" \
 "java -jar bot_versions/alpha2.jar"
 #"java -jar bot_versions/spawner.jar" \

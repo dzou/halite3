@@ -6,9 +6,7 @@ import shipagent.MapOracle;
 import shipagent.ShipRouter;
 import shipagent.HaliteSpender;
 
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 // This Java API uses camelCase instead of the snake_case as documented in the API docs.
 //   Otherwise the names of methods are consistent.
@@ -40,19 +38,35 @@ public class MyBot {
 
       final ArrayList<Command> commandQueue = new ArrayList<>();
 
-      Grid<Integer> haliteGrid = gameMap.toHaliteGrid();
-
       MapOracle mapOracle = new MapOracle(
           me.id,
-          haliteGrid,
+          gameMap.toHaliteGrid(),
           Constants.MAX_TURNS - game.turnNumber,
           game.me.ships.values(),
           game.getEnemyShips(),
           game.getPlayerBases());
 
+      HaliteSpender spender = new HaliteSpender(mapOracle, game.me.halite);
       ShipRouter shipRouter = new ShipRouter(mapOracle);
 
-      Map<Ship, Position> mappings = shipRouter.routeShips();
+      HashSet<Ship> shipsToTransform = new HashSet<>();
+
+      // Dropoffs logic
+      Optional<Position> dropOffProposal = spender.orderDropoff();
+      if (dropOffProposal.isPresent()) {
+        Log.log("Dropoff proposal: " + dropOffProposal.get());
+        Optional<Ship> shipAtDropoff = mapOracle.orderDropOff(dropOffProposal.get());
+
+        if (shipAtDropoff.isPresent()) {
+          Ship ship = shipAtDropoff.get();
+          commandQueue.add(Command.transformShipIntoDropoffSite(ship.id));
+          shipsToTransform.add(ship);
+        }
+      } else {
+        Log.log("No dropoff suggested.");
+      }
+
+      Map<Ship, Position> mappings = shipRouter.routeShips(shipsToTransform);
 
       boolean movedOnBase = false;
 
@@ -63,13 +77,13 @@ public class MyBot {
           movedOnBase = true;
         }
 
-        Direction direction = haliteGrid.calculateDirection(ship.position, destination);
+        Direction direction = mapOracle.haliteGrid.calculateDirection(ship.position, destination);
         commandQueue.add(Command.move(ship.id, direction));
       }
 
       if (me.halite >= Constants.SHIP_COST
           && !movedOnBase
-          && HaliteSpender.shouldMakeShip(game.turnNumber, haliteGrid)) {
+          && spender.shouldMakeShip()) {
         commandQueue.add(me.shipyard.spawn());
       }
 

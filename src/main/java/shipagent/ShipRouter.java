@@ -25,10 +25,18 @@ public class ShipRouter {
   }
 
   public HashMap<Ship, Position> routeShips() {
+    return routeShips(Collections.emptySet());
+  }
+
+  public HashMap<Ship, Position> routeShips(Set<Ship> excludeShips) {
     HashSet<Edge> result = new HashSet<>();
 
     BipartiteGraph bipartiteGraph = new BipartiteGraph();
     for (Ship ship : mapOracle.myShips) {
+      if (excludeShips.contains(ship)) {
+        continue;
+      }
+
       Position home = mapOracle.getNearestHome(ship.position);
       if (mapOracle.isTimeToEndGame(ship, mapOracle.myShips.size())
           && mapOracle.haliteGrid.distance(ship.position, home) <= 1) {
@@ -37,10 +45,10 @@ public class ShipRouter {
         HashSet<Decision> decisions = moveScorer.getDecisions(ship);
         bipartiteGraph.addShip(ship, decisions);
 
-        Log.log("SHIP " + ship.id);
-        for (Decision d : decisions) {
-          Log.log(d.toString());
-        }
+//        Log.log("SHIP " + ship.id);
+//        for (Decision d : decisions) {
+//          Log.log(d.toString());
+//        }
       }
     }
     result.addAll(bipartiteGraph.matchShipsToDestinations());

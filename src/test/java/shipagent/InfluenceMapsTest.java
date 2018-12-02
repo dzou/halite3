@@ -181,6 +181,37 @@ public class InfluenceMapsTest {
   }
 
   @Test
+  public void testDensityMap() {
+    Grid<Integer> haliteGrid = new Grid<>(32, 32, 0);
+
+    ImmutableList<Ship> myShips = ImmutableList.of(
+        ship(2, 0, 100),
+        ship(0, 2, 200)
+    );
+
+    Grid<Double> densityMap = InfluenceMaps.haliteDensityMap(haliteGrid, myShips);
+    assertThat(densityMap.get(2, 0)).isWithin(0.0001).of(140.0);
+    assertThat(densityMap.get(0, 2)).isWithin(0.0001).of(220.0);
+
+    System.out.println(densityMap);
+  }
+
+  @Test
+  public void testDensityMapShipsAndHalite() {
+    Grid<Integer> haliteGrid = new Grid<>(32, 32, 0);
+
+    haliteGrid.set(0, 0, 72);
+
+    ImmutableList<Ship> myShips = ImmutableList.of(
+        ship(2, 0, 100)
+    );
+
+    Grid<Double> densityMap = InfluenceMaps.haliteDensityMap(haliteGrid, myShips);
+
+    assertThat(densityMap.get(1, 0)).isWithin(0.001).of(86.0);
+  }
+
+  @Test
   public void testInspireMaps() {
     Grid<Integer> haliteGrid = new Grid<>(16, 16, 0);
 

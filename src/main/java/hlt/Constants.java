@@ -12,11 +12,11 @@ public class Constants {
   /**
    * The cost to build a single ship.
    */
-  public static int SHIP_COST;
+  public static int SHIP_COST = 1000;
   /**
    * The cost to build a dropoff.
    */
-  public static int DROPOFF_COST;
+  public static int DROPOFF_COST = 4000;
   /**
    * The maximum number of turns a game can last.
    */

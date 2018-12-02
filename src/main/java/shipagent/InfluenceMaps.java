@@ -10,6 +10,8 @@ import java.util.*;
 
 public class InfluenceMaps {
 
+  public static final int HALITE_DENSITY_RANGE = 5;
+
   public static final int SHIP_INFLUENCE_RANGE = 10;
 
   public static double getCrowdFactor(Ship ship, int dx, int dy, Grid<Integer> haliteGrid) {
@@ -157,5 +159,45 @@ public class InfluenceMaps {
     }
 
     return killMap;
+  }
+
+  public static Grid<Double> haliteDensityMap(Grid<Integer> haliteGrid, Collection<Ship> myShips) {
+    Grid<Double> densityGrid = new Grid<>(haliteGrid.width, haliteGrid.height, 0.0);
+    for (int y = 0; y < haliteGrid.height; y++) {
+      for (int x = 0; x < haliteGrid.width; x++) {
+        densityGrid.set(x, y, getHaliteDensity(x, y, haliteGrid));
+      }
+    }
+
+    for (Ship ship : myShips) {
+      for (int dy = -HALITE_DENSITY_RANGE; dy <= HALITE_DENSITY_RANGE; dy++) {
+        for (int dx = -HALITE_DENSITY_RANGE + Math.abs(dy); dx <= HALITE_DENSITY_RANGE - Math.abs(dy); dx++) {
+          int neighborX = ship.position.x + dx;
+          int neighborY = ship.position.y + dy;
+
+          double shipContribution =
+              1.0 * ship.halite / (haliteGrid.distance(ship.position.x, ship.position.y, neighborX, neighborY) + 1);
+          double prev = densityGrid.get(neighborX, neighborY);
+
+          densityGrid.set(neighborX, neighborY, prev + shipContribution);
+        }
+      }
+    }
+
+    return densityGrid;
+  }
+
+  private static double getHaliteDensity(int x, int y, Grid<Integer> haliteGrid) {
+    int densitySum = 0;
+
+    for (int dy = -HALITE_DENSITY_RANGE; dy <= HALITE_DENSITY_RANGE; dy++) {
+      for (int dx = -HALITE_DENSITY_RANGE + Math.abs(dy); dx <= HALITE_DENSITY_RANGE - Math.abs(dy); dx++) {
+        int neighborX = x + dx;
+        int neighborY = y + dy;
+        densitySum += 1.0 * haliteGrid.get(neighborX, neighborY) / (haliteGrid.distance(x, y, neighborX, neighborY) + 1);
+      }
+    }
+
+    return densitySum;
   }
 }

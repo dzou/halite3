@@ -8,9 +8,9 @@ import java.util.Set;
 
 public class HaliteSpender {
 
-  private static final int MIN_SPACE_BTWN_DROPOFFS = 16;
+  private static final int MIN_SPACE_BTWN_DROPOFFS = 20;
 
-  private static final int MAX_DROPOFFS = 5;
+  private static final int MAX_DROPOFFS = 6;
 
   private static final int DROPOFF_TURNS_REMAINING_CUTOFF = 50;
 
@@ -71,7 +71,7 @@ public class HaliteSpender {
       }
     }
 
-    if (bestPos != null) {
+    if (bestPos != null && maxHaliteRegion > 800) {
       haliteAvailable -= haliteDeducted;
       return Optional.of(bestPos);
     } else {

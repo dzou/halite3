@@ -8,6 +8,7 @@ import map.DjikstraGrid;
 import map.Grid;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -69,9 +70,15 @@ public class MapOracle {
   }
 
   Position getNearestHome(Position shipPosition) {
-    return myDropoffsMap.keySet().stream()
-        .min(Comparator.comparingInt(basePosition -> haliteGrid.distance(shipPosition, basePosition)))
-        .get();
+    Comparator<Map.Entry<Position, DjikstraGrid>> dropOffComparator =
+        Comparator.<Map.Entry<Position, DjikstraGrid>>comparingInt(entry -> entry.getValue().costCache.get(shipPosition.x, shipPosition.y))
+            .thenComparing(entry -> entry.getKey().x * 100 + entry.getKey().y);
+
+    return myDropoffsMap.entrySet()
+        .stream()
+        .min(dropOffComparator)
+        .get()
+        .getKey();
   }
 
   double goHomeCost(Position destination) {

@@ -36,7 +36,11 @@ public class InfluenceMapsTest {
         new PlayerId(0),
         ImmutableSet.of(Position.at(8, 23), Position.at(0, 0)));
 
-    Grid<Integer> killMap = InfluenceMaps.killMap(myShips, enemyShips, playerBases, haliteGrid);
+    Grid<Integer> myThreatMap = InfluenceMaps.threatMap(myShips, haliteGrid);
+    Grid<Double> myInfluenceMap = InfluenceMaps.buildShipInfluenceMap(myShips, haliteGrid);
+    Grid<Double> enemyInfluenceMap = InfluenceMaps.buildShipInfluenceMap(enemyShips, haliteGrid);
+    Grid<Integer> killMap = InfluenceMaps.killMap(enemyShips, playerBases, haliteGrid, myThreatMap, myInfluenceMap, enemyInfluenceMap);
+
     System.out.println(killMap);
   }
 
@@ -53,7 +57,8 @@ public class InfluenceMapsTest {
     ImmutableList<Ship> enemyShips = ImmutableList.of(
         ship(2, 2, 500),
         ship(3, 2, 100),
-        ship(4, 2, 200)
+        ship(4, 2, 200),
+        ship(2, 3, 200)
     );
 
     Map<PlayerId, Set<Position>> playerBases = ImmutableMap.of(
@@ -61,8 +66,13 @@ public class InfluenceMapsTest {
         ImmutableSet.of(Position.at(8, 23), Position.at(0, 0)));
 
 
-    Grid<Integer> killMap = InfluenceMaps.killMap(myShips, enemyShips, playerBases, haliteGrid);
-    System.out.println(killMap);
+    Grid<Integer> myThreatMap = InfluenceMaps.threatMap(myShips, haliteGrid);
+    Grid<Double> myInfluenceMap = InfluenceMaps.buildShipInfluenceMap(myShips, haliteGrid);
+    Grid<Double> enemyInfluenceMap = InfluenceMaps.buildShipInfluenceMap(enemyShips, haliteGrid);
+    Grid<Integer> killMap = InfluenceMaps.killMap(enemyShips, playerBases, haliteGrid, myThreatMap, myInfluenceMap, enemyInfluenceMap);
+
+    assertThat(killMap.get(1, 2)).isEqualTo(0);
+    assertThat(killMap.get(2, 2)).isEqualTo(0);
   }
 
   @Test
@@ -85,9 +95,14 @@ public class InfluenceMapsTest {
         ImmutableSet.of(Position.at(8, 23), Position.at(0, 0)));
 
 
-    Grid<Integer> killMap = InfluenceMaps.killMap(myShips, enemyShips, playerBases, haliteGrid);
-    assertThat(killMap.get(2, 1)).isEqualTo(300);
-    assertThat(killMap.get(1, 2)).isEqualTo(300);
+    Grid<Integer> myThreatMap = InfluenceMaps.threatMap(myShips, haliteGrid);
+    Grid<Double> myInfluenceMap = InfluenceMaps.buildShipInfluenceMap(myShips, haliteGrid);
+    Grid<Double> enemyInfluenceMap = InfluenceMaps.buildShipInfluenceMap(enemyShips, haliteGrid);
+    Grid<Integer> killMap = InfluenceMaps.killMap(enemyShips, playerBases, haliteGrid, myThreatMap, myInfluenceMap, enemyInfluenceMap);
+
+    System.out.println(killMap);
+    assertThat(killMap.get(2, 1)).isEqualTo(400);
+    assertThat(killMap.get(1, 2)).isEqualTo(400);
   }
 
   @Test
@@ -108,10 +123,15 @@ public class InfluenceMapsTest {
         new PlayerId(0),
         ImmutableSet.of(Position.at(8, 23), Position.at(0, 0)));
 
-    Grid<Integer> killMap = InfluenceMaps.killMap(myShips, enemyShips, playerBases, haliteGrid);
+    Grid<Integer> myThreatMap = InfluenceMaps.threatMap(myShips, haliteGrid);
+    Grid<Double> myInfluenceMap = InfluenceMaps.buildShipInfluenceMap(myShips, haliteGrid);
+    Grid<Double> enemyInfluenceMap = InfluenceMaps.buildShipInfluenceMap(enemyShips, haliteGrid);
+    Grid<Integer> killMap = InfluenceMaps.killMap(enemyShips, playerBases, haliteGrid, myThreatMap, myInfluenceMap, enemyInfluenceMap);
     System.out.println(killMap);
-    assertThat(killMap.get(2, 1)).isEqualTo(300);
-    assertThat(killMap.get(1, 2)).isEqualTo(300);
+    assertThat(killMap.get(2, 1)).isGreaterThan(0);
+    assertThat(killMap.get(2, 2)).isGreaterThan(0);
+    assertThat(killMap.get(1, 2)).isGreaterThan(0);
+    assertThat(killMap.get(2, 2)).isLessThan(killMap.get(1, 2));
   }
 
   @Test
@@ -120,7 +140,6 @@ public class InfluenceMapsTest {
 
     ImmutableList<Ship> myShips = ImmutableList.of(
         ship(0, 2, 200),
-        ship(2, 4, 300),
         ship(2, 4, 300)
     );
 
@@ -132,10 +151,14 @@ public class InfluenceMapsTest {
         new PlayerId(0),
         ImmutableSet.of(Position.at(8, 23), Position.at(0, 0)));
 
-    Grid<Integer> killMap = InfluenceMaps.killMap(myShips, enemyShips, playerBases, haliteGrid);
-    // System.out.println(killMap);
-    assertThat(killMap.get(2, 1)).isEqualTo(0);
-    assertThat(killMap.get(1, 2)).isEqualTo(0);
+    Grid<Integer> myThreatMap = InfluenceMaps.threatMap(myShips, haliteGrid);
+    Grid<Double> myInfluenceMap = InfluenceMaps.buildShipInfluenceMap(myShips, haliteGrid);
+    Grid<Double> enemyInfluenceMap = InfluenceMaps.buildShipInfluenceMap(enemyShips, haliteGrid);
+    Grid<Integer> killMap = InfluenceMaps.killMap(enemyShips, playerBases, haliteGrid, myThreatMap, myInfluenceMap, enemyInfluenceMap);
+    System.out.println(killMap);
+
+    assertThat(killMap.get(2, 2)).isEqualTo(0);
+    assertThat(killMap.get(1, 2)).isGreaterThan(0);
   }
 
   @Test
@@ -181,7 +204,7 @@ public class InfluenceMapsTest {
   }
 
   @Test
-  public void testDensityMap() {
+  public void testShipHaliteDensityMap() {
     Grid<Integer> haliteGrid = new Grid<>(32, 32, 0);
 
     ImmutableList<Ship> myShips = ImmutableList.of(
@@ -189,7 +212,7 @@ public class InfluenceMapsTest {
         ship(0, 2, 200)
     );
 
-    Grid<Double> densityMap = InfluenceMaps.haliteDensityMap(haliteGrid, myShips);
+    Grid<Double> densityMap = InfluenceMaps.shipHaliteDensityMap(haliteGrid, myShips);
     assertThat(densityMap.get(2, 0)).isWithin(0.0001).of(140.0);
     assertThat(densityMap.get(0, 2)).isWithin(0.0001).of(220.0);
 
@@ -197,16 +220,14 @@ public class InfluenceMapsTest {
   }
 
   @Test
-  public void testDensityMapShipsAndHalite() {
+  public void testHaliteDensityMap() {
     Grid<Integer> haliteGrid = new Grid<>(32, 32, 0);
 
     haliteGrid.set(0, 0, 72);
+    haliteGrid.set(2, 0, 100);
 
-    ImmutableList<Ship> myShips = ImmutableList.of(
-        ship(2, 0, 100)
-    );
-
-    Grid<Double> densityMap = InfluenceMaps.haliteDensityMap(haliteGrid, myShips);
+    Grid<Double> densityMap = InfluenceMaps.haliteDensityMap(haliteGrid);
+    System.out.println(densityMap);
 
     assertThat(densityMap.get(1, 0)).isWithin(0.001).of(86.0);
   }

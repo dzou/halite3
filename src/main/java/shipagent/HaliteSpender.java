@@ -8,11 +8,13 @@ import java.util.Set;
 
 public class HaliteSpender {
 
-  private static final int MIN_SPACE_BTWN_DROPOFFS = 20;
+  private static final int MIN_HALITE_DENSITY_TO_DROPOFF = 2500;
+
+  private static final int MIN_SPACE_BTWN_DROPOFFS = 16;
 
   private static final int MAX_DROPOFFS = 6;
 
-  private static final int DROPOFF_TURNS_REMAINING_CUTOFF = 50;
+  private static final int DROPOFF_TURNS_REMAINING_CUTOFF = 100;
 
   private final MapOracle oracle;
 
@@ -44,7 +46,7 @@ public class HaliteSpender {
     Grid<Double> densityMap = oracle.haliteDensityMap;
 
     Position bestPos = null;
-    double maxHaliteRegion = -1;
+    double maxNetHaliteDensity = -1;
     int haliteDeducted = 0;
 
     for (int y = 0; y < densityMap.height; y++) {
@@ -52,26 +54,29 @@ public class HaliteSpender {
         final int tx = x;
         final int ty = y;
         boolean tooCloseToOtherDropoff = myDropOffs.stream()
-            .filter(dropOff -> densityMap.distance(dropOff.x, dropOff.y, tx, ty) < MIN_SPACE_BTWN_DROPOFFS)
+            .filter(dropOff -> densityMap.distance(dropOff.x, dropOff.y, tx, ty) <= MIN_SPACE_BTWN_DROPOFFS)
             .findAny()
             .isPresent();
-        if (tooCloseToOtherDropoff) {
+
+        if (tooCloseToOtherDropoff || !oracle.friendlyControlPoint(x, y)) {
           continue;
         }
 
         int fundsOnCell = getFundsOnCell(x, y);
-        double currHaliteDensity = densityMap.get(x, y);
+        double haliteDensity = densityMap.get(x, y);
+        double netHaliteDensity = densityMap.get(x, y) + oracle.shipHaliteDensityMap.get(x, y);
 
         if (fundsOnCell + haliteAvailable >= Constants.DROPOFF_COST
-            && currHaliteDensity > maxHaliteRegion) {
+            && haliteDensity > MIN_HALITE_DENSITY_TO_DROPOFF
+            && netHaliteDensity > maxNetHaliteDensity) {
           bestPos = Position.at(x, y);
-          maxHaliteRegion = currHaliteDensity;
+          maxNetHaliteDensity = netHaliteDensity;
           haliteDeducted = Constants.DROPOFF_COST - fundsOnCell;
         }
       }
     }
 
-    if (bestPos != null && maxHaliteRegion > 800) {
+    if (bestPos != null) {
       haliteAvailable -= haliteDeducted;
       return Optional.of(bestPos);
     } else {

@@ -2,9 +2,9 @@
 
 set -e
 
-./halite --replay-directory replays/ -vvv --width 64 --height 64 --seed 1543790775 \
+./halite --replay-directory replays/ -vvv --width 48 --height 48 \
 "java -jar ../target/MyBot.jar" \
-"java -jar bot_versions/alpha2.jar"
+"java -jar bot_versions/alpha3.jar"
 #"java -jar bot_versions/spawner.jar" \
 #"java -jar bot_versions/hungarian.jar"
 

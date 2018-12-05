@@ -45,10 +45,10 @@ public class ShipRouter {
         HashSet<Decision> decisions = moveScorer.getDecisions(ship);
         bipartiteGraph.addShip(ship, decisions);
 
-//        Log.log("SHIP " + ship.id);
-//        for (Decision d : decisions) {
-//          Log.log(d.toString());
-//        }
+        Log.log("SHIP " + ship.id);
+        for (Decision d : decisions) {
+          Log.log(d.toString());
+        }
       }
     }
     result.addAll(bipartiteGraph.matchShipsToDestinations());

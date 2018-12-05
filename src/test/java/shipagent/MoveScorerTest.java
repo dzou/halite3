@@ -100,7 +100,7 @@ public class MoveScorerTest {
 
     MapOracle mapOracle = new MapOracle(new PlayerId(0), haliteGrid, 9999, myShips, ImmutableList.of(), ImmutableMap.of(new PlayerId(0), ImmutableSet.of(Position.at(0, 0))));
     MoveScorer moveScorer = new MoveScorer(mapOracle);
-    System.out.println(mapOracle.shipInfluenceMap);
+    System.out.println(mapOracle.myInfluenceMap);
 
     Set<Decision> decisionSet = moveScorer.getDecisions(s3);
     assertThat(getBest(decisionSet) == WEST || getBest(decisionSet) == NORTH).isTrue();

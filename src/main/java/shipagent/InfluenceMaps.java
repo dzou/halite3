@@ -105,17 +105,15 @@ public class InfluenceMaps {
 //  }
 
   static Grid<Integer> killMap(
-      Collection<Ship> myShips,
       Collection<Ship> enemyShips,
       Map<PlayerId, Set<Position>> playerDropOffs,
-      Grid<Integer> haliteGrid) {
+      Grid<Integer> haliteGrid,
+      Grid<Integer> myThreatMap,
+      Grid<Double> myInfluenceMap,
+      Grid<Double> enemyInfluenceMap) {
 
     Grid<Integer> killMap = new Grid<>(haliteGrid.width, haliteGrid.height, 0);
-
     BaseManager baseManager = new BaseManager(playerDropOffs, haliteGrid);
-    Grid<Integer> myThreatMap = threatMap(myShips, haliteGrid);
-    Grid<Double> myInfluenceMap = buildShipInfluenceMap(myShips, haliteGrid);
-    Grid<Double> enemyInfluenceMap = buildShipInfluenceMap(enemyShips, haliteGrid);
 
     for (Ship enemy : enemyShips) {
       double enemyInfluenceAtPoint =
@@ -126,49 +124,35 @@ public class InfluenceMaps {
         continue;
       }
 
-      int bestDifference = 0;
-
-      Set<Position> enemyNeighbors = haliteGrid.getNeighbors(enemy.position);
       List<Position> positionsToCover = baseManager.findGoHomeDirections(enemy);
-      HashSet<Position> coveredPositions = new HashSet<>();
+      int bestDifference = 0;
+      int covered = 0;
 
-      for (Position neighbor : enemyNeighbors) {
-        if (myThreatMap.get(neighbor.x, neighbor.y) != -1 && myThreatMap.get(neighbor.x, neighbor.y) <= enemy.halite) {
+      for (Position neighbor : positionsToCover) {
+        if (myThreatMap.get(neighbor.x, neighbor.y) != -1
+            && myThreatMap.get(neighbor.x, neighbor.y) <= enemy.halite * 0.5) {
           int diff = enemy.halite - myThreatMap.get(neighbor.x, neighbor.y);
           if (diff > bestDifference) {
             bestDifference = diff;
           }
-          coveredPositions.add(neighbor);
+          covered += 1;
         }
       }
 
-      if (coveredPositions.size() >= 3 && coveredPositions.containsAll(positionsToCover)) {
-        for (Position neighbor : coveredPositions) {
-          int prev = killMap.get(neighbor.x, neighbor.y);
-          double scaledDifference;
-
-          if (positionsToCover.contains(neighbor)) {
-            scaledDifference = 0.75 * bestDifference;
-          } else {
-            scaledDifference = 0.5 * bestDifference;
-          }
-          killMap.set(neighbor.x, neighbor.y, Math.max(prev, (int) scaledDifference));
-        }
-        killMap.set(enemy.position.x, enemy.position.y, bestDifference);
+      for (Position neighbor : positionsToCover) {
+        int prev = killMap.get(neighbor.x, neighbor.y);
+        killMap.set(neighbor.x, neighbor.y, Math.max(prev, bestDifference));
+      }
+      if (covered >= positionsToCover.size()) {
+        killMap.set(enemy.position.x, enemy.position.y, bestDifference / 2);
       }
     }
 
     return killMap;
   }
 
-  public static Grid<Double> haliteDensityMap(Grid<Integer> haliteGrid, Collection<Ship> myShips) {
+  public static Grid<Double> shipHaliteDensityMap(Grid<Integer> haliteGrid, Collection<Ship> myShips) {
     Grid<Double> densityGrid = new Grid<>(haliteGrid.width, haliteGrid.height, 0.0);
-    for (int y = 0; y < haliteGrid.height; y++) {
-      for (int x = 0; x < haliteGrid.width; x++) {
-        densityGrid.set(x, y, getHaliteDensity(x, y, haliteGrid));
-      }
-    }
-
     for (Ship ship : myShips) {
       for (int dy = -HALITE_DENSITY_RANGE; dy <= HALITE_DENSITY_RANGE; dy++) {
         for (int dx = -HALITE_DENSITY_RANGE + Math.abs(dy); dx <= HALITE_DENSITY_RANGE - Math.abs(dy); dx++) {
@@ -176,11 +160,22 @@ public class InfluenceMaps {
           int neighborY = ship.position.y + dy;
 
           double shipContribution =
-              1.0 * ship.halite / (haliteGrid.distance(ship.position.x, ship.position.y, neighborX, neighborY) + 1);
+              ship.halite / (haliteGrid.distance(ship.position.x, ship.position.y, neighborX, neighborY) + 1);
           double prev = densityGrid.get(neighborX, neighborY);
 
           densityGrid.set(neighborX, neighborY, prev + shipContribution);
         }
+      }
+    }
+
+    return densityGrid;
+  }
+
+  public static Grid<Double> haliteDensityMap(Grid<Integer> haliteGrid) {
+    Grid<Double> densityGrid = new Grid<>(haliteGrid.width, haliteGrid.height, 0.0);
+    for (int y = 0; y < haliteGrid.height; y++) {
+      for (int x = 0; x < haliteGrid.width; x++) {
+        densityGrid.set(x, y, getHaliteDensity(x, y, haliteGrid));
       }
     }
 

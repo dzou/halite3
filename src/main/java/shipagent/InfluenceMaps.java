@@ -15,9 +15,14 @@ public class InfluenceMaps {
   public static final int SHIP_INFLUENCE_RANGE = 10;
 
   public static double getCrowdFactor(Ship ship, int dx, int dy, Grid<Integer> haliteGrid) {
-    double distance = 3 * haliteGrid.distance(dx, dy, ship.position.x, ship.position.y) + 1;
-    double miningPotential = (1.0 * Constants.MAX_HALITE - ship.halite) / (distance * Constants.MAX_HALITE);
-    return miningPotential;
+    int distance = haliteGrid.distance(dx, dy, ship.position.x, ship.position.y);
+    if (distance > SHIP_INFLUENCE_RANGE) {
+      return 0;
+    } else {
+      double decayFactor = distance + 1;
+      double miningPotential = (1.0 * Constants.MAX_HALITE - ship.halite) / (decayFactor * Constants.MAX_HALITE);
+      return miningPotential;
+    }
   }
 
   public static Grid<Double> buildShipInfluenceMap(Collection<Ship> myShips, Grid<Integer> haliteGrid) {

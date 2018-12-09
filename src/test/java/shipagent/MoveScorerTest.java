@@ -202,15 +202,15 @@ public class MoveScorerTest {
   @Test
   public void testExplorePotentialGreedyFirst() {
     Integer[][] rawHaliteGrid = {
+        {0, 0, 0, 0, 0, 0, 0, 0, 0},
         {0, 0, 0, 0, 1000, 0, 0, 0, 0},
         {0, 0, 0, 0, 0, 0, 0, 0, 0},
         {0, 0, 0, 0, 0, 0, 0, 0, 0},
-        {0, 0, 0, 0, 0, 0, 0, 0, 0},
-        {500, 0, 0, 0, 0, 0, 0, 0, 700},
-        {0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 500, 0, 0, 0, 0, 0, 700, 0},
         {0, 0, 0, 0, 0, 0, 0, 0, 0},
         {0, 0, 0, 0, 0, 0, 0, 0, 0},
         {0, 0, 0, 0, 100, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0},
     };
 
     Grid<Integer> haliteGrid = new Grid<>(rawHaliteGrid);

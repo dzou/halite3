@@ -46,6 +46,7 @@ public class ShipRouter {
         bipartiteGraph.addShip(ship, decisions);
 
         Log.log("SHIP " + ship.id);
+        Log.log("Ship " + ship.id + " home: " + mapOracle.getNearestHome(ship.position));
         for (Decision d : decisions) {
           Log.log(d.toString());
         }

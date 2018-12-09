@@ -99,20 +99,34 @@ public class MapOracle {
   }
 
   boolean isTimeToEndGame(Ship ship, int shipCount) {
-    return haliteGrid.distance(ship.position, getNearestHome(ship.position)) + 5 + (shipCount / 5) >= turnsRemaining;
+    return haliteGrid.distance(ship.position, getNearestHome(ship.position)) + 5 + (shipCount / (5 * myDropoffsMap.size())) >= turnsRemaining;
   }
 
-  double getInfluenceAtPoint(int x, int y) {
+  double influenceSumAtPoint(int x, int y) {
     return myInfluenceMap.get(x, y) + enemyInfluenceMap.get(x, y);
   }
 
-  boolean friendlyControlPoint(int x, int y) {
-    double myInfluence = myInfluenceMap.get(x, y);
-    Ship myShip = myShipPositionsMap.get(Position.at(x, y));
-    if (myShip != null) {
-      myInfluence -= InfluenceMaps.getCrowdFactor(myShip, x, y, haliteGrid);
+  double influenceDifferenceAtPoint(int x, int y) {
+    return myInfluenceMap.get(x, y) - enemyInfluenceMap.get(x, y);
+  }
+
+  double influenceDifferenceAtPoints(int meX, int meY, int enX, int enY) {
+    return myInfluenceMap.get(meX, meY) - enemyInfluenceMap.get(enX, enY);
+  }
+
+  Collection<Ship> getEnemiesInNeighborhood(Position origin, int distance, int enemyCount) {
+    PriorityQueue<Ship> nearestEnemyShips = new PriorityQueue<>(
+        Comparator.comparingInt(e -> -haliteGrid.distance(origin, e.position)));
+
+    for (Ship enemy : enemyShips) {
+      if (haliteGrid.distance(origin, enemy.position) <= distance) {
+        nearestEnemyShips.add(enemy);
+        if (nearestEnemyShips.size() > enemyCount) {
+          nearestEnemyShips.remove();
+        }
+      }
     }
 
-    return myInfluence >= enemyInfluenceMap.get(x, y);
+    return nearestEnemyShips;
   }
 }

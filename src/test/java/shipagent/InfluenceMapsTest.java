@@ -174,13 +174,13 @@ public class InfluenceMapsTest {
     Grid<Double> infGrid = InfluenceMaps.buildShipInfluenceMap(ships, haliteGrid);
     System.out.println(infGrid);
 
-    assertThat(infGrid.get(5, 5)).isWithin(0.2).of(1.0);
-    assertThat(infGrid.get(6, 6)).isWithin(0.2).of(1.0);
+    assertThat(infGrid.get(5, 5)).isWithin(0.2).of(1.33);
+    assertThat(infGrid.get(6, 6)).isWithin(0.2).of(1.33);
     assertThat(infGrid.get(14, 14)).isWithin(0.001).of(0.5);
   }
 
   @Test
-  public void testEnemyDangerMaps() {
+  public void testThreatMap() {
     Grid<Integer> haliteGrid = new Grid<>(5, 5, 0);
 
     ImmutableList<Ship> ships = ImmutableList.of(
@@ -200,7 +200,7 @@ public class InfluenceMapsTest {
     };
     Grid<Integer> expected = new Grid<>(expectedRaw);
     assertThat(enemyMap).isEqualTo(expected);
-    // System.out.println(enemyMap);
+    System.out.println(enemyMap);
   }
 
   @Test

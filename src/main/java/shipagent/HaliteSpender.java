@@ -58,7 +58,13 @@ public class HaliteSpender {
             .findAny()
             .isPresent();
 
-        if (tooCloseToOtherDropoff || !oracle.friendlyControlPoint(x, y)) {
+        double influence = oracle.influenceDifferenceAtPoint(x, y);
+        Ship shipAtPoint = oracle.myShipPositionsMap.get(Position.at(x, y));
+        if (shipAtPoint != null) {
+          influence -= InfluenceMaps.getCrowdFactor(shipAtPoint, x, y, oracle.haliteGrid);
+        }
+
+        if (tooCloseToOtherDropoff || influence < 0) {
           continue;
         }
 

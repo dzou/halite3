@@ -12,15 +12,13 @@ public class DecisionVector {
   public final double explorePotentialScore;
   public final double enemyThreatScore;
   public final double killScore;
-  public final double shipCrowdScore;
 
-  public DecisionVector(double goHomeScore, double localMoveScore, double explorePotentialScore, double enemyThreatScore, double killScore, double crowding) {
+  public DecisionVector(double goHomeScore, double localMoveScore, double explorePotentialScore, double enemyThreatScore, double killScore) {
     this.goHomeScore = goHomeScore;
     this.localMoveScore = localMoveScore;
     this.explorePotentialScore = explorePotentialScore;
     this.enemyThreatScore = enemyThreatScore;
     this.killScore = killScore;
-    this.shipCrowdScore = crowding;
   }
 
   public double score() {
@@ -34,13 +32,12 @@ public class DecisionVector {
   public String toString() {
     DecimalFormat df = new DecimalFormat("#.000");
     String vectorFormat = String.format(
-        "Vector{home=%s, lcl=%s, exp=%s, ene=%s, kill=%s, ships=%s}[T=%s]",
+        "Vector{home=%s, lcl=%s, exp=%s, ene=%s, kill=%s}[T=%s]",
         df.format(goHomeScore),
         df.format(localMoveScore),
         df.format(explorePotentialScore),
         df.format(enemyThreatScore),
         df.format(killScore),
-        df.format(shipCrowdScore),
         df.format(score()));
     return vectorFormat;
   }

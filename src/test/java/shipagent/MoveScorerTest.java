@@ -51,6 +51,32 @@ public class MoveScorerTest {
   }
 
   @Test
+  public void testInspireBonus() {
+    Grid<Integer> haliteGrid = new Grid<>(32, 32, 0);
+    haliteGrid.set(1, 1, 500);
+
+    ImmutableList<Ship> myShips = ImmutableList.of(
+        ship(1, 1)
+    );
+
+    ImmutableList<Ship> enemyShips = ImmutableList.of(
+        ship(0, 0, 500),
+        ship(2, 0, 500)
+    );
+
+    MapOracle mapOracle = new MapOracle(
+        new PlayerId(0),
+        haliteGrid,
+        9999,
+        myShips,
+        enemyShips,
+        ImmutableMap.of(new PlayerId(0), ImmutableSet.of(Position.at(0, 0))));
+    MoveScorer scorer = new MoveScorer(mapOracle);
+
+    assertThat(scorer.scorePosition(ship(1, 1), Position.at(1, 1)).localMoveScore).isEqualTo(375.0);
+  }
+
+  @Test
   public void testAvoidCrowding() {
     Grid<Integer> haliteGrid = new Grid<>(21, 21, 0);
     haliteGrid.set(10, 0, 1000);
@@ -65,7 +91,7 @@ public class MoveScorerTest {
     ImmutableList<Ship> myShips = ImmutableList.of(s1, s2, me);
     System.out.println(InfluenceMaps.buildShipInfluenceMap(ImmutableList.of(s1, s2, me), haliteGrid));
 
-    MapOracle mapOracle = new MapOracle(new PlayerId(0), haliteGrid, 9999, myShips, ImmutableList.of(), ImmutableMap.of(new PlayerId(0), ImmutableSet.of(Position.at(0, 0))));
+    MapOracle mapOracle = new MapOracle(new PlayerId(0), haliteGrid, 9999, myShips, ImmutableList.of(), ImmutableMap.of(new PlayerId(0), ImmutableSet.of(Position.at(10, 10))));
     MoveScorer moveScorer = new MoveScorer(mapOracle);
 
 
@@ -130,47 +156,6 @@ public class MoveScorerTest {
   }
 
   @Test
-  public void exploreMoveScore() {
-    Integer[][] rawHaliteGrid = {
-        { 0,  0,  0,  0, 70,  0, 70,  0,  0},
-        { 0,  0,  0, 40,  0,  0,  0,  0,  0},
-        { 0,  0,  0,  0,  0,  0,  0,  0, 70},
-        { 0,  0,  0,  0,  0,  0,  0,  0,  0},
-        { 0,  0,  0,  0,100,  0,  0,  0, 70},
-        { 0,  0,  0,  0,  0,  0,  0, 40,  0},
-        { 0,  0,  0,  0,  0,  0,  0,  0,  0},
-        { 0,  0,100,  0,  0,  0,  0,  0,  0},
-        { 0,  0,  0,300,400,  0,  0,  0,  0},
-    };
-
-    Grid<Integer> haliteGrid = new Grid<>(rawHaliteGrid);
-
-    Ship ship = ship(4, 4, 100);
-    ImmutableList<Ship> myShips = ImmutableList.of(ship);
-
-    MapOracle mapOracle = new MapOracle(new PlayerId(0), haliteGrid, 9999, myShips, ImmutableList.of(), ImmutableMap.of(new PlayerId(0), ImmutableSet.of(Position.at(0, 0))));
-    MoveScorer moveScorer = new MoveScorer(mapOracle);
-
-    Set<Decision> decisions = moveScorer.getDecisions(ship);
-
-    ImmutableMap<Direction, Double> directionScores = decisions.stream().collect(
-        ImmutableMap.toImmutableMap(
-            e -> e.direction,
-            e -> e.scoreVector.explorePotentialScore));
-
-    assertThat(directionScores.get(NORTH))
-        .isWithin(0.0001)
-        .of(directionScores.get(EAST));
-
-    assertThat(directionScores.entrySet()
-            .stream()
-            .max(Comparator.comparingDouble(e -> e.getValue()))
-            .get()
-            .getKey())
-        .isEqualTo(SOUTH);
-  }
-
-  @Test
   public void testLocalMoveScore() {
     Integer[][] rawHaliteGrid = {
         {0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -195,7 +180,7 @@ public class MoveScorerTest {
     Set<Decision> decisions = moveScorer.getDecisions(ship);
     decisions.stream().forEach(s -> System.out.println(s));
     double best = decisions.stream().max(Comparator.comparingDouble(d -> d.scoreVector.localMoveScore)).get().scoreVector.localMoveScore;
-    assertThat(best).isWithin(0.1).of((116 - 5 - 8.4) / 4.0);
+    assertThat(best).isWithin(0.1).of((88 - 16.2) / 3.0);
 
   }
 

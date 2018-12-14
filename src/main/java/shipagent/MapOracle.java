@@ -32,10 +32,10 @@ public class MapOracle {
   public final Grid<Double> myInfluenceMap;
   public final Grid<Double> enemyInfluenceMap;
 
-  public final Grid<Integer> myThreatMap;
+  // public final Grid<Double> exploreGrid;
+
   public final Grid<Integer> enemyThreatMap;
 
-  public final Grid<Integer> killMap;
   public final Grid<Integer> inspireMap;
 
   public final Grid<Double> shipHaliteDensityMap;
@@ -62,13 +62,12 @@ public class MapOracle {
         .stream()
         .collect(Collectors.toMap(pos -> pos, pos -> DjikstraGrid.create(haliteGrid, pos)));
 
+    // this.exploreGrid = InfluenceMaps.buildExploreMap(myShips, haliteGrid);
     this.myInfluenceMap = InfluenceMaps.buildShipInfluenceMap(myShips, haliteGrid);
     this.enemyInfluenceMap = InfluenceMaps.buildShipInfluenceMap(enemyShips, haliteGrid);
 
-    this.myThreatMap = InfluenceMaps.threatMap(myShips, haliteGrid);
     this.enemyThreatMap = InfluenceMaps.threatMap(enemyShips, haliteGrid);
 
-    this.killMap = InfluenceMaps.killMap(enemyShips, playerBases, haliteGrid, this.myThreatMap, this.myInfluenceMap, this.enemyInfluenceMap);
     this.inspireMap = InfluenceMaps.inspiredMap(enemyShips, haliteGrid);
 
     this.shipHaliteDensityMap = InfluenceMaps.shipHaliteDensityMap(haliteGrid, myShips);
@@ -108,10 +107,6 @@ public class MapOracle {
 
   double influenceDifferenceAtPoint(int x, int y) {
     return myInfluenceMap.get(x, y) - enemyInfluenceMap.get(x, y);
-  }
-
-  double influenceDifferenceAtPoints(int meX, int meY, int enX, int enY) {
-    return myInfluenceMap.get(meX, meY) - enemyInfluenceMap.get(enX, enY);
   }
 
   Collection<Ship> getEnemiesInNeighborhood(Position origin, int distance, int enemyCount) {

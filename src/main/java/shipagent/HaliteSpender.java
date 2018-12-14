@@ -8,11 +8,11 @@ import java.util.Set;
 
 public class HaliteSpender {
 
-  private static final int MIN_HALITE_DENSITY_TO_DROPOFF = 2500;
+  private static final int MIN_HALITE_DENSITY_TO_DROPOFF = 2000;
 
-  private static final int MIN_SPACE_BTWN_DROPOFFS = 16;
+  private static final int MIN_SPACE_BTWN_DROPOFFS = 17;
 
-  private static final int MAX_DROPOFFS = 6;
+  private static final int MAX_DROPOFFS = 8;
 
   private static final int DROPOFF_TURNS_REMAINING_CUTOFF = 100;
 
@@ -58,13 +58,7 @@ public class HaliteSpender {
             .findAny()
             .isPresent();
 
-        double influence = oracle.influenceDifferenceAtPoint(x, y);
-        Ship shipAtPoint = oracle.myShipPositionsMap.get(Position.at(x, y));
-        if (shipAtPoint != null) {
-          influence -= InfluenceMaps.getCrowdFactor(shipAtPoint, x, y, oracle.haliteGrid);
-        }
-
-        if (tooCloseToOtherDropoff || influence < 0) {
+        if (tooCloseToOtherDropoff || oracle.influenceDifferenceAtPoint(x, y) < 0.0) {
           continue;
         }
 

@@ -8,7 +8,7 @@ import java.util.*;
 
 public class MoveScorer {
 
-  private static final int LOCAL_DISTANCE = 5;
+  private static final int LOCAL_DISTANCE = 4;
 
   private final MapOracle mapOracle;
 
@@ -76,45 +76,6 @@ public class MoveScorer {
         / (mapOracle.haliteGrid.distance(destination, mapOracle.getNearestHome(ship.position)) + 4);
   }
 
-//  private double crowdScore(Ship ship, Position destination) {
-//    double shipInfluence = mapOracle.influenceSumAtPoint(destination.x, destination.y)
-//        - InfluenceMaps.getCrowdFactor(ship, destination.x, destination.y, mapOracle.haliteGrid);
-//    double crowdMultiplier = 1.0 - (1.0 * ship.halite * ship.halite) / (Constants.MAX_HALITE * Constants.MAX_HALITE);
-//    return crowdMultiplier * shipInfluence;
-//  }
-
-//  private double crowdScore(Ship currentShip, Position destination) {
-//
-//    Direction d = haliteGrid.calculateDirection(currentShip.position, destination);
-//
-//    double count = 0;
-//
-//    for (Ship ship : myShips) {
-//      int xDelta = DjikstraGrid.getAxisDirection(currentShip.position.x, ship.position.x, haliteGrid.width);
-//      int yDelta = DjikstraGrid.getAxisDirection(currentShip.position.y, ship.position.y, haliteGrid.height);
-//
-//      if (haliteGrid.distance(currentShip.position, ship.position) <= SHIP_CROWDING_RANGE
-//          && isRightDelta(xDelta, yDelta, d)
-//          && !ship.equals(currentShip)) {
-//        count += 1.0 * ship.halite / Constants.MAX_HALITE;
-//      }
-//    }
-//
-//    return count;
-//  }
-//
-//  private static boolean isRightDelta(int xDelta, int yDelta, Direction direction) {
-//    if (direction == Direction.EAST && xDelta > 0
-//        || direction == Direction.WEST && xDelta < 0
-//        || direction == Direction.NORTH && yDelta < 0
-//        || direction == Direction.SOUTH && yDelta > 0
-//        || direction == Direction.STILL && xDelta == 0 && yDelta == 0) {
-//      return true;
-//    } else {
-//      return false;
-//    }
-//  }
-
   private double mineScore(Ship ship) {
     double haliteMinedPotential = mapOracle.haliteGrid.get(ship.position.x, ship.position.y) * 0.25;
     double actualHaliteMined = Math.min(
@@ -125,6 +86,7 @@ public class MoveScorer {
 
   private double localMoveScore(Ship ship, Position destination) {
     Direction d = mapOracle.haliteGrid.calculateDirection(ship.position, destination);
+
     if (d == Direction.STILL) {
       return mineScore(ship);
     }
@@ -150,25 +112,26 @@ public class MoveScorer {
 
         int haliteOnTile = mapOracle.haliteGrid.get(dx, dy);
         Ship shipOnTile = mapOracle.myShipPositionsMap.get(Position.at(dx, dy));
-        if (shipOnTile != null) {
+        if (shipOnTile != null && Math.abs(dx) + Math.abs(dy) > 1) {
           int haliteCapacity = Constants.MAX_HALITE - shipOnTile.halite;
-          haliteOnTile = Math.max(0, haliteOnTile - haliteCapacity);
+          haliteOnTile = Math.max(haliteOnTile / 2, haliteOnTile - haliteCapacity);
         }
 
-        double haliteMined = Math.min(Constants.MAX_HALITE - ship.halite, haliteOnTile * 0.58);
-        int turnsFromDest = mapOracle.haliteGrid.distance(dx, dy, destination.x, destination.y) + 3 + 1;
+        double haliteMined = Math.min(Constants.MAX_HALITE - ship.halite, haliteOnTile * 0.44);
+        int turnsFromDest = mapOracle.haliteGrid.distance(dx, dy, destination.x, destination.y) + 2 + 1;
 
         double haliteReward = Math.min(
             Constants.MAX_HALITE - ship.halite,
-            mapOracle.inspireMap.get(dx, dy) > 1 ? haliteMined * 1.5 : haliteMined);
+            mapOracle.inspireMap.get(dx, dy) > 1 ? haliteMined * 2.0 : haliteMined);
 
-        double tollAfterMining = Math.max(0, mapOracle.goHomeCost(Position.at(dx, dy)) - haliteMined * 0.10);
+        // double tollAfterMining = Math.max(0, mapOracle.goHomeCost(Position.at(dx, dy)) - haliteMined * 0.10);
         double tollToTile = (subGridCosts.costCache.get(x, y)
-            - subGrid.get(x, y)
+            - haliteMined
             + subGrid.get(projectionDestination.x, projectionDestination.y)
-            /* + mapOracle.haliteGrid.get(ship.position.x, ship.position.y) */) * 0.10;
+            + ((d == Direction.STILL) ? 0 : subGrid.get(0, 0))) * 0.10;
 
-        double haliteRate = (haliteReward - tollAfterMining - tollToTile) / turnsFromDest;
+
+        double haliteRate = (haliteReward - tollToTile) / turnsFromDest;
         if (haliteRate > bestHaliteRate) {
           bestHaliteRate = haliteRate;
         }
@@ -185,7 +148,7 @@ public class MoveScorer {
     }
 
     int xStart = ship.position.x - (mapOracle.haliteGrid.width / 2);
-    int xEnd = ship.position.x + (mapOracle.haliteGrid.height / 2);
+    int xEnd = ship.position.x + (mapOracle.haliteGrid.width / 2);
 
     int yStart = ship.position.y - (mapOracle.haliteGrid.height / 2);
     int yEnd = ship.position.y + (mapOracle.haliteGrid.height / 2);
@@ -203,23 +166,35 @@ public class MoveScorer {
     PriorityQueue<Double> topNRates = new PriorityQueue<>();
     for (int y = yStart; y <= yEnd; y++) {
       for (int x = xStart; x <= xEnd; x++) {
+        if (mapOracle.haliteGrid.distance(x, y, ship.position.x, ship.position.y) <= LOCAL_DISTANCE) {
+          continue;
+        }
+
+//        Position exploreGoal = Position.at(x, y);
+//        Position nearestHome = mapOracle.getNearestHome(exploreGoal);
+
         double haliteCollectedEstimate = Math.min(
-            Constants.MAX_HALITE - ship.halite, mapOracle.haliteGrid.get(x, y) * 1.0);
+            Constants.MAX_HALITE - ship.halite, mapOracle.haliteGrid.get(x, y));
 
-        Position nearestHome = mapOracle.getNearestHome(ship.position);
-        int turnsFromDest = mapOracle.haliteGrid.distance(x, y, destination.x, destination.y)
-            + mapOracle.haliteGrid.distance(ship.position, nearestHome)
-            + 5;
+        // make sure this is not infinity
+        int turnsFromDest = mapOracle.haliteGrid.distance(x, y, destination.x, destination.y) + 5;
 
-        double tollAfterMining = Math.min(
-            haliteCollectedEstimate,
-            mapOracle.goHomeCost(Position.at(x, y)) - haliteCollectedEstimate * 0.10);
+//        double tollAfterMining = Math.min(
+//            haliteCollectedEstimate,
+//            mapOracle.goHomeCost(Position.at(x, y)) - haliteCollectedEstimate * 0.10);
 
-//        double crowdFactor = mapOracle.influenceSumAtPoint(x, y)
-//            - InfluenceMaps.getCrowdFactor(ship, x, y, mapOracle.haliteGrid);
-//        double crowdMultiplier = 1.0 / (1.0 + 0.25 * crowdFactor * crowdFactor); // Math.max(0, 1.0 - crowdFactor * crowdFactor);
+        double inspireMultiplier = mapOracle.inspireMap.get(x, y) > 1 ? 1.5 : 1.0;
 
-        double haliteRate = (haliteCollectedEstimate - tollAfterMining) / turnsFromDest;
+        double crowdFactor = // mapOracle.influenceSumAtPoint(x, y)
+            mapOracle.myInfluenceMap.get(x, y)
+            - InfluenceMaps.getInfluenceFactor(ship, x, y, mapOracle.haliteGrid);
+        double crowdMultiplier = 1.0 - Math.min(0.75, crowdFactor * 0.25);
+
+//        double crowdFactor = mapOracle.exploreGrid.get(x, y)
+//            - InfluenceMaps.getExploreFactor(ship, x, y, mapOracle.haliteGrid);
+//        double crowdMultiplier = Math.max(0, 1.0 - crowdFactor);
+
+        double haliteRate = crowdMultiplier * inspireMultiplier * haliteCollectedEstimate / turnsFromDest;
 
         topNRates.add(haliteRate);
         if (topNRates.size() > 15) {
@@ -260,11 +235,13 @@ public class MoveScorer {
 
   private double getEnemyInfluence(Ship ship, Position destination) {
     int enemyMinHalite = mapOracle.enemyThreatMap.get(destination.x, destination.y);
-    int diff = enemyMinHalite - ship.halite;
-    if (enemyMinHalite > -1 && diff <= 0 && mapOracle.haliteGrid.distance(destination, mapOracle.getNearestHome(ship.position)) > 1) {
-      return diff;
-    } else {
+
+    if (enemyMinHalite == -1
+        || mapOracle.influenceDifferenceAtPoint(destination.x, destination.y) > 0 && ship.halite < enemyMinHalite
+        || mapOracle.haliteGrid.distance(mapOracle.getNearestHome(destination), ship.position) <= 1) {
       return 0;
+    } else {
+      return -ship.halite;
     }
   }
 

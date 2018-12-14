@@ -45,8 +45,8 @@ public class ShipRouter {
         HashSet<Decision> decisions = moveScorer.getDecisions(ship);
         bipartiteGraph.addShip(ship, decisions);
 
-        Log.log("SHIP " + ship.id);
-        Log.log("Ship " + ship.id + " home: " + mapOracle.getNearestHome(ship.position));
+        Log.log("SHIP " + ship.id + " " + ship.position);
+        Log.log("Home: " + mapOracle.getNearestHome(ship.position));
         for (Decision d : decisions) {
           Log.log(d.toString());
         }

@@ -14,12 +14,39 @@ public class InfluenceMaps {
 
   public static final int SHIP_INFLUENCE_RANGE = 10;
 
-  public static double getCrowdFactor(Ship ship, int dx, int dy, Grid<Integer> haliteGrid) {
+//  public static double getExploreFactor(Ship ship, int dx, int dy, Grid<Integer> haliteGrid) {
+//    double distance = 3 * haliteGrid.distance(dx, dy, ship.position.x, ship.position.y) + 1;
+//    double miningPotential = (1.0 * Constants.MAX_HALITE - ship.halite) / (distance * Constants.MAX_HALITE);
+//    return miningPotential;
+//  }
+//
+//  public static Grid<Double> buildExploreMap(Collection<Ship> myShips, Grid<Integer> haliteGrid) {
+//    Grid<Double> influenceMap = new Grid<>(haliteGrid.width, haliteGrid.height, 0.0);
+//
+//    int influenceRange = Math.min(haliteGrid.width / 2, SHIP_INFLUENCE_RANGE);
+//
+//    for (Ship ship : myShips) {
+//      for (int y = -influenceRange; y <= influenceRange; y++) {
+//        for (int x = -influenceRange + Math.abs(y); x <= influenceRange - Math.abs(y); x++) {
+//          int dx = ship.position.x + x;
+//          int dy = ship.position.y + y;
+//
+//          double miningPotential = getExploreFactor(ship, dx, dy, haliteGrid);
+//          double prev = influenceMap.get(dx, dy);
+//          influenceMap.set(dx, dy, prev + miningPotential);
+//        }
+//      }
+//    }
+//
+//    return influenceMap;
+//  }
+
+  public static double getInfluenceFactor(Ship ship, int dx, int dy, Grid<Integer> haliteGrid) {
     int distance = haliteGrid.distance(dx, dy, ship.position.x, ship.position.y);
     if (distance > SHIP_INFLUENCE_RANGE) {
       return 0;
     } else {
-      double decayFactor = distance + 1;
+      double decayFactor = Math.max(1, distance);
       double miningPotential = (1.0 * Constants.MAX_HALITE - ship.halite) / (decayFactor * Constants.MAX_HALITE);
       return miningPotential;
     }
@@ -36,7 +63,7 @@ public class InfluenceMaps {
           int dx = ship.position.x + x;
           int dy = ship.position.y + y;
 
-          double miningPotential = getCrowdFactor(ship, dx, dy, haliteGrid);
+          double miningPotential = getInfluenceFactor(ship, dx, dy, haliteGrid);
           double prev = influenceMap.get(dx, dy);
           influenceMap.set(dx, dy, prev + miningPotential);
         }
@@ -109,52 +136,52 @@ public class InfluenceMaps {
 //    return retreatMap;
 //  }
 
-  static Grid<Integer> killMap(
-      Collection<Ship> enemyShips,
-      Map<PlayerId, Set<Position>> playerDropOffs,
-      Grid<Integer> haliteGrid,
-      Grid<Integer> myThreatMap,
-      Grid<Double> myInfluenceMap,
-      Grid<Double> enemyInfluenceMap) {
-
-    Grid<Integer> killMap = new Grid<>(haliteGrid.width, haliteGrid.height, 0);
-    BaseManager baseManager = new BaseManager(playerDropOffs, haliteGrid);
-
-    for (Ship enemy : enemyShips) {
-      double enemyInfluenceAtPoint =
-          enemyInfluenceMap.get(enemy.position.x, enemy.position.y)
-              - getCrowdFactor(enemy, enemy.position.x, enemy.position.y, haliteGrid);
-      double myInfluenceAtPoint = myInfluenceMap.get(enemy.position.x, enemy.position.y);
-      if (enemyInfluenceAtPoint > myInfluenceAtPoint) {
-        continue;
-      }
-
-      List<Position> positionsToCover = baseManager.findGoHomeDirections(enemy);
-      int bestDifference = 0;
-      int covered = 0;
-
-      for (Position neighbor : positionsToCover) {
-        if (myThreatMap.get(neighbor.x, neighbor.y) != -1
-            && myThreatMap.get(neighbor.x, neighbor.y) <= enemy.halite * 0.5) {
-          int diff = enemy.halite - myThreatMap.get(neighbor.x, neighbor.y);
-          if (diff > bestDifference) {
-            bestDifference = diff;
-          }
-          covered += 1;
-        }
-      }
-
-      for (Position neighbor : positionsToCover) {
-        int prev = killMap.get(neighbor.x, neighbor.y);
-        killMap.set(neighbor.x, neighbor.y, Math.max(prev, bestDifference));
-      }
-      if (covered >= positionsToCover.size()) {
-        killMap.set(enemy.position.x, enemy.position.y, bestDifference / 2);
-      }
-    }
-
-    return killMap;
-  }
+//  static Grid<Integer> killMap(
+//      Collection<Ship> enemyShips,
+//      Map<PlayerId, Set<Position>> playerDropOffs,
+//      Grid<Integer> haliteGrid,
+//      Grid<Integer> myThreatMap,
+//      Grid<Double> myInfluenceMap,
+//      Grid<Double> enemyInfluenceMap) {
+//
+//    Grid<Integer> killMap = new Grid<>(haliteGrid.width, haliteGrid.height, 0);
+//    BaseManager baseManager = new BaseManager(playerDropOffs, haliteGrid);
+//
+//    for (Ship enemy : enemyShips) {
+//      double enemyInfluenceAtPoint =
+//          enemyInfluenceMap.get(enemy.position.x, enemy.position.y)
+//              - getCrowdFactor(enemy, enemy.position.x, enemy.position.y, haliteGrid);
+//      double myInfluenceAtPoint = myInfluenceMap.get(enemy.position.x, enemy.position.y);
+//      if (enemyInfluenceAtPoint > myInfluenceAtPoint) {
+//        continue;
+//      }
+//
+//      List<Position> positionsToCover = baseManager.findGoHomeDirections(enemy);
+//      int bestDifference = 0;
+//      int covered = 0;
+//
+//      for (Position neighbor : positionsToCover) {
+//        if (myThreatMap.get(neighbor.x, neighbor.y) != -1
+//            && myThreatMap.get(neighbor.x, neighbor.y) <= enemy.halite * 0.5) {
+//          int diff = enemy.halite - myThreatMap.get(neighbor.x, neighbor.y);
+//          if (diff > bestDifference) {
+//            bestDifference = diff;
+//          }
+//          covered += 1;
+//        }
+//      }
+//
+//      for (Position neighbor : positionsToCover) {
+//        int prev = killMap.get(neighbor.x, neighbor.y);
+//        killMap.set(neighbor.x, neighbor.y, Math.max(prev, bestDifference));
+//      }
+//      if (covered >= positionsToCover.size()) {
+//        killMap.set(enemy.position.x, enemy.position.y, bestDifference / 2);
+//      }
+//    }
+//
+//    return killMap;
+//  }
 
   public static Grid<Double> shipHaliteDensityMap(Grid<Integer> haliteGrid, Collection<Ship> myShips) {
     Grid<Double> densityGrid = new Grid<>(haliteGrid.width, haliteGrid.height, 0.0);

@@ -166,7 +166,18 @@ public class MoveScorer {
     PriorityQueue<Double> topNRates = new PriorityQueue<>();
     for (int y = yStart; y <= yEnd; y++) {
       for (int x = xStart; x <= xEnd; x++) {
+
         if (mapOracle.haliteGrid.distance(x, y, ship.position.x, ship.position.y) <= LOCAL_DISTANCE) {
+          continue;
+        }
+
+        if ((d == Direction.NORTH || d == Direction.SOUTH)
+            && Math.abs(y - ship.position.y) < Math.abs(x - ship.position.x)) {
+          continue;
+        }
+
+        if ((d == Direction.EAST || d == Direction.WEST)
+            && Math.abs(y - ship.position.y) > Math.abs(x - ship.position.x)) {
           continue;
         }
 
@@ -188,7 +199,7 @@ public class MoveScorer {
         double crowdFactor = // mapOracle.influenceSumAtPoint(x, y)
             mapOracle.myInfluenceMap.get(x, y)
             - InfluenceMaps.getInfluenceFactor(ship, x, y, mapOracle.haliteGrid);
-        double crowdMultiplier = 1.0 - Math.min(0.75, crowdFactor * 0.25);
+        double crowdMultiplier = 1.0 - Math.min(0.5, crowdFactor * 0.32);
 
 //        double crowdFactor = mapOracle.exploreGrid.get(x, y)
 //            - InfluenceMaps.getExploreFactor(ship, x, y, mapOracle.haliteGrid);
@@ -209,39 +220,26 @@ public class MoveScorer {
     return haliteRateSum / haliteRateCount;
   }
 
-//  private double getEnemyInfluence(Ship ship, Position destination) {
-//    double inf;
-//    if (mapOracle.enemyShipPositionsMap.containsKey(destination)) {
-//      inf = mapOracle.influenceDifferenceAtPoints(ship.position.x, ship.position.y, destination.x, destination.y);
-//    } else {
-//      inf = mapOracle.influenceDifferenceAtPoint(destination.x, destination.y);
-//    }
-//
-//
-//    if (inf < 0) {
-//      return -1.0 * ship.halite;
-//    } else {
-//      return 0;
-//    }
-
-//    int enemyMinHalite = mapOracle.enemyThreatMap.get(destination.x, destination.y);
-//    int diff = enemyMinHalite - ship.halite;
-//    if (enemyMinHalite > -1 && diff <= 0 && mapOracle.haliteGrid.distance(destination, mapOracle.getNearestHome(ship.position)) > 1) {
-//      return diff;
-//    } else {
-//      return 0;
-//    }
-//  }
-
   private double getEnemyInfluence(Ship ship, Position destination) {
     int enemyMinHalite = mapOracle.enemyThreatMap.get(destination.x, destination.y);
 
-    if (enemyMinHalite == -1
-        || mapOracle.influenceDifferenceAtPoint(destination.x, destination.y) > 0 && ship.halite < enemyMinHalite
-        || mapOracle.haliteGrid.distance(mapOracle.getNearestHome(destination), ship.position) <= 1) {
-      return 0;
+    double influenceDifference = mapOracle.influenceDifferenceAtPoint(destination.x, destination.y);
+
+    if (influenceDifference > 0.0) {
+      if (enemyMinHalite != -1) {
+        return Math.min(0, enemyMinHalite - 1.3 * ship.halite);
+      } else {
+        return 0;
+      }
     } else {
-      return -ship.halite;
+      if (enemyMinHalite != -1) {
+        double multiplier = 0.75 + (destination.equals(ship.position) ? 0.25 : 0.0);
+        return multiplier * -ship.halite;
+      } else if (mapOracle.enemyShipCovers.isPositionCovered(destination)) {
+        return (0.5 - influenceDifference * 0.01) * -ship.halite;
+      } else {
+        return 0;
+      }
     }
   }
 

@@ -12,25 +12,6 @@ import static util.TestUtil.ship;
 public class InfluenceMapsTest {
 
   @Test
-  public void testExploreMaps() {
-    Grid<Integer> haliteGrid = new Grid<>(32, 32, 0);
-
-    ImmutableList<Ship> ships = ImmutableList.of(
-        ship(5, 5, 0),
-        ship(6, 6, 0),
-        ship(14, 14, 500)
-    );
-
-    Grid<Double> infGrid = InfluenceMaps.buildExploreMap(ships, haliteGrid);
-    System.out.println(infGrid);
-
-    assertThat(infGrid.get(5, 5)).isWithin(0.001).of(1.143);
-    assertThat(infGrid.get(6, 6)).isWithin(0.001).of(1.143);
-    assertThat(infGrid.get(14, 14)).isWithin(0.001).of(0.5);
-    assertThat(infGrid.get(15, 14)).isWithin(0.001).of(0.125);
-  }
-
-  @Test
   public void testShipInfluenceMap() {
     Grid<Integer> haliteGrid = new Grid<>(32, 32, 0);
 

@@ -55,4 +55,27 @@ public class ExploreTests {
     Direction best = scorer.getDecisions(myShip).stream().max(Comparator.comparingDouble(d -> d.scoreVector.explorePotentialScore)).get().direction;
     assertThat(best).isEqualTo(Direction.NORTH);
   }
+
+  @Test
+  public void testExploreTriangles() {
+    Grid<Integer> haliteGrid = new Grid<>(64, 64, 0);
+
+    haliteGrid.set(30, 0, 1000);
+    haliteGrid.set(32, 0, 1000);
+
+    haliteGrid.set(63, 30, 1000);
+
+    Ship myShip = ship(31, 31, 0);
+
+    MapOracle mapOracle = new MapOracle(
+        new PlayerId(0),
+        haliteGrid,
+        9999,
+        ImmutableList.of(myShip),
+        ImmutableList.of(),
+        ImmutableMap.of(new PlayerId(0), ImmutableSet.of(Position.at(0, 0))));
+
+    MoveScorer scorer = new MoveScorer(mapOracle);
+    scorer.getDecisions(myShip).stream().forEach(s -> System.out.println(s));
+  }
 }

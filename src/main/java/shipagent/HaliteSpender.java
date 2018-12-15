@@ -8,9 +8,9 @@ import java.util.Set;
 
 public class HaliteSpender {
 
-  private static final int MIN_HALITE_DENSITY_TO_DROPOFF = 2000;
+  private static final int MIN_HALITE_DENSITY_TO_DROPOFF = 2200;
 
-  private static final int MIN_SPACE_BTWN_DROPOFFS = 17;
+  private static final int MIN_SPACE_BTWN_DROPOFFS = 16;
 
   private static final int MAX_DROPOFFS = 8;
 
@@ -58,16 +58,16 @@ public class HaliteSpender {
             .findAny()
             .isPresent();
 
-        if (tooCloseToOtherDropoff || oracle.influenceDifferenceAtPoint(x, y) < 0.0) {
+        if (tooCloseToOtherDropoff || oracle.influenceDifferenceAtPoint(x, y) < 0.1) {
           continue;
         }
 
         int fundsOnCell = getFundsOnCell(x, y);
-        double haliteDensity = densityMap.get(x, y);
-        double netHaliteDensity = densityMap.get(x, y) + oracle.shipHaliteDensityMap.get(x, y);
+        // double haliteDensity = densityMap.get(x, y);
+        double netHaliteDensity = densityMap.get(x, y) + 0.6 * oracle.shipHaliteDensityMap.get(x, y);
 
         if (fundsOnCell + haliteAvailable >= Constants.DROPOFF_COST
-            && haliteDensity > MIN_HALITE_DENSITY_TO_DROPOFF
+            && netHaliteDensity > MIN_HALITE_DENSITY_TO_DROPOFF
             && netHaliteDensity > maxNetHaliteDensity) {
           bestPos = Position.at(x, y);
           maxNetHaliteDensity = netHaliteDensity;

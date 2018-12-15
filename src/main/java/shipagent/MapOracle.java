@@ -6,6 +6,7 @@ import hlt.Position;
 import hlt.Ship;
 import map.DjikstraGrid;
 import map.Grid;
+import map.TriangulationGrid;
 
 import java.util.*;
 import java.util.function.Function;
@@ -17,6 +18,8 @@ import java.util.stream.Collectors;
  * Contains all rich information about the game state.
  */
 public class MapOracle {
+
+  private static final int ENEMY_COVER_RANGE = 3;
 
   public final PlayerId myPlayerId;
   public final Grid<Integer> haliteGrid;
@@ -40,6 +43,8 @@ public class MapOracle {
 
   public final Grid<Double> shipHaliteDensityMap;
   public final Grid<Double> haliteDensityMap;
+
+  public final TriangulationGrid enemyShipCovers;
 
   public MapOracle(
       PlayerId myPlayerId,
@@ -72,6 +77,8 @@ public class MapOracle {
 
     this.shipHaliteDensityMap = InfluenceMaps.shipHaliteDensityMap(haliteGrid, myShips);
     this.haliteDensityMap = InfluenceMaps.haliteDensityMap(haliteGrid);
+
+    this.enemyShipCovers = new TriangulationGrid(enemyShips, ENEMY_COVER_RANGE);
   }
 
   public Optional<Ship> orderDropOff(Position projectedDropOffLoc) {

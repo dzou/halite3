@@ -101,6 +101,8 @@ public class BipartiteGraphTest {
         ImmutableMap.of(new PlayerId(0), ImmutableSet.of(Position.at(0, 0))));
     ShipRouter router = new ShipRouter(mapOracle);
 
+    System.out.println(mapOracle.zoneGrid);
+
     Map<Ship, Position> moves = router.routeShips();
     assertThat(moves).hasSize(16);
   }

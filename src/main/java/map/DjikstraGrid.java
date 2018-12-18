@@ -6,6 +6,10 @@ import hlt.Position;
 
 import java.util.*;
 
+/**
+ * A modified djikstra's alg. Find the lowest cost path from the origin to all points under the constraint that the
+ * ship must take path with lowest manhattan distance.
+ */
 public class DjikstraGrid {
 
   public final Position origin;

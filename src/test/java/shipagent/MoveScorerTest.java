@@ -94,10 +94,12 @@ public class MoveScorerTest {
     MapOracle mapOracle = new MapOracle(new PlayerId(0), haliteGrid, 9999, myShips, ImmutableList.of(), ImmutableMap.of(new PlayerId(0), ImmutableSet.of(Position.at(10, 10))));
     MoveScorer moveScorer = new MoveScorer(mapOracle);
 
+    System.out.println(mapOracle.zoneGrid);
+
 
     Set<Decision> decisionSet = moveScorer.getDecisions(me);
     decisionSet.stream().forEach(s -> System.out.println(s));
-    assertThat(getBest(decisionSet)).isEqualTo(EAST);
+    assertThat(getBest(decisionSet)).isEqualTo(WEST);
   }
 
   @Test

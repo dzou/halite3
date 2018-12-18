@@ -34,7 +34,7 @@ public class HaliteSpender {
     }
     double avgHalitePotential = 0.25 *  haliteSum / (oracle.haliteGrid.width * oracle.haliteGrid.height);
 
-    return haliteAvailable >= Constants.SHIP_COST && oracle.turnsRemaining * avgHalitePotential > 3000;
+    return haliteAvailable >= Constants.SHIP_COST && oracle.turnsRemaining * avgHalitePotential > 2700;
   }
 
   public Optional<Position> orderDropoff() {

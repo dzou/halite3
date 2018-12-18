@@ -4,9 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import hlt.PlayerId;
 import hlt.Position;
 import hlt.Ship;
-import map.DjikstraGrid;
-import map.Grid;
-import map.TriangulationGrid;
+import map.*;
 
 import java.util.*;
 import java.util.function.Function;
@@ -19,7 +17,7 @@ import java.util.stream.Collectors;
  */
 public class MapOracle {
 
-  private static final int ENEMY_COVER_RANGE = 3;
+  private static final int ENEMY_COVER_RANGE = 4;
 
   public final PlayerId myPlayerId;
   public final Grid<Integer> haliteGrid;
@@ -45,6 +43,8 @@ public class MapOracle {
   public final Grid<Double> haliteDensityMap;
 
   public final TriangulationGrid enemyShipCovers;
+
+  public final ZoneGrid zoneGrid;
 
   public MapOracle(
       PlayerId myPlayerId,
@@ -79,6 +79,7 @@ public class MapOracle {
     this.haliteDensityMap = InfluenceMaps.haliteDensityMap(haliteGrid);
 
     this.enemyShipCovers = new TriangulationGrid(enemyShips, ENEMY_COVER_RANGE);
+    this.zoneGrid = new ZoneGrid(haliteGrid);
   }
 
   public Optional<Ship> orderDropOff(Position projectedDropOffLoc) {

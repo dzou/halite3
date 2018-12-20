@@ -12,7 +12,6 @@ import shipagent.MapOracle;
 import shipagent.MoveScorer;
 import shipagent.ShipRouter;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
@@ -60,11 +59,11 @@ public class BipartiteGraphTest {
     bipartiteGraph.addShip(s1, scorer.getDecisions(s1));
     bipartiteGraph.addShip(s2, scorer.getDecisions(s2));
 
-    assertThat(bipartiteGraph.ships).hasSize(2);
-    assertThat(bipartiteGraph.destinations).hasSize(8);
+    assertThat(bipartiteGraph.sourceNodes).hasSize(2);
+    assertThat(bipartiteGraph.destNodes).hasSize(8);
 
 
-    Vertex v1 = bipartiteGraph.ships.get(Position.at(0, 0));
+    Vertex v1 = bipartiteGraph.sourceNodes.get(Position.at(0, 0));
     Edge e1 = v1.edges.get(0);
     Vertex destination = e1.destination;
 

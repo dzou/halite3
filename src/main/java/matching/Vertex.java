@@ -14,18 +14,12 @@ public class Vertex {
 
   public double label;
 
-  public final Type type;
-
   public final ArrayList<Edge> edges;
 
-  public final Optional<Ship> ship;
-
-  public Vertex(Position position, double label, Type type, Ship ship) {
+  public Vertex(Position position, double label) {
     this.position = position;
     this.label = label;
     this.edges = new ArrayList<>();
-    this.type = type;
-    this.ship = Optional.ofNullable(ship);
   }
 
   public void addNeighbor(Vertex dest, double weight) {
@@ -41,9 +35,5 @@ public class Vertex {
       stringBuilder.append(edge + "\n");
     }
     return stringBuilder.toString();
-  }
-
-  enum Type {
-    SHIP, DESTINATION;
   }
 }

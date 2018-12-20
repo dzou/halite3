@@ -1,13 +1,11 @@
 package matching;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import hlt.Log;
 import hlt.Position;
 import hlt.Ship;
 
 import java.util.*;
-import java.util.stream.Collectors;
+
 import matching.Vertex.Type;
 import shipagent.Decision;
 
@@ -19,8 +17,8 @@ import shipagent.Decision;
  * http://www.maths.qmul.ac.uk/~bill/MAS210/ch6.pdf
  */
 public class BipartiteGraph {
-  HashMap<Position, Vertex> ships;
-  HashMap<Position, Vertex> destinations;
+  HashMap<Position, Vertex> sourceNodes;
+  HashMap<Position, Vertex> destNodes;
 
   HashSet<Vertex> assignedVertices;
   HashSet<Vertex> assignedDestinations;
@@ -28,8 +26,8 @@ public class BipartiteGraph {
   HashSet<Edge> assignmentEdges;
 
   public BipartiteGraph() {
-    this.ships = new HashMap<>();
-    this.destinations = new HashMap<>();
+    this.sourceNodes = new HashMap<>();
+    this.destNodes = new HashMap<>();
 
     this.assignedVertices = new HashSet<>();
     this.assignedDestinations = new HashSet<>();
@@ -37,8 +35,8 @@ public class BipartiteGraph {
   }
 
   public HashSet<Edge> matchShipsToDestinations() {
-    while (assignmentEdges.size() < ships.size()) {
-      List<Vertex> unassignedShips = ships.values()
+    while (assignmentEdges.size() < sourceNodes.size()) {
+      List<Vertex> unassignedShips = sourceNodes.values()
           .stream()
           .filter(s -> !assignedVertices.contains(s))
           .collect(ImmutableList.toImmutableList());
@@ -87,18 +85,18 @@ public class BipartiteGraph {
     }
   }
 
-  ArrayList<Edge> findAugmentingPath(Vertex ship) {
+  ArrayList<Edge> findAugmentingPath(Vertex source) {
     HashMap<Vertex, Edge> prevMap = new HashMap<>();
 
     ArrayDeque<Vertex> stack = new ArrayDeque<>();
-    stack.push(ship);
+    stack.push(source);
 
     ArrayList<Edge> path = new ArrayList<>();
 
     while (!stack.isEmpty()) {
       Vertex curr = stack.pop();
 
-      if (curr.type == Type.DESTINATION && !assignedDestinations.contains(curr)) {
+      if (destNodes.containsKey(curr.position) && !assignedDestinations.contains(curr)) {
         Edge originEdge = prevMap.get(curr);
         while (originEdge != null) {
           path.add(originEdge);
@@ -109,6 +107,7 @@ public class BipartiteGraph {
 
       for (Edge e : curr.edges) {
         if (prevMap.containsKey(e.destination)
+            || sourceNodes.containsKey(e.start.position) &&
             || curr.type == Type.SHIP && assignmentEdges.contains(e)
             || curr.type == Type.DESTINATION && !assignmentEdges.contains(e)
             || !isIncludedInEqualitySubgraph(e)) {
@@ -123,111 +122,95 @@ public class BipartiteGraph {
     return path;
   }
 
-  ForestPartition findAlternatingForestScope() {
-    ForestPartition forestPartition = new ForestPartition();
-
-    for (Vertex shipPosition : ships.values()) {
-      if (assignedVertices.contains(shipPosition)) {
-        continue;
-      }
-
-      ArrayDeque<Vertex> stack = new ArrayDeque<>();
-      stack.push(shipPosition);
-
-      while (!stack.isEmpty()) {
-        Vertex current = stack.pop();
-        if (forestPartition.ships.contains(current) || forestPartition.dests.contains(current)) {
-          continue;
-        }
-
-        if (current.type == Type.SHIP) {
-          forestPartition.ships.add(current);
-        } else {
-          forestPartition.dests.add(current);
-        }
-
-        for (Edge e : current.edges) {
-          if (current.type == Type.SHIP && assignmentEdges.contains(e)) {
-            continue;
-          }
-
-          if (current.type == Type.DESTINATION && !assignmentEdges.contains(e)) {
-            continue;
-          }
-
-          if (!isIncludedInEqualitySubgraph(e)) {
-            continue;
-          }
-
-          stack.push(e.destination);
-        }
-      }
-    }
-
-    return forestPartition;
-  }
-
-  private static boolean isIncludedInEqualitySubgraph(Edge e) {
-    return e.weight + 0.001 >= e.start.label + e.destination.label;
-  }
-
-  public void addShip(Ship ship, Collection<Decision> neighbors) {
-    Vertex shipVertex = new Vertex(ship.position,0, Type.SHIP, ship);
-
-    for (Decision decision : neighbors) {
-      shipVertex.label = Math.max(shipVertex.label, decision.scoreVector.score());
-
-      Vertex destVertex = destinations.get(decision.destination);
-      if (destVertex == null) {
-        destVertex = new Vertex(decision.destination, 0, Type.DESTINATION, null);
-        destinations.put(decision.destination, destVertex);
-      }
-
-      shipVertex.addNeighbor(destVertex, decision.scoreVector.score());
-      destVertex.addNeighbor(shipVertex, decision.scoreVector.score());
-    }
-
-    ships.put(ship.position, shipVertex);
-  }
-
   @Override
   public String toString() {
     StringBuilder stringBuilder = new StringBuilder();
-    stringBuilder.append("SHIPS: \n");
-    for (Vertex v : ships.values()) {
+    stringBuilder.append("SOURCES: \n");
+    for (Vertex v : sourceNodes.values()) {
       stringBuilder.append(v + "\n");
     }
 
     stringBuilder.append("DESTINATIONS: \n");
-    for (Vertex v : destinations.values()) {
+    for (Vertex v : destNodes.values()) {
       stringBuilder.append(v + "\n");
     }
 
     return stringBuilder.toString();
   }
 
-  static class ForestPartition {
-    private HashSet<Vertex> ships = new HashSet<>();
-    private HashSet<Vertex> dests = new HashSet<>();
-
-    @Override
-    public String toString() {
-      StringBuilder stringBuilder = new StringBuilder();
-      stringBuilder.append("Forest Partition: \n");
-
-      stringBuilder.append("Ships: ");
-      for (Vertex v : ships) {
-        stringBuilder.append(v.position);
-      }
-      stringBuilder.append("\n");
-
-      stringBuilder.append("Dests: ");
-      for (Vertex v : dests) {
-        stringBuilder.append(v.position);
-      }
-      stringBuilder.append("\n");
-
-      return stringBuilder.toString();
-    }
-  }
+//  ForestPartition findAlternatingForestScope() {
+//    ForestPartition forestPartition = new ForestPartition();
+//
+//    for (Vertex shipPosition : sourceNodes.values()) {
+//      if (assignedVertices.contains(shipPosition)) {
+//        continue;
+//      }
+//
+//      ArrayDeque<Vertex> stack = new ArrayDeque<>();
+//      stack.push(shipPosition);
+//
+//      while (!stack.isEmpty()) {
+//        Vertex current = stack.pop();
+//        if (forestPartition.ships.contains(current) || forestPartition.dests.contains(current)) {
+//          continue;
+//        }
+//
+//        if (current.type == Type.SHIP) {
+//          forestPartition.ships.add(current);
+//        } else {
+//          forestPartition.dests.add(current);
+//        }
+//
+//        for (Edge e : current.edges) {
+//          if (current.type == Type.SHIP && assignmentEdges.contains(e)) {
+//            continue;
+//          }
+//
+//          if (current.type == Type.DESTINATION && !assignmentEdges.contains(e)) {
+//            continue;
+//          }
+//
+//          if (!isIncludedInEqualitySubgraph(e)) {
+//            continue;
+//          }
+//
+//          stack.push(e.destination);
+//        }
+//      }
+//    }
+//
+//    return forestPartition;
+//  }
+//
+//  private static boolean isIncludedInEqualitySubgraph(Edge e) {
+//    return e.weight + 0.001 >= e.start.label + e.destination.label;
+//  }
+//
+//
+//
+//
+//  static class ForestPartition {
+//    private HashSet<Vertex> ships = new HashSet<>();
+//    private HashSet<Vertex> dests = new HashSet<>();
+//
+//    @Override
+//    public String toString() {
+//      StringBuilder stringBuilder = new StringBuilder();
+//      stringBuilder.append("Forest Partition: \n");
+//
+//      stringBuilder.append("Ships: ");
+//      for (Vertex v : ships) {
+//        stringBuilder.append(v.position);
+//      }
+//      stringBuilder.append("\n");
+//
+//      stringBuilder.append("Dests: ");
+//      for (Vertex v : dests) {
+//        stringBuilder.append(v.position);
+//      }
+//      stringBuilder.append("\n");
+//
+//      return stringBuilder.toString();
+//    }
+//  }
 }

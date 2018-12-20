@@ -18,8 +18,8 @@ public class Edge {
   }
 
   public static Edge manualEdge(Ship start, Position destination) {
-    Vertex startV = new Vertex(start.position, 0, Vertex.Type.SHIP, start);
-    Vertex destV = new Vertex(destination, 0, Vertex.Type.DESTINATION, null);
+    Vertex startV = new Vertex(start.position, 0);
+    Vertex destV = new Vertex(destination, 0);
     return new Edge(startV, destV, 0);
   }
 

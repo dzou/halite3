@@ -6,6 +6,7 @@ import hlt.Ship;
 
 import java.util.*;
 
+import java.util.stream.Collectors;
 import matching.Vertex.Type;
 import shipagent.Decision;
 
@@ -20,48 +21,57 @@ public class BipartiteGraph {
   HashMap<Position, Vertex> sourceNodes;
   HashMap<Position, Vertex> destNodes;
 
-  HashSet<Vertex> assignedVertices;
-  HashSet<Vertex> assignedDestinations;
-
-  HashSet<Edge> assignmentEdges;
+  HashSet<Vertex> assignedSources;
+  HashMap<Vertex, Edge> assignedDestinations;
 
   public BipartiteGraph() {
     this.sourceNodes = new HashMap<>();
     this.destNodes = new HashMap<>();
 
-    this.assignedVertices = new HashSet<>();
-    this.assignedDestinations = new HashSet<>();
-    this.assignmentEdges = new HashSet<>();
+    this.assignedSources = new HashSet<>();
+    this.assignedDestinations = new HashMap<>();
   }
 
-  public HashSet<Edge> matchShipsToDestinations() {
-    while (assignmentEdges.size() < sourceNodes.size()) {
-      List<Vertex> unassignedShips = sourceNodes.values()
-          .stream()
-          .filter(s -> !assignedVertices.contains(s))
-          .collect(ImmutableList.toImmutableList());
-
-      for (Vertex s : unassignedShips) {
-        ArrayList<Edge> path = findAugmentingPath(s);
-        for (Edge e : path) {
-          if (assignmentEdges.contains(e)) {
-            assignmentEdges.remove(e);
-          } else {
-            assignedVertices.add(e.start);
-            assignedDestinations.add(e.destination);
-            assignmentEdges.add(e);
-          }
-        }
-      }
-
-      relabelGraph();
-    }
-
-    return assignmentEdges;
-  }
-
+  // public HashSet<Edge> matchShipsToDestinations() {
+  //   while (assignmentEdges.size() < sourceNodes.size()) {
+  //     List<Vertex> unassignedShips = sourceNodes.values()
+  //         .stream()
+  //         .filter(s -> !assignedVertices.contains(s))
+  //         .collect(ImmutableList.toImmutableList());
+  //
+  //     for (Vertex s : unassignedShips) {
+  //       ArrayList<Edge> path = findAugmentingPath(s);
+  //       for (Edge e : path) {
+  //         if (assignmentEdges.contains(e)) {
+  //           assignmentEdges.remove(e);
+  //         } else {
+  //           assignedVertices.add(e.start);
+  //           assignedDestinations.add(e.destination);
+  //           assignmentEdges.add(e);
+  //         }
+  //       }
+  //     }
+  //
+  //     relabelGraph();
+  //   }
+  //
+  //   return assignmentEdges;
+  // }
+  //
   void relabelGraph() {
-    ForestPartition forestPartition = findAlternatingForestScope();
+    //TODO: this is wrong by the way, u have to actually compute the forest rooted at the unassigned nodes.
+  	Set<Vertex> unlabeledNodes = sourceNodes.values().stream()
+        .filter(v -> !assignedSources.contains(v))
+        .collect(Collectors.toSet());
+
+  	// edge to relabel graph with
+  	Edge minEdge = unlabeledNodes.stream()
+        .flatMap(v -> v.edges.stream())
+				.filter(e -> !isIncludedInEqualitySubgraph(e))
+        .min(Comparator.comparingDouble(e -> e.start.label + e.destination.label - e.weight))
+        .get();
+
+
 
     double globalBestAlpha = 99999999;
 
@@ -96,7 +106,7 @@ public class BipartiteGraph {
     while (!stack.isEmpty()) {
       Vertex curr = stack.pop();
 
-      if (destNodes.containsKey(curr.position) && !assignedDestinations.contains(curr)) {
+      if (destNodes.containsKey(curr.position) && !assignedDestinations.containsKey(curr)) {
         Edge originEdge = prevMap.get(curr);
         while (originEdge != null) {
           path.add(originEdge);
@@ -105,21 +115,31 @@ public class BipartiteGraph {
         break;
       }
 
-      for (Edge e : curr.edges) {
-        if (prevMap.containsKey(e.destination)
-            || sourceNodes.containsKey(e.start.position) &&
-            || curr.type == Type.SHIP && assignmentEdges.contains(e)
-            || curr.type == Type.DESTINATION && !assignmentEdges.contains(e)
-            || !isIncludedInEqualitySubgraph(e)) {
-          continue;
-        }
+      if (sourceNodes.containsKey(curr)) {
+        Set<Edge> edgesInEqualitySubgraph = curr.edges
+            .stream()
+            .filter(e ->
+                !prevMap.containsKey(e.destination)
+                && isIncludedInEqualitySubgraph(e)
+                && !assignedDestinations.containsKey(e.destination))
+            .collect(Collectors.toSet());
 
-        stack.push(e.destination);
-        prevMap.put(e.destination, e);
+        for (Edge e : edgesInEqualitySubgraph) {
+          stack.push(e.destination);
+          prevMap.put(e.destination, e);
+        }
+      } else {
+        Edge assignedEdge = assignedDestinations.get(curr);
+        stack.push(assignedEdge.destination);
+        prevMap.put(assignedEdge.destination, assignedEdge);
       }
     }
 
     return path;
+  }
+
+  private static boolean isIncludedInEqualitySubgraph(Edge e) {
+    return e.weight + 0.00001 >= e.start.label + e.destination.label;
   }
 
   @Override
@@ -182,9 +202,6 @@ public class BipartiteGraph {
 //    return forestPartition;
 //  }
 //
-//  private static boolean isIncludedInEqualitySubgraph(Edge e) {
-//    return e.weight + 0.001 >= e.start.label + e.destination.label;
-//  }
 //
 //
 //

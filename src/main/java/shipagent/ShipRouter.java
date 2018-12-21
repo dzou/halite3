@@ -1,14 +1,13 @@
 package shipagent;
 
-import hlt.Log;
-import hlt.PlayerId;
 import hlt.Position;
 import hlt.Ship;
-import map.Grid;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import matching.BipartiteGraph;
 import matching.Edge;
-
-import java.util.*;
 
 /**
  * This guy tells ships what to do.
@@ -43,7 +42,7 @@ public class ShipRouter {
         result.add(Edge.manualEdge(ship, home));
       } else {
         HashSet<Decision> decisions = moveScorer.getDecisions(ship);
-        bipartiteGraph.addShip(ship, decisions);
+        // bipartiteGraph.addShip(ship, decisions);
 
 //        Log.log("SHIP " + ship.id + " " + ship.position);
 //        Log.log("Home: " + mapOracle.getNearestHome(ship.position));
@@ -52,11 +51,11 @@ public class ShipRouter {
 //        }
       }
     }
-    result.addAll(bipartiteGraph.matchShipsToDestinations());
+    // result.addAll(bipartiteGraph.matchShipsToDestinations());
 
     HashMap<Ship, Position> shipDecisions = new HashMap<>();
     for (Edge e : result) {
-      shipDecisions.put(e.start.ship.get(), e.destination.position);
+      // shipDecisions.put(e.start.ship.get(), e.destination.position);
     }
     return shipDecisions;
   }

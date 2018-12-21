@@ -2,7 +2,6 @@ package matching;
 
 import hlt.Position;
 import hlt.Ship;
-
 import java.text.DecimalFormat;
 import java.util.Objects;
 
@@ -15,6 +14,10 @@ public class Edge {
     this.start = start;
     this.destination = destination;
     this.weight = weight;
+  }
+
+  public Edge flipped() {
+    return new Edge(destination, start, weight);
   }
 
   public static Edge manualEdge(Ship start, Position destination) {

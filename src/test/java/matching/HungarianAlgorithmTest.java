@@ -1,12 +1,12 @@
 package matching;
 
-import static com.google.common.truth.Truth.assertThat;
-
 import com.google.common.collect.ImmutableMap;
 import hlt.Position;
-import java.util.Collection;
-import java.util.Map;
 import org.junit.Test;
+
+import java.util.Map;
+
+import static com.google.common.truth.Truth.assertThat;
 
 public class HungarianAlgorithmTest {
 
@@ -69,9 +69,9 @@ public class HungarianAlgorithmTest {
     assertThat(assignments).isEqualTo(
         ImmutableMap.of(
             Position.at(0, 0), Position.at(0, -1),
-            Position.at(0, -1), Position.at(-1, -1)));
+            Position.at(0, -1), Position.at(-1, -1),
+            Position.at(1, 1), Position.at(0, 1)));
   }
-
 
 
 }

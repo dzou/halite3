@@ -2,26 +2,20 @@ package matching;
 
 import com.google.common.collect.ImmutableMap;
 import hlt.Position;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * Implementation of the Hungarian matching algorithm
- *
+ * <p>
  * references:
  * http://www.maths.qmul.ac.uk/~bill/MAS210/ch5.pdf
  * http://www.maths.qmul.ac.uk/~bill/MAS210/ch6.pdf
  */
 public class HungarianAlgorithm {
 
-  private static final double EPSILON = 0.0001;
+  private static final double EPSILON = 0.01;
 
   BipartiteGraph graph;
   HashSet<Vertex> assignedSources;
@@ -43,7 +37,7 @@ public class HungarianAlgorithm {
       for (Vertex s : unassignedShips) {
         ArrayList<Edge> path = findAugmentingPath(s);
         for (Edge e : path) {
-          if (assignedDestinations.containsKey(e.destination)) {
+          if (assignedDestinations.containsKey(e.start)) {
             assignedDestinations.remove(e.destination);
           } else {
             assignedSources.add(e.start);

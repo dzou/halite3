@@ -45,7 +45,7 @@ public class ShipRouter {
         ImmutableMap<Position, Double> decisionScoreMap = decisions
             .stream()
             .collect(ImmutableMap.toImmutableMap(d -> d.destination, d -> d.scoreVector.score()));
-        bipartiteGraph.addNode(ship.position, decisionScoreMap);
+        bipartiteGraph.addSingleCapacityNode(ship.position, decisionScoreMap);
 
 //        Log.log("SHIP " + ship.id + " " + ship.position);
 //        Log.log("Home: " + mapOracle.getNearestHome(ship.position));

@@ -11,36 +11,51 @@ public class BipartiteGraph {
   HashSet<Vertex> sourceNodes;
   HashSet<Vertex> destNodes;
 
+  HashMap<Vertex, Integer> destinationCapacityMap;
+
   private HashMap<Position, Vertex> sourcePositions;
   private HashMap<Position, Vertex> destPositions;
 
   public BipartiteGraph() {
     this.sourceNodes = new HashSet<>();
     this.destNodes = new HashSet<>();
+    this.destinationCapacityMap = new HashMap<>();
 
     this.sourcePositions = new HashMap<>();
     this.destPositions = new HashMap<>();
   }
 
-  public void addNode(Position pos, Map<Position, Double> neighbors) {
-    Vertex source = new Vertex(pos, -999999);
+  public void addSingleCapacityNode(Position pos, Map<Position, Double> neighbors) {
+    addSource(pos);
 
-    for (Map.Entry<Position, Double> neighborEntry : neighbors.entrySet()) {
-      if (!destPositions.containsKey(neighborEntry.getKey())) {
-        Vertex newDest = new Vertex(neighborEntry.getKey(), 0);
-        destNodes.add(newDest);
-        destPositions.put(neighborEntry.getKey(), newDest);
+    for (Map.Entry<Position, Double> entry : neighbors.entrySet()) {
+      Position neighborPosition = entry.getKey();
+      if (!destPositions.containsKey(neighborPosition)) {
+        addDestination(neighborPosition, 1);
       }
-
-      Vertex destNode = destPositions.get(neighborEntry.getKey());
-      source.addNeighbor(destNode, neighborEntry.getValue());
-      if (neighborEntry.getValue() > source.label) {
-        source.label = neighborEntry.getValue();
-      }
+      addEdge(pos, neighborPosition, entry.getValue());
     }
+  }
 
+  void addSource(Position pos) {
+    Vertex source = new Vertex(pos, -999999);
     sourceNodes.add(source);
     sourcePositions.put(pos, source);
+  }
+
+  void addDestination(Position pos, int destinationCapacity) {
+    Vertex dest = new Vertex(pos, 0);
+    destNodes.add(dest);
+    destPositions.put(pos, dest);
+    destinationCapacityMap.put(dest, destinationCapacity);
+  }
+
+  void addEdge(Position sourcePosition, Position destPosition, double weight) {
+    Vertex sourceNode = sourcePositions.get(sourcePosition);
+    Vertex destNode = destPositions.get(destPosition);
+
+    sourceNode.addNeighbor(destNode, weight);
+    sourceNode.label = Math.max(sourceNode.label, weight);
   }
 
   @Override

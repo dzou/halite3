@@ -1,5 +1,7 @@
 package matching;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
 import hlt.Position;
 
@@ -7,7 +9,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Implementation of the Hungarian matching algorithm
+ * Implementation of the Hungarian matching algorithm.
+ * This is an extended version of the algorithm in which you may specify a max number of
+ * matchings allowed for a given destination.
+ *
  * <p>
  * references:
  * http://www.maths.qmul.ac.uk/~bill/MAS210/ch5.pdf
@@ -19,12 +24,12 @@ public class HungarianAlgorithm {
 
   BipartiteGraph graph;
   HashSet<Vertex> assignedSources;
-  HashMap<Vertex, Edge> assignedDestinations;
+  HashMultimap<Vertex, Edge> assignedDestinations;
 
   public HungarianAlgorithm(BipartiteGraph graph) {
     this.graph = graph;
     this.assignedSources = new HashSet<>();
-    this.assignedDestinations = new HashMap<>();
+    this.assignedDestinations = HashMultimap.create();
   }
 
   public Map<Position, Position> processMatches() {
@@ -38,7 +43,7 @@ public class HungarianAlgorithm {
         ArrayList<Edge> path = findAugmentingPath(s);
         for (Edge e : path) {
           if (assignedDestinations.containsKey(e.start)) {
-            assignedDestinations.remove(e.destination);
+            assignedDestinations.remove(e.start, e);
           } else {
             assignedSources.add(e.start);
             assignedDestinations.put(e.destination, e);
@@ -60,6 +65,8 @@ public class HungarianAlgorithm {
     ForestPartition forestPartition = findAlternatingForestScope();
     if (forestPartition.sources.isEmpty()) {
       return;
+    } else if (forestPartition.dests.isEmpty()) {
+      throw new RuntimeException("Bug : created a bipartite graph for which no perfect matching exists . . . ");
     }
 
     double alpha = forestPartition.sources
@@ -90,7 +97,9 @@ public class HungarianAlgorithm {
     while (!stack.isEmpty()) {
       Vertex curr = stack.pop();
 
-      if (graph.destNodes.contains(curr) && !assignedDestinations.containsKey(curr)) {
+      if (graph.destNodes.contains(curr)
+          && assignedDestinations.get(curr).size() < graph.destinationCapacityMap.get(curr)) {
+
         Edge originEdge = prevMap.get(curr);
         while (originEdge != null) {
           path.add(originEdge);
@@ -110,9 +119,10 @@ public class HungarianAlgorithm {
           prevMap.put(e.destination, e);
         }
       } else {
-        Edge assignedEdge = assignedDestinations.get(curr);
-        stack.push(assignedEdge.start);
-        prevMap.put(assignedEdge.start, assignedEdge.flipped());
+        for (Edge e : assignedDestinations.get(curr)) {
+          stack.push(e.start);
+          prevMap.put(e.start, e.flipped());
+        }
       }
     }
 
@@ -147,8 +157,7 @@ public class HungarianAlgorithm {
         }
       } else {
         forestPartition.dests.add(curr);
-        Edge matchedEdge = assignedDestinations.get(curr);
-        if (matchedEdge != null) {
+        for (Edge matchedEdge : assignedDestinations.get(curr)) {
           stack.push(matchedEdge.start);
         }
       }

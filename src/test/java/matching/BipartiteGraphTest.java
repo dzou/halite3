@@ -24,7 +24,7 @@ public class BipartiteGraphTest {
   public void testGraphConstruction() {
     BipartiteGraph graph = new BipartiteGraph();
 
-    graph.addNode(
+    graph.addSingleCapacityNode(
         Position.at(0, 0),
         ImmutableMap.of(
             Position.at(0, 1), 22.0,

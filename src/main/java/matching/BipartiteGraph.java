@@ -1,6 +1,8 @@
 package matching;
 
 import hlt.Position;
+
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -11,7 +13,7 @@ public class BipartiteGraph {
   HashSet<Vertex> sourceNodes;
   HashSet<Vertex> destNodes;
 
-  HashMap<Vertex, Integer> destinationCapacityMap;
+  public HashMap<Vertex, Integer> destinationCapacityMap;
 
   private HashMap<Position, Vertex> sourcePositions;
   private HashMap<Position, Vertex> destPositions;
@@ -23,6 +25,15 @@ public class BipartiteGraph {
 
     this.sourcePositions = new HashMap<>();
     this.destPositions = new HashMap<>();
+  }
+
+  public Collection<Position> getDestinations() {
+    return destPositions.keySet();
+  }
+
+  public void setCapacity(Position destPos, int capacity) {
+    Vertex destVertex = destPositions.get(destPos);
+    destinationCapacityMap.put(destVertex, capacity);
   }
 
   public void addSingleCapacityNode(Position pos, Map<Position, Double> neighbors) {

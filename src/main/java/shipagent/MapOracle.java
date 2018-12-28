@@ -4,12 +4,12 @@ import com.google.common.collect.ImmutableMap;
 import hlt.PlayerId;
 import hlt.Position;
 import hlt.Ship;
-import map.*;
+import map.DjikstraGrid;
+import map.Grid;
+import map.TriangulationGrid;
+import map.ZoneGrid;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.function.IntFunction;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
@@ -33,8 +33,6 @@ public class MapOracle {
   public final Grid<Double> myInfluenceMap;
   public final Grid<Double> enemyInfluenceMap;
 
-  // public final Grid<Double> exploreGrid;
-
   public final Grid<Integer> enemyThreatMap;
 
   public final Grid<Integer> inspireMap;
@@ -45,6 +43,8 @@ public class MapOracle {
   public final TriangulationGrid enemyShipCovers;
 
   public final ZoneGrid zoneGrid;
+
+  public final double averageHaliteOnMap;
 
   public MapOracle(
       PlayerId myPlayerId,
@@ -80,6 +80,19 @@ public class MapOracle {
 
     this.enemyShipCovers = new TriangulationGrid(enemyShips, ENEMY_COVER_RANGE);
     this.zoneGrid = new ZoneGrid(haliteGrid);
+
+    this.averageHaliteOnMap = haliteGrid.stream()
+        .mapToInt(n -> n)
+        .average()
+        .orElse(0.0);
+  }
+
+  public int distance(Position origin, Position destination) {
+    return haliteGrid.distance(origin, destination);
+  }
+
+  public boolean isTimeToEndGame(Ship ship, int shipCount) {
+    return haliteGrid.distance(ship.position, getNearestHome(ship.position)) + 5 + (shipCount / (5 * myDropoffsMap.size())) >= turnsRemaining;
   }
 
   public Optional<Ship> orderDropOff(Position projectedDropOffLoc) {
@@ -87,9 +100,9 @@ public class MapOracle {
     return Optional.ofNullable(myShipPositionsMap.get(projectedDropOffLoc));
   }
 
-  Position getNearestHome(Position shipPosition) {
+  public Position getNearestHome(Position origin) {
     Comparator<Map.Entry<Position, DjikstraGrid>> dropOffComparator =
-        Comparator.<Map.Entry<Position, DjikstraGrid>>comparingInt(entry -> haliteGrid.distance(shipPosition, entry.getKey()))
+        Comparator.<Map.Entry<Position, DjikstraGrid>>comparingInt(entry -> haliteGrid.distance(origin, entry.getKey()))
             .thenComparingDouble(entry -> -myInfluenceMap.get(entry.getKey().x, entry.getKey().y))
             .thenComparingInt(entry -> entry.getKey().x * 100 + entry.getKey().y);
 
@@ -100,13 +113,9 @@ public class MapOracle {
         .getKey();
   }
 
-  double goHomeCost(Position destination) {
+  public double goHomeCost(Position destination) {
     Position nearestHome = getNearestHome(destination);
     return myDropoffsMap.get(nearestHome).costCache.get(destination.x, destination.y) * 0.10;
-  }
-
-  boolean isTimeToEndGame(Ship ship, int shipCount) {
-    return haliteGrid.distance(ship.position, getNearestHome(ship.position)) + 5 + (shipCount / (5 * myDropoffsMap.size())) >= turnsRemaining;
   }
 
   double influenceSumAtPoint(int x, int y) {
@@ -115,21 +124,5 @@ public class MapOracle {
 
   double influenceDifferenceAtPoint(int x, int y) {
     return myInfluenceMap.get(x, y) - enemyInfluenceMap.get(x, y);
-  }
-
-  Collection<Ship> getEnemiesInNeighborhood(Position origin, int distance, int enemyCount) {
-    PriorityQueue<Ship> nearestEnemyShips = new PriorityQueue<>(
-        Comparator.comparingInt(e -> -haliteGrid.distance(origin, e.position)));
-
-    for (Ship enemy : enemyShips) {
-      if (haliteGrid.distance(origin, enemy.position) <= distance) {
-        nearestEnemyShips.add(enemy);
-        if (nearestEnemyShips.size() > enemyCount) {
-          nearestEnemyShips.remove();
-        }
-      }
-    }
-
-    return nearestEnemyShips;
   }
 }

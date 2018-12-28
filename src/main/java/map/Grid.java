@@ -4,7 +4,10 @@ import hlt.Direction;
 import hlt.Position;
 
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 /**
  * Generic grid representing the map. It self-contains the wrap-around map logic doing
@@ -105,7 +108,6 @@ public class Grid<T> {
   }
 
 
-
   public Position normalize(int x, int y) {
     return new Position(normalizeX(x), normalizeY(y));
   }
@@ -173,5 +175,9 @@ public class Grid<T> {
     int result = Objects.hash(height, width);
     result = 31 * result + Arrays.hashCode(costGrid);
     return result;
+  }
+
+  public Stream<T> stream() {
+    return Arrays.stream(costGrid).flatMap(Arrays::stream);
   }
 }

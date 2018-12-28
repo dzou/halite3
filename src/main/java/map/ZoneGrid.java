@@ -1,13 +1,5 @@
 package map;
 
-import com.google.common.collect.ImmutableList;
-import hlt.Direction;
-import hlt.Position;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-
 public class ZoneGrid {
 
   private static int ZONE_SIZE = 4;
@@ -35,58 +27,6 @@ public class ZoneGrid {
     }
   }
 
-//  public List<Zone> getBestZones(Position origin, Direction d, int count) {
-//    ArrayList<Zone> zonesInDirection = zonesInDirection(origin, d);
-//
-//    return zonesInDirection.stream()
-//        .sorted(Comparator.comparingDouble(z -> -z.getMinedAmount()))
-//        .limit(count)
-//        .collect(ImmutableList.toImmutableList());
-//  }
-
-  public ArrayList<Zone> zonesInDirection(Position origin, Direction d) {
-    int homeZoneX = origin.x / ZONE_SIZE;
-    int homeZoneY = origin.y / ZONE_SIZE;
-
-    int xStart = homeZoneX - (zones.width / 2);
-    int xEnd = homeZoneX + (zones.width / 2);
-
-    int yStart = homeZoneY - (zones.height / 2);
-    int yEnd = homeZoneY + (zones.height / 2);
-
-    if (d == Direction.EAST) {
-      xStart = homeZoneX;
-    } else if (d == Direction.WEST) {
-      xEnd = homeZoneX;
-    } else if (d == Direction.SOUTH) {
-      yStart = homeZoneY;
-    } else if (d == Direction.NORTH) {
-      yEnd = homeZoneY;
-    }
-
-    ArrayList<Zone> results = new ArrayList<>();
-
-    for (int y = yStart; y <= yEnd; y++) {
-      for (int x = xStart; x <= xEnd; x++) {
-        Zone goalZone = zones.get(x, y);
-
-        int deltaX = Math.abs(DjikstraGrid.getAxisDirection(origin.x, goalZone.center.x, this.haliteGrid.width));
-        int deltaY = Math.abs(DjikstraGrid.getAxisDirection(origin.y, goalZone.center.y, this.haliteGrid.height));
-
-        if ((d == Direction.NORTH || d == Direction.SOUTH) && deltaX > 2 * deltaY) {
-          continue;
-        }
-
-        if ((d == Direction.EAST || d == Direction.WEST) && deltaY > 2 * deltaX) {
-          continue;
-        }
-
-        results.add(goalZone);
-      }
-    }
-
-    return results;
-  }
 
   @Override
   public String toString() {

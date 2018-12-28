@@ -1,18 +1,18 @@
 package shipagent;
 
 import hlt.Constants;
-import hlt.PlayerId;
 import hlt.Position;
 import hlt.Ship;
 import map.Grid;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
 
 public class InfluenceMaps {
 
-  public static final int HALITE_DENSITY_RANGE = 5;
+  public static final int HALITE_DENSITY_RANGE = 4;
 
-  public static final int SHIP_INFLUENCE_RANGE = 12;
+  public static final int SHIP_INFLUENCE_RANGE = 4;
 
 //  public static double getExploreFactor(Ship ship, int dx, int dy, Grid<Integer> haliteGrid) {
 //    double distance = 3 * haliteGrid.distance(dx, dy, ship.position.x, ship.position.y) + 1;

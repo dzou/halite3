@@ -81,7 +81,7 @@ public class HungarianAlgorithmTest {
     graph.addSource(Position.at(0, 1));
     graph.addSource(Position.at(0, 2));
 
-    graph.addDestination(Position.at(1, 0), 2);
+    graph.addDestination(Position.at(1, 0), 3);
     graph.addDestination(Position.at(1, 1), 1);
     graph.addDestination(Position.at(1, 2), 1);
 
@@ -93,7 +93,7 @@ public class HungarianAlgorithmTest {
     graph.addEdge(Position.at(0, 1), Position.at(1, 1), 7.20);
     graph.addEdge(Position.at(0, 1), Position.at(1, 2), 4.0);
 
-    graph.addEdge(Position.at(0, 2), Position.at(1, 0), 20.0);
+    graph.addEdge(Position.at(0, 2), Position.at(1, 0), 1.0);
     graph.addEdge(Position.at(0, 2), Position.at(1, 1), 14.20);
     graph.addEdge(Position.at(0, 2), Position.at(1, 2), 4.0);
 
@@ -107,5 +107,7 @@ public class HungarianAlgorithmTest {
             Position.at(0, 0), Position.at(1, 0),
             Position.at(0, 1), Position.at(1, 0),
             Position.at(0, 2), Position.at(1, 1)));
+
+    assertThat(alg.getPositionsWithCapacity()).containsExactly(Position.at(1, 0), Position.at(1, 2));
   }
 }

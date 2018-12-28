@@ -5,7 +5,6 @@ import hlt.Ship;
 import map.Grid;
 import org.junit.Test;
 
-
 import static com.google.common.truth.Truth.assertThat;
 import static util.TestUtil.ship;
 
@@ -63,10 +62,10 @@ public class InfluenceMapsTest {
     );
 
     Grid<Double> densityMap = InfluenceMaps.shipHaliteDensityMap(haliteGrid, myShips);
+    System.out.println(densityMap);
+
     assertThat(densityMap.get(2, 0)).isWithin(0.0001).of(140.0);
     assertThat(densityMap.get(0, 2)).isWithin(0.0001).of(220.0);
-
-    System.out.println(densityMap);
   }
 
   @Test

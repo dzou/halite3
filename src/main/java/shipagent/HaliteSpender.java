@@ -1,6 +1,8 @@
 package shipagent;
 
-import hlt.*;
+import hlt.Constants;
+import hlt.Position;
+import hlt.Ship;
 import map.Grid;
 
 import java.util.Optional;
@@ -8,13 +10,13 @@ import java.util.Set;
 
 public class HaliteSpender {
 
-  private static final int MIN_HALITE_DENSITY_TO_DROPOFF = 2200;
+  private static final int MIN_HALITE_DENSITY_TO_DROPOFF = 2000;
 
   private static final int MIN_SPACE_BTWN_DROPOFFS = 16;
 
   private static final int MAX_DROPOFFS = 8;
 
-  private static final int DROPOFF_TURNS_REMAINING_CUTOFF = 100;
+  private static final int DROPOFF_TURNS_REMAINING_CUTOFF = 75;
 
   private final MapOracle oracle;
 
@@ -32,7 +34,7 @@ public class HaliteSpender {
         haliteSum += oracle.haliteGrid.get(x, y);
       }
     }
-    double avgHalitePotential = 0.25 *  haliteSum / (oracle.haliteGrid.width * oracle.haliteGrid.height);
+    double avgHalitePotential = 0.25 * haliteSum / (oracle.haliteGrid.width * oracle.haliteGrid.height);
 
     return haliteAvailable >= Constants.SHIP_COST && oracle.turnsRemaining * avgHalitePotential > 2700;
   }
@@ -58,7 +60,7 @@ public class HaliteSpender {
             .findAny()
             .isPresent();
 
-        if (tooCloseToOtherDropoff || oracle.influenceDifferenceAtPoint(x, y) < 0.1) {
+        if (tooCloseToOtherDropoff /* || oracle.influenceDifferenceAtPoint(x, y) < 0.1 */) {
           continue;
         }
 

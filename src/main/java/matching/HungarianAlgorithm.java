@@ -1,8 +1,8 @@
 package matching;
 
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import hlt.Position;
 
 import java.util.*;
@@ -30,6 +30,13 @@ public class HungarianAlgorithm {
     this.graph = graph;
     this.assignedSources = new HashSet<>();
     this.assignedDestinations = HashMultimap.create();
+  }
+
+  public Set<Position> getPositionsWithCapacity() {
+    return graph.destNodes.stream()
+        .filter(dest -> assignedDestinations.get(dest).size() < graph.destinationCapacityMap.get(dest))
+        .map(v -> v.position)
+        .collect(ImmutableSet.toImmutableSet());
   }
 
   public Map<Position, Position> processMatches() {

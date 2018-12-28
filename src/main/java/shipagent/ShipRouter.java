@@ -47,11 +47,11 @@ public class ShipRouter {
             .collect(ImmutableMap.toImmutableMap(d -> d.destination, d -> d.scoreVector.score()));
         bipartiteGraph.addSingleCapacityNode(ship.position, decisionScoreMap);
 
-//        Log.log("SHIP " + ship.id + " " + ship.position);
-//        Log.log("Home: " + mapOracle.getNearestHome(ship.position));
-//        for (Decision d : decisions) {
-//          Log.log(d.toString());
-//        }
+        Log.log("SHIP " + ship.id + " " + ship.position);
+        Log.log("Home: " + mapOracle.getNearestHome(ship.position));
+        for (Decision d : decisions) {
+          Log.log(d.toString());
+        }
       }
     }
 

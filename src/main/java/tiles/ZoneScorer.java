@@ -21,14 +21,14 @@ public class ZoneScorer {
     Position zonePosition = goalZone.bestTile().tilePosition;
     Position nearestHome = mapOracle.getNearestHome(zonePosition);
 
-    int distanceToZone = goalZone.bestHaliteTiles.stream()
-        .mapToInt(tile -> mapOracle.haliteGrid.distance(shipOrigin, tile.tilePosition))
+    int distanceToZone = goalZone.centerPoints.stream()
+        .mapToInt(pos -> mapOracle.haliteGrid.distance(shipOrigin, pos))
         .min()
         .orElse(0);
 
     int turnsTaken = distanceToZone
         + mapOracle.distance(zonePosition, nearestHome)
-        + 11;
+        + 13;
 
     double inspireMultiplier = (mapOracle.inspireMap.get(zonePosition.x, zonePosition.y) > 1) ? 1.10 : 1.0;
 

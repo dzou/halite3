@@ -34,7 +34,7 @@ public class HungarianAlgorithm {
 
   public Set<Position> getPositionsWithCapacity() {
     return graph.destNodes.stream()
-        .filter(dest -> assignedDestinations.get(dest).size() < graph.destinationCapacityMap.get(dest))
+        .filter(dest -> assignedDestinations.get(dest).size() == 0)
         .map(v -> v.position)
         .collect(ImmutableSet.toImmutableSet());
   }

@@ -1,21 +1,36 @@
 package map;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import hlt.Direction;
 import hlt.Position;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Zone {
-  public static final Zone EMPTY = new Zone(Position.at(-1, -1), 0, ImmutableList.of());
+  public static final Position EMPTY_POSITION = Position.at(-1, -1);
+  public static final Zone EMPTY = new Zone(Position.at(-1, -1), 0, ImmutableList.of(), ImmutableSet.of());
 
   public final Position center;
   public final int haliteSum;
   public final List<Tile> bestHaliteTiles;
+  public final Set<Position> corners;
+  public final Set<Position> centerPoints;
 
-  Zone(Position center, int haliteSum, List<Tile> bestHaliteTiles) {
+  Zone(Position center, int haliteSum, List<Tile> bestHaliteTiles, Set<Position> corners) {
     this.center = center;
     this.haliteSum = haliteSum;
     this.bestHaliteTiles = bestHaliteTiles;
+    this.corners = corners;
+
+    if (!bestHaliteTiles.isEmpty()) {
+      this.centerPoints = Direction.ALL_CARDINALS.stream()
+          .map(d -> bestHaliteTiles.get(0).tilePosition.directionalOffset(d))
+          .collect(ImmutableSet.toImmutableSet());
+    } else {
+      this.centerPoints = ImmutableSet.of();
+    }
   }
 
   public Tile bestTile() {
@@ -57,6 +72,12 @@ public class Zone {
     return new Zone(
         Position.at(xCorner + zoneSize / 2, yCorner + zoneSize / 2),
         haliteSum,
-        bestHaliteTiles);
+        bestHaliteTiles,
+        ImmutableSet.of(
+            Position.at(xCorner, yCorner),
+            Position.at(xCorner, yCorner + zoneSize - 1),
+            Position.at(xCorner + zoneSize - 1, yCorner),
+            Position.at(xCorner + zoneSize - 1, yCorner + zoneSize - 1)
+        ));
   }
 }

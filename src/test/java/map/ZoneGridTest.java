@@ -69,6 +69,12 @@ public class ZoneGridTest {
         new Tile(Position.at(7, 6), 5),
         new Tile(Position.at(7, 7), 6));
 
+    assertThat(zone.corners).containsExactly(
+        Position.at(4, 4),
+        Position.at(4, 7),
+        Position.at(7, 4),
+        Position.at(7, 7));
+
     assertThat(zone.bestTile()).isEqualTo(new Tile(Position.at(7, 5), 7));
   }
 }

@@ -45,6 +45,9 @@ public class GoalAssignment {
         }
 
         shipDestinations.put(zonePos, zoneScorer.zoneScore(ship, Direction.STILL, zone));
+
+        // dummy assignment
+        shipDestinations.put(Zone.EMPTY_POSITION, 0.0);
       }
       graph.addSingleCapacityNode(ship.position, shipDestinations);
     }
@@ -59,13 +62,16 @@ public class GoalAssignment {
       graph.setCapacity(bestZone.bestTile().tilePosition, (bestZone.haliteSum / 1000) + 1);
     }
 
+    // dummy assignment
+    graph.setCapacity(Zone.EMPTY_POSITION, 999);
+
     HungarianAlgorithm alg = new HungarianAlgorithm(graph);
 
     this.shipAssignments = alg.processMatches();
     this.freeGoals = alg.getPositionsWithCapacity();
 
-//    this.shipAssignments.entrySet().forEach(e -> Log.log("ship: " + e.getKey() + " -> " + e.getValue()));
-//    Log.log(this.freeGoals.toString());
+    this.shipAssignments.entrySet().forEach(e -> Log.log("ship: " + e.getKey() + " -> " + e.getValue()));
+    Log.log(this.freeGoals.toString());
   }
 
   public double mineScore(Ship ship) {

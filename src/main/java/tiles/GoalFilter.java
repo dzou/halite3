@@ -1,6 +1,7 @@
 package tiles;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import hlt.Direction;
 import hlt.Position;
 import hlt.Ship;
@@ -11,6 +12,7 @@ import shipagent.MapOracle;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class GoalFilter {
@@ -28,8 +30,8 @@ public class GoalFilter {
     this.bestZones = getBestZones(mapOracle, ZONE_LIMIT);
   }
 
-  List<Position> getLocalMoves(Ship ship, Direction d) {
-    ImmutableList.Builder<Position> localPositions = ImmutableList.builder();
+  Set<Position> getLocalMoves(Ship ship, Direction d) {
+    ImmutableSet.Builder<Position> localPositions = ImmutableSet.builder();
 
     int xStart = (d == Direction.EAST) ? 1 : -LOCAL_DISTANCE;
     int xEnd = (d == Direction.WEST) ? -1 : LOCAL_DISTANCE;
@@ -50,8 +52,8 @@ public class GoalFilter {
     return localPositions.build();
   }
 
-  List<Zone> getZonesInDirection(Position origin, Direction d) {
-    ArrayList<Zone> filteredPositions = new ArrayList<>();
+  Set<Zone> getZonesInDirection(Position origin, Direction d) {
+    ImmutableSet.Builder<Zone> filteredPositions = ImmutableSet.builder();
 
     for (Zone zone : bestZones) {
       if (mapOracle.haliteGrid.distance(origin, zone.bestTile().tilePosition) <= LOCAL_DISTANCE) {
@@ -70,7 +72,7 @@ public class GoalFilter {
       }
     }
 
-    return filteredPositions;
+    return filteredPositions.build();
   }
 
   private static List<Zone> getBestZones(MapOracle mapOracle, int count) {

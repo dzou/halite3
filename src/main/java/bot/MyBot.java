@@ -6,6 +6,7 @@ import shipagent.MapOracle;
 import shipagent.ShipRouter;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 // This Java API uses camelCase instead of the snake_case as documented in the API docs.
 //   Otherwise the names of methods are consistent.
@@ -86,7 +87,7 @@ public class MyBot {
         commandQueue.add(me.shipyard.spawn());
       }
 
-      game.endTurn(commandQueue);
+      game.endTurn(commandQueue.stream().sorted(Comparator.comparing(c -> c.command)).collect(Collectors.toList()));
       long endTime = System.currentTimeMillis();
       Log.log("Time taken: " + (endTime - startTime));
     }

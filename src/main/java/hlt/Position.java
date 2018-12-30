@@ -1,5 +1,10 @@
 package hlt;
 
+import com.google.common.collect.ImmutableSet;
+
+import java.util.Set;
+import java.util.stream.Collectors;
+
 public class Position {
   public final int x;
   public final int y;
@@ -11,6 +16,12 @@ public class Position {
 
   public static Position at(int x, int y) {
     return new Position(x, y);
+  }
+
+  public Set<Position> getUnnormalizedNeighbors() {
+    return Direction.ALL_CARDINALS.stream()
+        .map(d -> directionalOffset(d))
+        .collect(ImmutableSet.toImmutableSet());
   }
 
   public Position directionalOffset(final Direction d) {

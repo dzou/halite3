@@ -6,6 +6,7 @@ import hlt.Position;
 import hlt.Ship;
 import map.DjikstraGrid;
 import map.Grid;
+import map.LocalCostGrid;
 import shipagent.MapOracle;
 
 import java.util.HashMap;
@@ -17,7 +18,7 @@ public class TileScorer {
 
   private final MapOracle mapOracle;
 
-  private final HashMap<ShipDirectionPair, DjikstraGrid> shipMoveCostCache;
+  private final HashMap<Ship, LocalCostGrid> shipMoveCostCache;
 
   public TileScorer(MapOracle mapOracle) {
     this.mapOracle = mapOracle;
@@ -26,22 +27,15 @@ public class TileScorer {
 
   public double localGoalScore(Ship ship, Direction dir, Position explorePosition) {
     if (mapOracle.haliteGrid.distance(ship.position, explorePosition) > GoalFilter.LOCAL_DISTANCE) {
-      throw new RuntimeException("unexpected: shouldn't do local tile calc");
+      throw new RuntimeException("unexpected: shouldn't do local tile calc for far tile.");
     }
 
-    ShipDirectionPair shipDirKey = new ShipDirectionPair(ship, dir);
-    if (!shipMoveCostCache.containsKey(shipDirKey)) {
-      Position projectionDestination = Position.at(0, 0).directionalOffset(dir);
-      Grid<Integer> subGrid = mapOracle.haliteGrid.subGrid(ship.position, GoalFilter.LOCAL_DISTANCE);
-      DjikstraGrid subGridCosts = DjikstraGrid.create(subGrid, projectionDestination);
-      shipMoveCostCache.put(shipDirKey, subGridCosts);
+    if (!shipMoveCostCache.containsKey(ship)) {
+      shipMoveCostCache.put(ship, LocalCostGrid.create(mapOracle.haliteGrid, ship.position, GoalFilter.LOCAL_DISTANCE));
     }
 
-    Position projectionDestination = Position.at(0, 0).directionalOffset(dir);
-    DjikstraGrid djikstraSubGrid = shipMoveCostCache.get(shipDirKey);
-    int haliteSumToDest = djikstraSubGrid.haliteGrid.get(0, 0) // Adds the cost to move ship from stay
-        + djikstraSubGrid.haliteGrid.get(projectionDestination.x, projectionDestination.y) // cost to move ship from dest
-        + djikstraSubGrid.costCache.get(explorePosition.x - ship.position.x, explorePosition.y - ship.position.y); // cost to move to goal
+    LocalCostGrid localCostGrid = shipMoveCostCache.get(ship);
+    int haliteSumToDest = localCostGrid.getCostToDest(explorePosition, dir);
 
     double best = 0;
     for (int i = 0; i < MINE_RATIOS.length; i++) {

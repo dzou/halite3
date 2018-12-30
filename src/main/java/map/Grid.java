@@ -35,19 +35,6 @@ public class Grid<T> {
     this.width = grid[0].length;
   }
 
-  public Grid<T> subGrid(Position center, int radius) {
-    Grid<T> result = new Grid<>(2 * radius + 1, 2 * radius + 1, null);
-    for (int dy = -radius; dy <= radius; dy++) {
-      for (int dx = -radius; dx <= radius; dx++) {
-        int x = center.x + dx;
-        int y = center.y + dy;
-
-        result.set(dx, dy, this.get(x, y));
-      }
-    }
-    return result;
-  }
-
   public void set(int x, int y, T value) {
     int adjX = normalizeX(x);
     int adjY = normalizeY(y);

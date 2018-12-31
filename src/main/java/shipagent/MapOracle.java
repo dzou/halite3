@@ -44,6 +44,7 @@ public class MapOracle {
 
   public final ZoneGrid zoneGrid;
 
+  public final int haliteSum;
   public final double averageHaliteOnMap;
 
   public MapOracle(
@@ -81,6 +82,7 @@ public class MapOracle {
     this.enemyShipCovers = new TriangulationGrid(enemyShips, ENEMY_COVER_RANGE);
     this.zoneGrid = new ZoneGrid(haliteGrid);
 
+    this.haliteSum = haliteGrid.stream().mapToInt(n -> n).sum();
     this.averageHaliteOnMap = haliteGrid.stream()
         .mapToInt(n -> n)
         .average()
@@ -118,11 +120,7 @@ public class MapOracle {
     return myDropoffsMap.get(nearestHome).costCache.get(destination.x, destination.y) * 0.10;
   }
 
-  double influenceSumAtPoint(int x, int y) {
-    return myInfluenceMap.get(x, y) + enemyInfluenceMap.get(x, y);
-  }
-
-  double influenceDifferenceAtPoint(int x, int y) {
+  public double influenceDifferenceAtPoint(int x, int y) {
     return myInfluenceMap.get(x, y) - enemyInfluenceMap.get(x, y);
   }
 }

@@ -32,9 +32,9 @@ public class HungarianAlgorithm {
     this.assignedDestinations = HashMultimap.create();
   }
 
-  public Set<Position> getPositionsWithCapacity() {
+  public Set<Position> getTappedDestinations() {
     return graph.destNodes.stream()
-        .filter(dest -> assignedDestinations.get(dest).size() == 0)
+        .filter(dest -> assignedDestinations.get(dest).size() > 0)
         .map(v -> v.position)
         .collect(ImmutableSet.toImmutableSet());
   }

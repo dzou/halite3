@@ -4,8 +4,6 @@ import hlt.Constants;
 import hlt.Direction;
 import hlt.Position;
 import hlt.Ship;
-import map.DjikstraGrid;
-import map.Grid;
 import map.LocalCostGrid;
 import shipagent.MapOracle;
 
@@ -14,7 +12,7 @@ import java.util.Objects;
 
 public class TileScorer {
 
-  private static final double[] MINE_RATIOS = {0.44, 0.58, 0.68};
+  private static final double[] MINE_RATIOS = {0.44, 0.58, 0.68, 0.76};
 
   private final MapOracle mapOracle;
 
@@ -26,10 +24,6 @@ public class TileScorer {
   }
 
   public double localGoalScore(Ship ship, Direction dir, Position explorePosition) {
-    if (mapOracle.haliteGrid.distance(ship.position, explorePosition) > GoalFilter.LOCAL_DISTANCE) {
-      throw new RuntimeException("unexpected: shouldn't do local tile calc for far tile.");
-    }
-
     if (!shipMoveCostCache.containsKey(ship)) {
       shipMoveCostCache.put(ship, LocalCostGrid.create(
           mapOracle.haliteGrid, ship.position, GoalFilter.LOCAL_DISTANCE, mapOracle.myShipPositionsMap.keySet()));
@@ -38,7 +32,13 @@ public class TileScorer {
     Position shipMovedPosition = ship.position.directionalOffset(dir);
 
     LocalCostGrid localCostGrid = shipMoveCostCache.get(ship);
-    int haliteSumToDest = localCostGrid.getCostToDest(explorePosition, dir);
+
+    int haliteSumToDest;
+    if (mapOracle.distance(ship.position, explorePosition) <= GoalFilter.LOCAL_DISTANCE) {
+      haliteSumToDest = localCostGrid.getCostToDest(explorePosition, dir);
+    } else {
+      haliteSumToDest = localCostGrid.maxDistance() / 2;
+    }
 
     double best = 0;
     for (int i = 0; i < MINE_RATIOS.length; i++) {
@@ -57,12 +57,12 @@ public class TileScorer {
           shipMovedPosition.x, shipMovedPosition.y, explorePosition.x, explorePosition.y);
 
       double tollToTile = Math.max(0, (haliteSumToDest - haliteMined) * 0.1);
-      double tollHome = mapOracle.goHomeCost(explorePosition);
+      double tollHome = ((1.0 * ship.halite) / Constants.MAX_HALITE) * mapOracle.goHomeCost(explorePosition);
 
       best = Math.max(best, (haliteReward - tollToTile - tollHome) / (turnsFromDest + turnsSpentOnTile));
     }
 
-    return best;
+    return best - 0.05 * mapOracle.myInfluenceMap.get(shipMovedPosition.x, shipMovedPosition.y);
   }
 
   public double mineScore(Ship ship) {

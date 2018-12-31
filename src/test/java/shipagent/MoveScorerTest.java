@@ -111,7 +111,7 @@ public class MoveScorerTest {
 
     decisionSet = moveScorer.getDecisions(s2);
     decisionSet.stream().forEach(s -> System.out.println(s));
-    assertThat(getBest(decisionSet)).isEqualTo(EAST);
+    assertThat(getBest(decisionSet)).isEqualTo(NORTH);
   }
 
   @Test
@@ -167,13 +167,13 @@ public class MoveScorerTest {
   public void testExplorePotentialGreedyFirst() {
     Integer[][] rawHaliteGrid = {
         {0, 0, 0, 0, 0, 0, 0, 0, 0},
-        {0, 0, 0, 0, 800, 0, 0, 0, 0},
+        {0, 0, 0, 0, 8, 0, 0, 0, 0},
         {0, 0, 0, 0, 0, 0, 0, 0, 0},
         {0, 0, 0, 0, 0, 0, 0, 0, 0},
-        {0, 500, 0, 0, 0, 0, 0, 700, 0},
+        {0, 6, 0, 0, 0, 0, 0, 7, 0},
         {0, 0, 0, 0, 0, 0, 0, 0, 0},
         {0, 0, 0, 0, 0, 0, 0, 0, 0},
-        {0, 0, 0, 0, 100, 0, 0, 0, 0},
+        {0, 0, 0, 0, 1, 0, 0, 0, 0},
         {0, 0, 0, 0, 0, 0, 0, 0, 0},
     };
 
@@ -218,7 +218,7 @@ public class MoveScorerTest {
 
     Set<Decision> decisionSet = moveScorer.getDecisions(ship);
 
-    // decisionSet.stream().forEach(s -> System.out.println(s));
+    decisionSet.stream().forEach(s -> System.out.println(s));
     Direction bestDecision = decisionSet.stream().max(Comparator.comparingDouble(d -> d.scoreVector.score())).get().direction;
     assertThat(bestDecision).isEqualTo(STILL);
   }

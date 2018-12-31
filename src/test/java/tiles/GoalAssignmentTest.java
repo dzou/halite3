@@ -36,12 +36,12 @@ public class GoalAssignmentTest {
     GoalAssignment assignment = new GoalAssignment(mapOracle);
 
     System.out.println(assignment.shipAssignments);
-    System.out.println(assignment.freeGoals);
+    System.out.println(assignment.tappedPositions);
 
     assertThat(assignment.shipAssignments).isEqualTo(ImmutableMap.of(
         Position.at(10, 10), Position.at(20, 10),
         Position.at(10, 0), Position.at(10, 0),
-        Position.at(10, 1), Position.at(10, 0)));
+        Position.at(10, 1), Position.at(0, 10)));
   }
 
 

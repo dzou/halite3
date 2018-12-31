@@ -5,7 +5,6 @@ import hlt.Direction;
 import hlt.Position;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class LocalCostGrid {
 
@@ -24,6 +23,11 @@ public class LocalCostGrid {
     this.absoluteCenter = absoluteCenter;
     this.haliteGrid = haliteGrid;
     this.radius = radius;
+  }
+
+  public int maxDistance() {
+    int[][] costCache = costCacheMap.get(Direction.STILL);
+    return Arrays.stream(costCache).flatMapToInt(Arrays::stream).max().orElse(0);
   }
 
   public int getCostToDest(Position destination, Direction d) {

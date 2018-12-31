@@ -64,7 +64,7 @@ public class MoveScorer {
     } else {
       return new DecisionVector(
           homeScore,
-          new TileScoreEntry(Position.at(-1, -1), 0),
+          new TileScoreEntry(Position.at(-1, -1), 0, 0),
           new ZoneScoreEntry(Zone.EMPTY, 0),
           enemyInfluence,
           killScore);

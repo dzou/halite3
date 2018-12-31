@@ -60,7 +60,7 @@ public class HaliteSpender {
             .findAny()
             .isPresent();
 
-        if (tooCloseToOtherDropoff /* || oracle.influenceDifferenceAtPoint(x, y) < 0.1 */) {
+        if (tooCloseToOtherDropoff || oracle.influenceDifferenceAtPoint(x, y) < 0.5) {
           continue;
         }
 

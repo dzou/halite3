@@ -108,6 +108,6 @@ public class HungarianAlgorithmTest {
             Position.at(0, 1), Position.at(1, 0),
             Position.at(0, 2), Position.at(1, 1)));
 
-    assertThat(alg.getPositionsWithCapacity()).containsExactly(Position.at(1, 0), Position.at(1, 2));
+    assertThat(alg.getTappedDestinations()).containsExactly(Position.at(1, 0), Position.at(1, 2));
   }
 }

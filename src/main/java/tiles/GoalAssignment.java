@@ -9,8 +9,11 @@ import matching.BipartiteGraph;
 import matching.HungarianAlgorithm;
 import shipagent.MapOracle;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
 
 public class GoalAssignment {
 
@@ -21,7 +24,7 @@ public class GoalAssignment {
   final ZoneScorer zoneScorer;
 
   final Map<Position, Position> shipAssignments;
-  final Set<Position> freeGoals;
+  final Set<Position> tappedPositions;
 
   public GoalAssignment(MapOracle mapOracle) {
     this.mapOracle = mapOracle;
@@ -34,37 +37,30 @@ public class GoalAssignment {
     for (Ship ship : mapOracle.myShips) {
       HashMap<Position, Double> shipDestinations = new HashMap<>();
 
-      for (Zone zone : goalFilter.getZonesInDirection(ship.position, Direction.STILL)) {
-        Position zonePos = zone.bestTile().tilePosition;
-        shipDestinations.put(zonePos, zoneScorer.zoneScore(ship, Direction.STILL, zone));
+      for (TileScoreEntry tileScoreEntry : goalFilter.bestTiles) {
+        shipDestinations.put(tileScoreEntry.position, tileScorer.localGoalScore(ship, Direction.STILL, tileScoreEntry.position));
       }
-      // dummy assignment
-      shipDestinations.put(Zone.EMPTY_POSITION, 0.0);
 
-      graph.addSingleCapacityNode(ship.position, shipDestinations);
+      graph.addSingleCapacityNode(
+          ship.position,
+          shipDestinations,
+          1 + mapOracle.myShips.size() / goalFilter.bestTiles.size());
     }
 
-    List<Zone> topZones = goalFilter.bestZones.stream().limit(5).collect(Collectors.toList());
-    for (Zone bestZone : topZones) {
-      graph.setCapacity(bestZone.bestTile().tilePosition, mapOracle.myShips.size() / 5 + 1);
+    for (Position destination : graph.getDestinations()) {
+      if (mapOracle.enemyInfluenceMap.get(destination.x, destination.y) > 0.0) {
+        int prevCapacity = graph.getCapacity(destination);
+        graph.setCapacity(destination, prevCapacity * 3);
+      }
     }
-
-//    for (Position dest : graph.getDestinations()) {
-//      if (mapOracle.haliteGrid.get(dest.x, dest.y) > 500 && mapOracle.enemyInfluenceMap.get(dest.x, dest.y) > 0.25) {
-//        graph.setCapacity(dest, 10);
-//      }
-//    }
-
-    // dummy assignment
-    graph.setCapacity(Zone.EMPTY_POSITION, 999);
 
     HungarianAlgorithm alg = new HungarianAlgorithm(graph);
 
     this.shipAssignments = alg.processMatches();
-    this.freeGoals = alg.getPositionsWithCapacity();
+    this.tappedPositions = alg.getTappedDestinations();
 
     this.shipAssignments.entrySet().forEach(e -> Log.log("ship: " + e.getKey() + " -> " + e.getValue()));
-    Log.log(this.freeGoals.toString());
+    Log.log(this.tappedPositions.toString());
   }
 
   public double mineScore(Ship ship) {
@@ -72,44 +68,54 @@ public class GoalAssignment {
   }
 
   public TileScoreEntry scoreLocalTile(Ship ship, Direction dir) {
-    TileScoreEntry bestEntry =
-        goalFilter.getLocalMoves(ship, dir).stream()
-            .map(pos -> new TileScoreEntry(pos, tileScorer.localGoalScore(ship, dir, pos)))
-            .max(Comparator.comparingDouble(entry -> entry.score))
-            .orElse(new TileScoreEntry(ship.position, -999));
-
-    if (bestEntry.score <= -999) {
-      Log.log("Goal filter returned no tiles for " + ship.position + " going " + dir);
-    }
+    TileScoreEntry mineScoreEntry = new TileScoreEntry(
+        ship.position, mapOracle.haliteGrid.get(ship.position.x, ship.position.y), 0.0);
 
     if (dir == Direction.STILL) {
-      TileScoreEntry mineScoreEntry = new TileScoreEntry(ship.position, tileScorer.mineScore(ship));
-      // 2nd cond = if ship is on a dropoff just move it
-      if (mineScoreEntry.score > bestEntry.score || mapOracle.myDropoffsMap.keySet().contains(ship.position)) {
+      mineScoreEntry = new TileScoreEntry(
+          ship.position, mapOracle.haliteGrid.get(ship.position.x, ship.position.y), tileScorer.mineScore(ship));
+      if (mapOracle.myDropoffsMap.containsKey(ship.position)) {
         return mineScoreEntry;
       }
     }
 
-    return bestEntry;
+    Position assignedJob = shipAssignments.get(ship.position);
+    TileScoreEntry assignedTileEntry = new TileScoreEntry(
+        assignedJob,
+        mapOracle.haliteGrid.get(assignedJob.x, assignedJob.y),
+        tileScorer.localGoalScore(ship, dir, assignedJob));
+
+    TileScoreEntry localTileEntry =
+        goalFilter.getLocalMoves(ship, dir).stream()
+            .filter(pos -> !tappedPositions.contains(pos))
+            .map(pos -> new TileScoreEntry(pos, mapOracle.haliteGrid.get(pos.x, pos.y), tileScorer.localGoalScore(ship, dir, pos)))
+            .max(Comparator.comparingDouble(entry -> entry.score))
+            .orElse(new TileScoreEntry(ship.position, mapOracle.haliteGrid.get(ship.position.x, ship.position.y), 0.0));
+
+    return Stream.of(mineScoreEntry, assignedTileEntry, localTileEntry)
+        .max(Comparator.comparingDouble(entry -> entry.score))
+        .get();
   }
 
+
   public ZoneScoreEntry scoreZone(Ship ship, Direction dir) {
-    if (dir == Direction.STILL /* && mapOracle.myDropoffsMap.keySet().contains(ship.position) */) {
-      return new ZoneScoreEntry(Zone.EMPTY, 0.0);
-    }
-
-    ZoneScoreEntry bestEntry =
-        goalFilter.getZonesInDirection(ship.position, dir).stream()
-            .filter(zone -> isViableAssignment(ship, zone.bestTile().tilePosition))
-            .map(zone -> new ZoneScoreEntry(zone, zoneScorer.zoneScore(ship, dir, zone)))
-            .max(Comparator.comparingDouble(entry -> entry.score))
-            .orElse(new ZoneScoreEntry(Zone.EMPTY, 0.0));
-
-    if (bestEntry.zone == Zone.EMPTY) {
-      Log.log("Goal filter returned no zones for " + ship.position + " going " + dir);
-    }
-
-    return bestEntry;
+    return new ZoneScoreEntry(Zone.EMPTY, 0.0);
+//    if (dir == Direction.STILL /* && mapOracle.myDropoffsMap.keySet().contains(ship.position) */) {
+//      return new ZoneScoreEntry(Zone.EMPTY, 0.0);
+//    }
+//
+//    ZoneScoreEntry bestEntry =
+//        goalFilter.getZonesInDirection(ship.position, dir).stream()
+//            .filter(zone -> isViableAssignment(ship, zone.bestTile().tilePosition))
+//            .map(zone -> new ZoneScoreEntry(zone, zoneScorer.zoneScore(ship, dir, zone)))
+//            .max(Comparator.comparingDouble(entry -> entry.score))
+//            .orElse(new ZoneScoreEntry(Zone.EMPTY, 0.0));
+//
+//    if (bestEntry.zone == Zone.EMPTY) {
+//      Log.log("Goal filter returned no zones for " + ship.position + " going " + dir);
+//    }
+//
+//    return bestEntry;
   }
 
   private boolean isViableAssignment(Ship ship, Position goal) {

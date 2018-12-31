@@ -31,18 +31,27 @@ public class BipartiteGraph {
     return destPositions.keySet();
   }
 
+  public int getCapacity(Position destPos) {
+    Vertex destVertex = destPositions.get(destPos);
+    return destinationCapacityMap.get(destVertex);
+  }
+
   public void setCapacity(Position destPos, int capacity) {
     Vertex destVertex = destPositions.get(destPos);
     destinationCapacityMap.put(destVertex, capacity);
   }
 
   public void addSingleCapacityNode(Position pos, Map<Position, Double> neighbors) {
+    this.addSingleCapacityNode(pos, neighbors, 1);
+  }
+
+  public void addSingleCapacityNode(Position pos, Map<Position, Double> neighbors, int capacity) {
     addSource(pos);
 
     for (Map.Entry<Position, Double> entry : neighbors.entrySet()) {
       Position neighborPosition = entry.getKey();
       if (!destPositions.containsKey(neighborPosition)) {
-        addDestination(neighborPosition, 1);
+        addDestination(neighborPosition, capacity);
       }
       addEdge(pos, neighborPosition, entry.getValue());
     }

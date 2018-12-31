@@ -5,31 +5,23 @@ import hlt.Direction;
 import hlt.Log;
 import hlt.Position;
 import hlt.Ship;
-import map.DjikstraGrid;
 import map.Grid;
-import map.Zone;
 import shipagent.MapOracle;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class GoalFilter {
 
   static final int LOCAL_DISTANCE = 4;
 
-  static final int ZONE_LIMIT = 20;
-
   static final int TILE_LIMIT = 200;
 
   private final MapOracle mapOracle;
-
-  final List<Zone> bestZones;
 
   final List<TileScoreEntry> bestTiles;
 
   public GoalFilter(MapOracle mapOracle) {
     this.mapOracle = mapOracle;
-    this.bestZones = getBestZones(mapOracle, ZONE_LIMIT);
     this.bestTiles = getBestPositions(mapOracle, TILE_LIMIT);
 
     debugPrint();
@@ -66,30 +58,6 @@ public class GoalFilter {
     }
 
     return localPositions.build();
-  }
-
-  Set<Zone> getZonesInDirection(Position origin, Direction d) {
-    ImmutableSet.Builder<Zone> filteredPositions = ImmutableSet.builder();
-
-    for (Zone zone : bestZones) {
-
-      if (mapOracle.haliteGrid.distance(origin, zone.bestTile().tilePosition) <= LOCAL_DISTANCE) {
-        continue;
-      }
-
-      int deltaX = DjikstraGrid.getAxisDirection(origin.x, zone.bestTile().tilePosition.x, this.mapOracle.haliteGrid.width);
-      int deltaY = DjikstraGrid.getAxisDirection(origin.y, zone.bestTile().tilePosition.y, this.mapOracle.haliteGrid.height);
-
-      if (d == Direction.EAST && deltaX >= 0
-          || d == Direction.WEST && deltaX <= 0
-          || d == Direction.NORTH && deltaY <= 0
-          || d == Direction.SOUTH && deltaY >= 0
-          || d == Direction.STILL) {
-        filteredPositions.add(zone);
-      }
-    }
-
-    return filteredPositions.build();
   }
 
   private static List<TileScoreEntry> getBestPositions(MapOracle mapOracle, int count) {
@@ -136,19 +104,6 @@ public class GoalFilter {
       return false;
     }
 
-    return 1.0 * currSum / mapOracle.haliteSum < 0.10;
-  }
-
-  private static List<Zone> getBestZones(MapOracle mapOracle, int count) {
-    return mapOracle.zoneGrid.zones.stream()
-        .sorted(Comparator.<Zone>comparingDouble(z -> scoreZone(mapOracle, z)).reversed())
-        .limit(count)
-        .collect(Collectors.toList());
-  }
-
-  private static double scoreZone(MapOracle mapOracle, Zone zone) {
-    Position zonePos = zone.bestTile().tilePosition;
-    Position nearestHome = mapOracle.getNearestHome(zonePos);
-    return (zone.topThreeSum() - mapOracle.goHomeCost(zonePos)) / mapOracle.haliteGrid.distance(zonePos, nearestHome);
+    return 1.0 * currSum / mapOracle.haliteSum < 0.08;
   }
 }

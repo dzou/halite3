@@ -4,7 +4,6 @@ import hlt.Direction;
 import hlt.Log;
 import hlt.Position;
 import hlt.Ship;
-import map.Zone;
 import matching.BipartiteGraph;
 import matching.HungarianAlgorithm;
 import shipagent.MapOracle;
@@ -21,7 +20,6 @@ public class GoalAssignment {
 
   final GoalFilter goalFilter;
   final TileScorer tileScorer;
-  final ZoneScorer zoneScorer;
 
   final Map<Position, Position> shipAssignments;
   final Set<Position> tappedPositions;
@@ -30,7 +28,6 @@ public class GoalAssignment {
     this.mapOracle = mapOracle;
     this.goalFilter = new GoalFilter(mapOracle);
     this.tileScorer = new TileScorer(mapOracle);
-    this.zoneScorer = new ZoneScorer(mapOracle);
 
     BipartiteGraph graph = new BipartiteGraph();
 
@@ -95,30 +92,5 @@ public class GoalAssignment {
     return Stream.of(mineScoreEntry, assignedTileEntry, localTileEntry)
         .max(Comparator.comparingDouble(entry -> entry.score))
         .get();
-  }
-
-
-  public ZoneScoreEntry scoreZone(Ship ship, Direction dir) {
-    return new ZoneScoreEntry(Zone.EMPTY, 0.0);
-//    if (dir == Direction.STILL /* && mapOracle.myDropoffsMap.keySet().contains(ship.position) */) {
-//      return new ZoneScoreEntry(Zone.EMPTY, 0.0);
-//    }
-//
-//    ZoneScoreEntry bestEntry =
-//        goalFilter.getZonesInDirection(ship.position, dir).stream()
-//            .filter(zone -> isViableAssignment(ship, zone.bestTile().tilePosition))
-//            .map(zone -> new ZoneScoreEntry(zone, zoneScorer.zoneScore(ship, dir, zone)))
-//            .max(Comparator.comparingDouble(entry -> entry.score))
-//            .orElse(new ZoneScoreEntry(Zone.EMPTY, 0.0));
-//
-//    if (bestEntry.zone == Zone.EMPTY) {
-//      Log.log("Goal filter returned no zones for " + ship.position + " going " + dir);
-//    }
-//
-//    return bestEntry;
-  }
-
-  private boolean isViableAssignment(Ship ship, Position goal) {
-    return shipAssignments.get(ship.position).equals(goal) /* || freeGoals.contains(goal) */;
   }
 }

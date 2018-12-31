@@ -121,27 +121,4 @@ public class GoalAssignmentTest {
     assertThat(moveScoreMap.get(EAST)).isGreaterThan(moveScoreMap.get(SOUTH));
     assertThat(moveScoreMap.get(SOUTH)).isGreaterThan(moveScoreMap.get(WEST));
   }
-
-  @Test
-  public void testZoneScoring() {
-    Grid<Integer> haliteGrid = new Grid<>(32, 32, 0);
-    haliteGrid.set(15, 0, 1000);
-    haliteGrid.set(30, 15, 700);
-    haliteGrid.set(15, 18, 1000); // ignored cuz too close
-
-    Ship me = ship(15, 15);
-    ImmutableList<Ship> myShips = ImmutableList.of(me);
-
-    MapOracle mapOracle = new MapOracle(
-        new PlayerId(0), haliteGrid, 9999, myShips, ImmutableList.of(), ImmutableMap.of(new PlayerId(0), ImmutableSet.of(Position.at(10, 10))));
-
-    GoalAssignment assignment = new GoalAssignment(mapOracle);
-
-    System.out.println(assignment.goalFilter.getZonesInDirection(me.position, WEST));
-
-    for (Direction d : Direction.values()) {
-      ZoneScoreEntry scoreEntry = assignment.scoreZone(me, d);
-      System.out.println(d + ": " + scoreEntry);
-    }
-  }
 }

@@ -4,10 +4,8 @@ import hlt.Constants;
 import hlt.Direction;
 import hlt.Position;
 import hlt.Ship;
-import map.Zone;
 import tiles.GoalAssignment;
 import tiles.TileScoreEntry;
-import tiles.ZoneScoreEntry;
 
 import java.util.HashSet;
 
@@ -50,7 +48,6 @@ public class MoveScorer {
 
     double homeScore = goHomeScore(ship, destination, endTheGame);
     TileScoreEntry tileScoreEntry = goalAssignment.scoreLocalTile(ship, moveDir);
-    ZoneScoreEntry zoneScoreEntry = goalAssignment.scoreZone(ship, moveDir);
     double enemyInfluence = getEnemyInfluence(ship, destination);
     double killScore = killScore(ship, destination);
 
@@ -58,14 +55,12 @@ public class MoveScorer {
       return new DecisionVector(
           homeScore,
           tileScoreEntry,
-          zoneScoreEntry,
           enemyInfluence,
           killScore);
     } else {
       return new DecisionVector(
           homeScore,
           new TileScoreEntry(Position.at(-1, -1), 0, 0),
-          new ZoneScoreEntry(Zone.EMPTY, 0),
           enemyInfluence,
           killScore);
     }

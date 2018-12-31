@@ -7,7 +7,6 @@ import hlt.Ship;
 import map.DjikstraGrid;
 import map.Grid;
 import map.TriangulationGrid;
-import map.ZoneGrid;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -41,8 +40,6 @@ public class MapOracle {
   public final Grid<Double> haliteDensityMap;
 
   public final TriangulationGrid enemyShipCovers;
-
-  public final ZoneGrid zoneGrid;
 
   public final int haliteSum;
   public final double averageHaliteOnMap;
@@ -80,7 +77,6 @@ public class MapOracle {
     this.haliteDensityMap = InfluenceMaps.haliteDensityMap(haliteGrid);
 
     this.enemyShipCovers = new TriangulationGrid(enemyShips, ENEMY_COVER_RANGE);
-    this.zoneGrid = new ZoneGrid(haliteGrid);
 
     this.haliteSum = haliteGrid.stream().mapToInt(n -> n).sum();
     this.averageHaliteOnMap = haliteGrid.stream()

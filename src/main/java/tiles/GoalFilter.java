@@ -33,11 +33,11 @@ public class GoalFilter {
   Set<Position> getLocalMoves(Ship ship, Direction d) {
     ImmutableSet.Builder<Position> localPositions = ImmutableSet.builder();
 
-    int xStart = (d == Direction.EAST) ? 1 : -LOCAL_DISTANCE;
-    int xEnd = (d == Direction.WEST) ? -1 : LOCAL_DISTANCE;
+    int xStart = (d == Direction.EAST) ? 0 : -LOCAL_DISTANCE;
+    int xEnd = (d == Direction.WEST) ? 0 : LOCAL_DISTANCE;
 
-    int yStart = (d == Direction.SOUTH) ? 1 : -LOCAL_DISTANCE;
-    int yEnd = (d == Direction.NORTH) ? -1 : LOCAL_DISTANCE;
+    int yStart = (d == Direction.SOUTH) ? 0 : -LOCAL_DISTANCE;
+    int yEnd = (d == Direction.NORTH) ? 0 : LOCAL_DISTANCE;
 
     for (int y = yStart; y <= yEnd; y++) {
       for (int x = Math.max(xStart, -LOCAL_DISTANCE + Math.abs(y));
@@ -56,6 +56,7 @@ public class GoalFilter {
     ImmutableSet.Builder<Zone> filteredPositions = ImmutableSet.builder();
 
     for (Zone zone : bestZones) {
+
       if (mapOracle.haliteGrid.distance(origin, zone.bestTile().tilePosition) <= LOCAL_DISTANCE) {
         continue;
       }
@@ -63,10 +64,10 @@ public class GoalFilter {
       int deltaX = DjikstraGrid.getAxisDirection(origin.x, zone.bestTile().tilePosition.x, this.mapOracle.haliteGrid.width);
       int deltaY = DjikstraGrid.getAxisDirection(origin.y, zone.bestTile().tilePosition.y, this.mapOracle.haliteGrid.height);
 
-      if (d == Direction.EAST && deltaX > 0
-          || d == Direction.WEST && deltaX < 0
-          || d == Direction.NORTH && deltaY < 0
-          || d == Direction.SOUTH && deltaY > 0
+      if (d == Direction.EAST && deltaX >= 0
+          || d == Direction.WEST && deltaX <= 0
+          || d == Direction.NORTH && deltaY <= 0
+          || d == Direction.SOUTH && deltaY >= 0
           || d == Direction.STILL) {
         filteredPositions.add(zone);
       }

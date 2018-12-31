@@ -9,10 +9,8 @@ import matching.BipartiteGraph;
 import matching.HungarianAlgorithm;
 import shipagent.MapOracle;
 
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class GoalAssignment {
 
@@ -32,35 +30,30 @@ public class GoalAssignment {
     this.zoneScorer = new ZoneScorer(mapOracle);
 
     BipartiteGraph graph = new BipartiteGraph();
+
     for (Ship ship : mapOracle.myShips) {
       HashMap<Position, Double> shipDestinations = new HashMap<>();
-      for (Position localMove : goalFilter.getLocalMoves(ship, Direction.STILL)) {
-        shipDestinations.put(localMove, tileScorer.localGoalScore(ship, Direction.STILL, localMove));
-      }
 
       for (Zone zone : goalFilter.getZonesInDirection(ship.position, Direction.STILL)) {
         Position zonePos = zone.bestTile().tilePosition;
-        if (shipDestinations.containsKey(zonePos)) {
-          throw new RuntimeException("bug in your code - there is overlapping zone-local position: " + zonePos);
-        }
-
         shipDestinations.put(zonePos, zoneScorer.zoneScore(ship, Direction.STILL, zone));
-
-        // dummy assignment
-        shipDestinations.put(Zone.EMPTY_POSITION, 0.0);
       }
+      // dummy assignment
+      shipDestinations.put(Zone.EMPTY_POSITION, 0.0);
+
       graph.addSingleCapacityNode(ship.position, shipDestinations);
     }
 
-    for (Position dest : graph.getDestinations()) {
-      if (mapOracle.haliteGrid.get(dest.x, dest.y) > 500 && mapOracle.enemyInfluenceMap.get(dest.x, dest.y) > 0.25) {
-        graph.setCapacity(dest, 10);
-      }
+    List<Zone> topZones = goalFilter.bestZones.stream().limit(5).collect(Collectors.toList());
+    for (Zone bestZone : topZones) {
+      graph.setCapacity(bestZone.bestTile().tilePosition, mapOracle.myShips.size() / 5 + 1);
     }
 
-    for (Zone bestZone : goalFilter.bestZones) {
-      graph.setCapacity(bestZone.bestTile().tilePosition, (bestZone.haliteSum / 1000) + 1);
-    }
+//    for (Position dest : graph.getDestinations()) {
+//      if (mapOracle.haliteGrid.get(dest.x, dest.y) > 500 && mapOracle.enemyInfluenceMap.get(dest.x, dest.y) > 0.25) {
+//        graph.setCapacity(dest, 10);
+//      }
+//    }
 
     // dummy assignment
     graph.setCapacity(Zone.EMPTY_POSITION, 999);
@@ -81,7 +74,6 @@ public class GoalAssignment {
   public TileScoreEntry scoreLocalTile(Ship ship, Direction dir) {
     TileScoreEntry bestEntry =
         goalFilter.getLocalMoves(ship, dir).stream()
-            .filter(pos -> isViableAssignment(ship, pos))
             .map(pos -> new TileScoreEntry(pos, tileScorer.localGoalScore(ship, dir, pos)))
             .max(Comparator.comparingDouble(entry -> entry.score))
             .orElse(new TileScoreEntry(ship.position, -999));
@@ -102,7 +94,7 @@ public class GoalAssignment {
   }
 
   public ZoneScoreEntry scoreZone(Ship ship, Direction dir) {
-    if (dir == Direction.STILL && mapOracle.myDropoffsMap.keySet().contains(ship.position)) {
+    if (dir == Direction.STILL /* && mapOracle.myDropoffsMap.keySet().contains(ship.position) */) {
       return new ZoneScoreEntry(Zone.EMPTY, 0.0);
     }
 
@@ -121,6 +113,6 @@ public class GoalAssignment {
   }
 
   private boolean isViableAssignment(Ship ship, Position goal) {
-    return shipAssignments.get(ship.position).equals(goal) || freeGoals.contains(goal);
+    return shipAssignments.get(ship.position).equals(goal) /* || freeGoals.contains(goal) */;
   }
 }

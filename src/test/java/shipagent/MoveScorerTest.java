@@ -167,7 +167,7 @@ public class MoveScorerTest {
   public void testExplorePotentialGreedyFirst() {
     Integer[][] rawHaliteGrid = {
         {0, 0, 0, 0, 0, 0, 0, 0, 0},
-        {0, 0, 0, 0, 1000, 0, 0, 0, 0},
+        {0, 0, 0, 0, 800, 0, 0, 0, 0},
         {0, 0, 0, 0, 0, 0, 0, 0, 0},
         {0, 0, 0, 0, 0, 0, 0, 0, 0},
         {0, 500, 0, 0, 0, 0, 0, 700, 0},
@@ -193,7 +193,7 @@ public class MoveScorerTest {
         .map(d -> d.direction)
         .collect(ImmutableList.toImmutableList());
     assertThat(dirList)
-        .containsExactly(STILL, SOUTH, WEST, EAST, NORTH)
+        .containsExactly(SOUTH, WEST, STILL, EAST, NORTH)
         .inOrder();
 
   }

@@ -28,7 +28,6 @@ public class MyBot {
 
     Log.log("Successfully created bot! My Player ID is " + game.myId + ". Bot rng seed is " + rngSeed + ".");
 
-
     for (; ; ) {
       long startTime = System.currentTimeMillis();
 

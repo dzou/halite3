@@ -12,7 +12,7 @@ import java.util.Objects;
 
 public class TileScorer {
 
-  private static final double[] MINE_RATIOS = {0.44, 0.58, 0.68, 0.76};
+  private static final double[] MINE_RATIOS = {0.44, 0.58 /*, 0.68, 0.76 */};
 
   private final MapOracle mapOracle;
 
@@ -37,7 +37,7 @@ public class TileScorer {
     if (mapOracle.distance(ship.position, explorePosition) <= GoalFilter.LOCAL_DISTANCE) {
       haliteSumToDest = localCostGrid.getCostToDest(explorePosition, dir);
     } else {
-      haliteSumToDest = localCostGrid.maxDistance() / 2;
+      haliteSumToDest = localCostGrid.maxDistance();
     }
 
     double best = 0;
@@ -50,15 +50,14 @@ public class TileScorer {
           Constants.MAX_HALITE - ship.halite,
           mapOracle.inspireMap.get(explorePosition.x, explorePosition.y) > 1 ? haliteMined * 2.0 : haliteMined);
 
-      Position nearestHome = mapOracle.getNearestHome(explorePosition);
-      int turnsInTransit = mapOracle.haliteGrid.distance(shipMovedPosition, explorePosition)
-          + mapOracle.haliteGrid.distance(explorePosition, nearestHome);
+      int turnsInTransit = mapOracle.haliteGrid.distance(shipMovedPosition, explorePosition) + 1;
       if (dir == Direction.STILL) {
         turnsInTransit += 1;
       }
 
       double tollToTile = Math.max(0, (haliteSumToDest - haliteMined) * 0.1);
-      double tollHome = ((1.0 * ship.halite) / Constants.MAX_HALITE) * mapOracle.goHomeCost(explorePosition);
+      double tollHome = (1.0 * (ship.halite + haliteReward) / Constants.MAX_HALITE)
+          * (mapOracle.goHomeCost(explorePosition) - haliteMined * 0.10);
 
       best = Math.max(best, (haliteReward - tollToTile - tollHome) / (turnsInTransit + turnsSpentOnTile));
     }

@@ -12,7 +12,7 @@ public class InfluenceMaps {
 
   public static final int HALITE_DENSITY_RANGE = 4;
 
-  public static final int SHIP_INFLUENCE_RANGE = 6;
+  public static final int SHIP_INFLUENCE_RANGE = 4;
 
 //  public static double getExploreFactor(Ship ship, int dx, int dy, Grid<Integer> haliteGrid) {
 //    double distance = 3 * haliteGrid.distance(dx, dy, ship.position.x, ship.position.y) + 1;
@@ -46,7 +46,7 @@ public class InfluenceMaps {
     if (distance > SHIP_INFLUENCE_RANGE) {
       return 0;
     } else {
-      double decayFactor = Math.max(1, distance);
+      double decayFactor = 1; // Math.max(1, distance);
       double miningPotential = (1.0 * Constants.MAX_HALITE - ship.halite) / (decayFactor * Constants.MAX_HALITE);
       return miningPotential;
     }

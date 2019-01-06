@@ -48,7 +48,7 @@ public class GoalAssignment {
 
     for (Position destination : graph.getDestinations()) {
       int prevCapacity = graph.getCapacity(destination);
-      if (mapOracle.enemyInfluenceMap.get(destination.x, destination.y) > 0.0) {
+      if (mapOracle.influenceDifferenceAtPoint(destination.x, destination.y) < 0) {
         graph.setCapacity(destination, prevCapacity * 3);
       } else if (mapOracle.isNearFakeDropoff(destination, 5)) {
         graph.setCapacity(destination, prevCapacity * 3);
@@ -120,10 +120,10 @@ public class GoalAssignment {
     int dx = DjikstraGrid.getAxisDirection(origin.x, destination.x, haliteGrid.width);
     int dy = DjikstraGrid.getAxisDirection(origin.y, destination.y, haliteGrid.height);
 
-    if (dir == Direction.NORTH && dy < 0
-        || dir == Direction.SOUTH && dy > 0
-        || dir == Direction.WEST && dx < 0
-        || dir == Direction.EAST && dx > 0
+    if (dir == Direction.NORTH && dy <= 0
+        || dir == Direction.SOUTH && dy >= 0
+        || dir == Direction.WEST && dx <= 0
+        || dir == Direction.EAST && dx >= 0
         || dir == Direction.STILL) {
       return true;
     } else {

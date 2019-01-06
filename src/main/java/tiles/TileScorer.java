@@ -12,7 +12,7 @@ import java.util.Objects;
 
 public class TileScorer {
 
-  private static final double[] MINE_RATIOS = {0.44, 0.58 /* , 0.68, 0.76 */};
+  private static final double[] MINE_RATIOS = {0.44, 0.58, 0.68, 0.76};
 
   private final MapOracle mapOracle;
 
@@ -46,9 +46,13 @@ public class TileScorer {
 
       int haliteOnTile = mapOracle.haliteGrid.get(explorePosition.x, explorePosition.y);
       double haliteMined = Math.min(Constants.MAX_HALITE - ship.halite, haliteOnTile * MINE_RATIOS[i]);
-      double haliteReward = Math.min(
-          Constants.MAX_HALITE - ship.halite,
-          mapOracle.inspireMap.get(explorePosition.x, explorePosition.y) > 1 ? haliteMined * 2.0 : haliteMined);
+
+      double haliteReward = haliteMined;
+      if (mapOracle.inspireMap.get(explorePosition.x, explorePosition.y) > 1
+          && mapOracle.distance(ship.position, explorePosition) <= 4) {
+        haliteReward *= 2.5;
+      }
+      haliteReward = Math.min(Constants.MAX_HALITE - ship.halite, haliteReward);
 
       int turnsInTransit = mapOracle.haliteGrid.distance(shipMovedPosition, explorePosition) + 1;
       if (dir == Direction.STILL) {
@@ -62,7 +66,7 @@ public class TileScorer {
       best = Math.max(best, (haliteReward - tollToTile - tollHome) / (turnsInTransit + turnsSpentOnTile));
     }
 
-    return best - 0.05 * mapOracle.myInfluenceMap.get(shipMovedPosition.x, shipMovedPosition.y);
+    return best - 0.03 * mapOracle.myInfluenceMap.get(shipMovedPosition.x, shipMovedPosition.y);
   }
 
   public double mineScore(Ship ship) {

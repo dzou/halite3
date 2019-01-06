@@ -66,13 +66,13 @@ public class HaliteSpender {
   }
 
   private boolean shouldOrderDropoff() {
-    if (oracle.myShips.size() < 10
+    if (oracle.myShips.size() < 12
         || oracle.myDropoffsMap.size() >= MAX_DROPOFFS
         || oracle.turnsRemaining < DROPOFF_TURNS_REMAINING_CUTOFF) {
       return false;
     }
 
-    return (oracle.myShips.size() / 10 + 1) > oracle.myDropoffsMap.size();
+    return (oracle.myShips.size() / 12 + 1) > oracle.myDropoffsMap.size();
   }
 
 }

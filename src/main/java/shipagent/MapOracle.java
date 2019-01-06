@@ -115,11 +115,12 @@ public class MapOracle {
         .min(dropOffComparator)
         .get();
 
-    return myDropoffsMap.keySet()
-        .stream()
-        .filter(pos -> influenceDifferenceAtPoint(pos.x, pos.y) >= 0.0)
-        .min(dropOffComparator)
-        .orElse(closestDropoff);
+    return closestDropoff;
+//    return myDropoffsMap.keySet()
+//        .stream()
+//        .filter(pos -> influenceDifferenceAtPoint(pos.x, pos.y) >= 0.0)
+//        .min(dropOffComparator)
+//        .orElse(closestDropoff);
   }
 
   public double goHomeCost(Position destination) {

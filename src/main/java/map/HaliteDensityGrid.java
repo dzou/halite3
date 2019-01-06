@@ -13,13 +13,13 @@ import java.util.Set;
 
 public class HaliteDensityGrid {
 
-  private static final int MIN_HALITE_SUMS = 2000;
+  private static final int MIN_HALITE_SUMS = 2400;
 
-  private static final int MIN_HALITE_VELOCITY = 400;
+  private static final int MIN_HALITE_VELOCITY = 500;
 
   private static final int MIN_SPACE_BTWN_DROPOFFS = 16;
 
-  private static final int HALITE_DENSITY_RANGE = 5;
+  private static final int HALITE_DENSITY_RANGE = 6;
 
   private final MapOracle mapOracle;
 
@@ -51,7 +51,7 @@ public class HaliteDensityGrid {
 
         if (tooCloseToOtherDropoff
             || mapOracle.allExistingDropoffs.contains(curr)
-            || mapOracle.influenceDifferenceAtPoint(x, y) < 0.1) {
+            || mapOracle.influenceDifferenceAtPoint(x, y) < -0.1) {
           continue;
         }
 
@@ -60,9 +60,9 @@ public class HaliteDensityGrid {
 
         if (haliteVelocity > MIN_HALITE_VELOCITY
             && haliteSums > MIN_HALITE_SUMS
-            && haliteVelocity * haliteSums > bestHaliteVelocity) {
+            && haliteVelocity > bestHaliteVelocity) {
           bestPos = curr;
-          bestHaliteVelocity = haliteVelocity * haliteSums;
+          bestHaliteVelocity = haliteVelocity;
         }
       }
     }
@@ -99,6 +99,10 @@ public class HaliteDensityGrid {
           int x = tileScoreEntry.position.x + dx;
           int y = tileScoreEntry.position.y + dy;
 
+          if (mapOracle.influenceDifferenceAtPoint(x, y) < 0) {
+            continue;
+          }
+
           double curr = mapOracle.haliteGrid.get(tileScoreEntry.position.x, tileScoreEntry.position.y)
               / (haliteVelocitySums.distance(tileScoreEntry.position.x, tileScoreEntry.position.y, x, y) + 1);
           double prev = haliteVelocitySums.get(x, y);
@@ -117,7 +121,7 @@ public class HaliteDensityGrid {
           int x = ship.position.x + dx;
           int y = ship.position.y + dy;
 
-          double curr = 1.0 * ship.halite / (haliteVelocitySums.distance(ship.position.x, ship.position.y, x, y) + 1);
+          double curr = 1.5 * ship.halite / (haliteVelocitySums.distance(ship.position.x, ship.position.y, x, y) + 1);
           double prev = haliteVelocitySums.get(x, y);
           haliteVelocitySums.set(x, y, prev + curr);
         }

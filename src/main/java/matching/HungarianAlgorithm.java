@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  */
 public class HungarianAlgorithm {
 
-  private static final double EPSILON = 0.01;
+  private static final double EPSILON = 0.1;
 
   BipartiteGraph graph;
   HashSet<Vertex> assignedSources;

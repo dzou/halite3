@@ -2,11 +2,13 @@
 
 set -e
 
-./halite --replay-directory replays/ -vvv --width 48 --height 48 \
+./halite --replay-directory replays/ -vvv --width 40 --height 40 \
 "java -jar ../target/MyBot.jar" \
 "java -jar bot_versions/beta2.jar"
 # "java -jar bot_versions/beta1.jar" \
 # "java -jar bot_versions/alpha2.jar"
+
+# TEST seed: 40x40 1546402846 
 
 # good seed 1544406607
 # dense halite map 1545883640

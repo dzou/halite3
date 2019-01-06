@@ -46,14 +46,13 @@ public class MyBot {
           game.getPlayerBases());
 
       HaliteSpender spender = new HaliteSpender(mapOracle, game.me.halite);
-      ShipRouter shipRouter = new ShipRouter(mapOracle);
 
       HashSet<Ship> shipsToTransform = new HashSet<>();
-
       // Dropoffs logic
       Optional<Position> dropOffProposal = spender.orderDropoff();
       if (dropOffProposal.isPresent()) {
         Log.log("Dropoff proposal: " + dropOffProposal.get());
+
         Optional<Ship> shipAtDropoff = mapOracle.orderDropOff(dropOffProposal.get());
 
         if (shipAtDropoff.isPresent()) {
@@ -65,6 +64,8 @@ public class MyBot {
         Log.log("No dropoff suggested.");
       }
 
+      // Has to be created after projected dropoff is placed.
+      ShipRouter shipRouter = new ShipRouter(mapOracle);
       Map<Ship, Position> mappings = shipRouter.routeShips(shipsToTransform);
 
       boolean movedOnBase = false;

@@ -22,7 +22,15 @@ public class GoalFilter {
 
   public GoalFilter(MapOracle mapOracle) {
     this.mapOracle = mapOracle;
-    this.bestTiles = getBestPositions(mapOracle, TILE_LIMIT);
+
+    List<TileScoreEntry> bestTilesAll = getBestPositions(mapOracle, TILE_LIMIT);
+    int currSum = 0;
+
+    int idx = 0;
+    for (idx = 0; idx < bestTilesAll.size() && shouldKeepGoing(mapOracle, currSum, idx); idx++) {
+      currSum += bestTilesAll.get(idx).haliteOnTile;
+    }
+    this.bestTiles = bestTilesAll.subList(0, idx);
 
     debugPrint();
   }
@@ -51,16 +59,16 @@ public class GoalFilter {
       for (int x = Math.max(xStart, -LOCAL_DISTANCE + Math.abs(y));
            x <= Math.min(xEnd, LOCAL_DISTANCE - Math.abs(y));
            x++) {
-        int dx = ship.position.x + x;
-        int dy = ship.position.y + y;
-        localPositions.add(mapOracle.haliteGrid.normalize(Position.at(dx, dy)));
+        Position curr = Position.at(ship.position.x + x, ship.position.y + y);
+
+        localPositions.add(mapOracle.haliteGrid.normalize(curr));
       }
     }
 
     return localPositions.build();
   }
 
-  private static List<TileScoreEntry> getBestPositions(MapOracle mapOracle, int count) {
+  public static List<TileScoreEntry> getBestPositions(MapOracle mapOracle, int count) {
     PriorityQueue<TileScoreEntry> queue = new PriorityQueue<>(Comparator.comparingDouble(t -> t.score));
 
     for (int y = 0; y < mapOracle.haliteGrid.height; y++) {
@@ -85,18 +93,11 @@ public class GoalFilter {
     }
     Collections.reverse(results);
 
-
-    int idx = 0;
-    int currSum = 0;
-    for (idx = 0; idx < results.size() && shouldKeepGoing(mapOracle, currSum, idx); idx++) {
-      currSum += results.get(idx).haliteOnTile;
-    }
-
-    return results.subList(0, idx);
+    return results;
   }
 
   private static boolean shouldKeepGoing(MapOracle mapOracle, int currSum, int idx) {
-    if (idx < 5) {
+    if (idx < 10) {
       return true;
     }
 
@@ -104,6 +105,6 @@ public class GoalFilter {
       return false;
     }
 
-    return 1.0 * currSum / mapOracle.haliteSum < 0.15;
+    return (1.0 * currSum / mapOracle.haliteSum) < 0.10;
   }
 }

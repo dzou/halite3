@@ -1,6 +1,7 @@
 package shipagent;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import hlt.PlayerId;
 import hlt.Position;
 import hlt.Ship;
@@ -25,6 +26,8 @@ public class MapOracle {
   public final Collection<Ship> enemyShips;
 
   public final Map<Position, DjikstraGrid> myDropoffsMap;
+  public final HashSet<Position> fakeDropoffs;
+  public final Set<Position> allExistingDropoffs;
 
   public final ImmutableMap<Position, Ship> myShipPositionsMap;
   public final ImmutableMap<Position, Ship> enemyShipPositionsMap;
@@ -35,9 +38,6 @@ public class MapOracle {
   public final Grid<Integer> enemyThreatMap;
 
   public final Grid<Integer> inspireMap;
-
-  public final Grid<Double> shipHaliteDensityMap;
-  public final Grid<Double> haliteDensityMap;
 
   public final TriangulationGrid enemyShipCovers;
 
@@ -64,17 +64,18 @@ public class MapOracle {
     this.myDropoffsMap = playerBases.get(myPlayerId)
         .stream()
         .collect(Collectors.toMap(pos -> pos, pos -> DjikstraGrid.create(haliteGrid, pos)));
+    this.allExistingDropoffs = playerBases.values()
+        .stream()
+        .flatMap(base -> base.stream())
+        .collect(ImmutableSet.toImmutableSet());
+    this.fakeDropoffs = new HashSet<>();
 
-    // this.exploreGrid = InfluenceMaps.buildExploreMap(myShips, haliteGrid);
     this.myInfluenceMap = InfluenceMaps.buildShipInfluenceMap(myShips, haliteGrid);
     this.enemyInfluenceMap = InfluenceMaps.buildShipInfluenceMap(enemyShips, haliteGrid);
 
     this.enemyThreatMap = InfluenceMaps.threatMap(enemyShips, haliteGrid);
 
     this.inspireMap = InfluenceMaps.inspiredMap(enemyShips, haliteGrid);
-
-    this.shipHaliteDensityMap = InfluenceMaps.shipHaliteDensityMap(haliteGrid, myShips);
-    this.haliteDensityMap = InfluenceMaps.haliteDensityMap(haliteGrid);
 
     this.enemyShipCovers = new TriangulationGrid(enemyShips, ENEMY_COVER_RANGE);
 
@@ -83,6 +84,10 @@ public class MapOracle {
         .mapToInt(n -> n)
         .average()
         .orElse(0.0);
+  }
+
+  public boolean isNearFakeDropoff(Position explorePosition, int distance) {
+    return fakeDropoffs.stream().anyMatch(dropoff -> haliteGrid.distance(explorePosition, dropoff) <= distance);
   }
 
   public int distance(Position origin, Position destination) {
@@ -95,20 +100,26 @@ public class MapOracle {
 
   public Optional<Ship> orderDropOff(Position projectedDropOffLoc) {
     myDropoffsMap.put(projectedDropOffLoc, DjikstraGrid.create(haliteGrid, projectedDropOffLoc));
+    fakeDropoffs.add(projectedDropOffLoc);
     return Optional.ofNullable(myShipPositionsMap.get(projectedDropOffLoc));
   }
 
   public Position getNearestHome(Position origin) {
-    Comparator<Map.Entry<Position, DjikstraGrid>> dropOffComparator =
-        Comparator.<Map.Entry<Position, DjikstraGrid>>comparingInt(entry -> haliteGrid.distance(origin, entry.getKey()))
-            .thenComparingDouble(entry -> -myInfluenceMap.get(entry.getKey().x, entry.getKey().y))
-            .thenComparingInt(entry -> entry.getKey().x * 100 + entry.getKey().y);
+    Comparator<Position> dropOffComparator =
+        Comparator.<Position>comparingInt(dropoff -> haliteGrid.distance(origin, dropoff))
+            .thenComparingDouble(dropoff -> -influenceDifferenceAtPoint(dropoff.x, dropoff.y))
+            .thenComparingInt(dropoff -> dropoff.x * 100 + dropoff.y);
 
-    return myDropoffsMap.entrySet()
+    Position closestDropoff = myDropoffsMap.keySet()
         .stream()
         .min(dropOffComparator)
-        .get()
-        .getKey();
+        .get();
+
+    return myDropoffsMap.keySet()
+        .stream()
+        .filter(pos -> influenceDifferenceAtPoint(pos.x, pos.y) >= 0.0)
+        .min(dropOffComparator)
+        .orElse(closestDropoff);
   }
 
   public double goHomeCost(Position destination) {

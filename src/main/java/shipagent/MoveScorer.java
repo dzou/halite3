@@ -59,7 +59,7 @@ public class MoveScorer {
           killScore);
     } else {
       return new DecisionVector(
-          homeScore,
+          homeScore * 100,
           new TileScoreEntry(Position.at(-1, -1), 0, 0),
           enemyInfluence,
           killScore);
@@ -74,7 +74,7 @@ public class MoveScorer {
       payload += goalAssignment.mineScore(ship);
     }
 
-    double moveHomeOpportunityCost = (1.0 * ship.halite) / Constants.MAX_HALITE;
+    double moveHomeOpportunityCost = (1.0 * ship.halite * ship.halite) / (Constants.MAX_HALITE * Constants.MAX_HALITE);
     return moveHomeOpportunityCost * (payload - haliteCostToHome)
         / (mapOracle.haliteGrid.distance(destination, mapOracle.getNearestHome(ship.position)) + 4);
   }

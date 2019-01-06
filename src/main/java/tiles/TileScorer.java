@@ -12,7 +12,7 @@ import java.util.Objects;
 
 public class TileScorer {
 
-  private static final double[] MINE_RATIOS = {0.44, 0.58 /*, 0.68, 0.76 */};
+  private static final double[] MINE_RATIOS = {0.44, 0.58 /* , 0.68, 0.76 */};
 
   private final MapOracle mapOracle;
 

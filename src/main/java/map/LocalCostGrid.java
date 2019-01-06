@@ -98,9 +98,9 @@ public class LocalCostGrid {
           .min()
           .orElse(0);
 
-      int shipCrowdCost = mappedShipPositions.contains(curr) ? 100 : 0;
+      // int shipCrowdCost = mappedShipPositions.contains(curr) ? 100 : 0;
 
-      costCache[curr.y][curr.x] = cost + prevCost + shipCrowdCost;
+      costCache[curr.y][curr.x] = cost + prevCost;
       for (Position neighbor : curr.getUnnormalizedNeighbors()) {
         queue.offer(neighbor);
       }

@@ -11,35 +11,35 @@ import static com.google.common.truth.Truth.assertThat;
 
 public class LocalCostGridTest {
 
-  @Test
-  public void testAvoidCrowding() {
-    int[][] rawGrid = {
-        {4, 4, 4, 4},
-        {4, 1, 1, 4},
-        {4, 1, 1, 3},
-        {4, 4, 4, 3},
-    };
-
-    ImmutableSet<Position> shipPositions =
-        ImmutableSet.of(
-            Position.at(2, 1),
-            Position.at(1, 2));
-
-    int[][] costcache = LocalCostGrid.buildCostCache(rawGrid, Position.at(0, 0), shipPositions);
-
-    for (int[] row : costcache) {
-      System.out.println(Arrays.toString(row));
-    }
-
-    int[][] expected = {
-        {4, 8, 12, 16},
-        {8, 9, 110, 20},
-        {12, 110, 111, 23},
-        {16, 20, 24, 26}
-    };
-
-    assertThat(costcache).isEqualTo(expected);
-  }
+//  @Test
+//  public void testAvoidCrowding() {
+//    int[][] rawGrid = {
+//        {4, 4, 4, 4},
+//        {4, 1, 1, 4},
+//        {4, 1, 1, 3},
+//        {4, 4, 4, 3},
+//    };
+//
+//    ImmutableSet<Position> shipPositions =
+//        ImmutableSet.of(
+//            Position.at(2, 1),
+//            Position.at(1, 2));
+//
+//    int[][] costcache = LocalCostGrid.buildCostCache(rawGrid, Position.at(0, 0), shipPositions);
+//
+//    for (int[] row : costcache) {
+//      System.out.println(Arrays.toString(row));
+//    }
+//
+//    int[][] expected = {
+//        {4, 8, 12, 16},
+//        {8, 9, 110, 20},
+//        {12, 110, 111, 23},
+//        {16, 20, 24, 26}
+//    };
+//
+//    assertThat(costcache).isEqualTo(expected);
+//  }
 
   @Test
   public void testFindLowestCostPath() {

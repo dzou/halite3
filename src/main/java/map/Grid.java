@@ -129,7 +129,7 @@ public class Grid<T> {
   @Override
   public String toString() {
     DecimalFormat df = new DecimalFormat("#");
-    DecimalFormat doubleFormat = new DecimalFormat("0.000");
+    DecimalFormat doubleFormat = new DecimalFormat("0.00");
 
     StringBuilder stringBuilder = new StringBuilder();
     for (int i = 0; i < costGrid.length; i++) {

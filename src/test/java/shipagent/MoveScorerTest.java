@@ -76,7 +76,7 @@ public class MoveScorerTest {
         ImmutableMap.of(new PlayerId(0), ImmutableSet.of(Position.at(0, 0))));
     MoveScorer scorer = new MoveScorer(mapOracle);
 
-    assertThat(scorer.scorePosition(ship(1, 1), Position.at(1, 1)).tileScore()).isEqualTo(387.5);
+    assertThat(scorer.scorePosition(ship(1, 1), Position.at(1, 1)).tileScore()).isEqualTo(375.0);
   }
 
   @Test
@@ -159,7 +159,7 @@ public class MoveScorerTest {
     Set<Decision> decisions = moveScorer.getDecisions(ship);
     decisions.stream().forEach(s -> System.out.println(s));
     double best = decisions.stream().max(Comparator.comparingDouble(d -> d.scoreVector.tileScore())).get().scoreVector.tileScore();
-    assertThat(best).isWithin(0.1).of((116 - 13.4) / 4.0);
+    assertThat(best).isWithin(0.5).of((116 - 13.4) / 4.0);
 
   }
 

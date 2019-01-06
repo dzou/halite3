@@ -23,10 +23,6 @@ public class ShipRouter {
     this.moveScorer = new MoveScorer(mapOracle);
   }
 
-  public HashMap<Ship, Position> routeShips() {
-    return routeShips(Collections.emptySet());
-  }
-
   public HashMap<Ship, Position> routeShips(Set<Ship> excludeShips) {
     HashMap<Ship, Position> shipDecisions = new HashMap<>();
     BipartiteGraph bipartiteGraph = new BipartiteGraph();

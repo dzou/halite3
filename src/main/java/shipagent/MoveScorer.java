@@ -80,30 +80,7 @@ public class MoveScorer {
   }
 
   private double getEnemyInfluence(Ship ship, Position destination) {
-    int enemyMinHalite = mapOracle.enemyThreatMap.get(destination.x, destination.y);
-    double influenceDifference = mapOracle.influenceDifferenceAtPoint(destination.x, destination.y);
 
-    Position nearestHome = mapOracle.getNearestHome(destination);
-    if (mapOracle.haliteGrid.distance(nearestHome, destination) <= 1) {
-      return Math.max(0.0, enemyMinHalite);
-    }
-
-    if (influenceDifference > 0.0) {
-      if (enemyMinHalite != -1) {
-        return Math.min(0, enemyMinHalite - 1.3 * ship.halite);
-      } else {
-        return 0;
-      }
-    } else {
-      if (enemyMinHalite != -1) {
-        double multiplier = 0.75 + (destination.equals(ship.position) ? 0.25 : 0.0);
-        return multiplier * -ship.halite;
-      } else if (mapOracle.enemyShipCovers.isPositionCovered(destination)) {
-        return (0.5 - influenceDifference * 0.01) * -ship.halite;
-      } else {
-        return 0;
-      }
-    }
   }
 
   private double killScore(Ship ship, Position destination) {

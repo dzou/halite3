@@ -4,9 +4,9 @@ set -e
 
 ./halite --replay-directory replays/ -vvv --width 32 --height 32 \
 "java -jar ../target/MyBot.jar" \
-"java -jar bot_versions/beta2.jar" \
-"java -jar bot_versions/beta1.jar" \
-"java -jar bot_versions/alpha2.jar"
+"java -jar bot_versions/beta2.jar"
+# "java -jar bot_versions/beta1.jar" \
+# "java -jar bot_versions/alpha2.jar"
 
 # TEST seed: 40x40 1546402846 
 

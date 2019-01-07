@@ -5,6 +5,7 @@ import hlt.Direction;
 import hlt.Position;
 import hlt.Ship;
 import tiles.GoalAssignment;
+import tiles.SafetyScorer;
 import tiles.TileScoreEntry;
 
 import java.util.HashSet;
@@ -15,9 +16,12 @@ public class MoveScorer {
 
   private final GoalAssignment goalAssignment;
 
+  private final SafetyScorer safetyScorer;
+
   public MoveScorer(MapOracle mapOracle) {
     this.mapOracle = mapOracle;
     this.goalAssignment = new GoalAssignment(mapOracle);
+    this.safetyScorer = new SafetyScorer(mapOracle);
   }
 
   public HashSet<Decision> getDecisions(Ship ship) {
@@ -80,7 +84,11 @@ public class MoveScorer {
   }
 
   private double getEnemyInfluence(Ship ship, Position destination) {
-
+    if (safetyScorer.isSafeShipMove(ship, destination)) {
+      return 0;
+    } else {
+      return -ship.halite;
+    }
   }
 
   private double killScore(Ship ship, Position destination) {

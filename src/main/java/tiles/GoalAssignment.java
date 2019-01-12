@@ -1,5 +1,6 @@
 package tiles;
 
+import com.google.common.collect.ImmutableMap;
 import hlt.Direction;
 import hlt.Log;
 import hlt.Position;
@@ -10,24 +11,26 @@ import matching.BipartiteGraph;
 import matching.HungarianAlgorithm;
 import shipagent.MapOracle;
 
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class GoalAssignment {
+
+  private static final Position NULL_JOB = Position.at(-1, -1);
 
   private final MapOracle mapOracle;
 
   final GoalFilter goalFilter;
   final TileScorer tileScorer;
+  final SafetyScorer safetyScorer;
 
   final Map<Position, Position> shipAssignments;
   final Set<Position> tappedPositions;
 
   public GoalAssignment(MapOracle mapOracle) {
     this.mapOracle = mapOracle;
+    this.safetyScorer = new SafetyScorer(mapOracle);
     this.goalFilter = new GoalFilter(mapOracle);
     this.tileScorer = new TileScorer(mapOracle);
 
@@ -36,7 +39,11 @@ public class GoalAssignment {
     for (Ship ship : mapOracle.myShips) {
       HashMap<Position, Double> shipDestinations = new HashMap<>();
 
-      for (TileScoreEntry tileScoreEntry : goalFilter.bestTiles) {
+      List<TileScoreEntry> safeGoals = goalFilter.bestTiles.stream()
+          .filter(entry -> safetyScorer.isSafeShipMove(ship, entry.position))
+          .collect(Collectors.toList());
+
+      for (TileScoreEntry tileScoreEntry : safeGoals) {
         shipDestinations.put(tileScoreEntry.position, tileScorer.localGoalScore(ship, Direction.STILL, tileScoreEntry.position));
       }
 
@@ -44,6 +51,9 @@ public class GoalAssignment {
           ship.position,
           shipDestinations,
           1 + mapOracle.myShips.size() / goalFilter.bestTiles.size());
+
+      graph.addSingleCapacityNode(
+          ship.position, ImmutableMap.of(NULL_JOB, 0.0), 999);
     }
 
     for (Position destination : graph.getDestinations()) {
@@ -86,12 +96,18 @@ public class GoalAssignment {
     }
 
     Position assignedJob = shipAssignments.get(ship.position);
-    double score = isInDirection(ship.position, assignedJob, dir, mapOracle.haliteGrid)
-        ? tileScorer.localGoalScore(ship, dir, assignedJob)
-        : 0;
 
-    if (mapOracle.isNearFakeDropoff(assignedJob, 5)) {
-      score *= 3.0;
+    double score;
+    if (assignedJob == NULL_JOB) {
+      score = 0;
+    } else {
+      score = isInDirection(ship.position, assignedJob, dir, mapOracle.haliteGrid)
+          ? tileScorer.localGoalScore(ship, dir, assignedJob)
+          : 0;
+
+      if (mapOracle.isNearFakeDropoff(assignedJob, 5)) {
+        score *= 3.0;
+      }
     }
 
     TileScoreEntry assignedTileEntry = new TileScoreEntry(
@@ -99,10 +115,11 @@ public class GoalAssignment {
         mapOracle.haliteGrid.get(assignedJob.x, assignedJob.y),
         score);
 
-
     TileScoreEntry localTileEntry =
         goalFilter.getLocalMoves(ship, dir).stream()
-            .filter(pos -> !tappedPositions.contains(pos)) /* || mapOracle.haliteGrid.distance(pos, ship.position) <= 1 ) */ // && mapOracle.myShipPositionsMap.containsKey(pos))
+            .filter(pos -> !tappedPositions.contains(pos)
+                || mapOracle.haliteGrid.distance(pos, ship.position) <= 1 && mapOracle.myShipPositionsMap.containsKey(pos))
+            .filter(pos -> safetyScorer.isSafeShipMove(ship, pos))
             .map(pos -> new TileScoreEntry(pos, mapOracle.haliteGrid.get(pos.x, pos.y), tileScorer.localGoalScore(ship, dir, pos)))
             .max(Comparator.comparingDouble(entry -> entry.score))
             .orElse(new TileScoreEntry(ship.position, mapOracle.haliteGrid.get(ship.position.x, ship.position.y), 0.0));

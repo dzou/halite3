@@ -87,7 +87,7 @@ public class MoveScorer {
     if (safetyScorer.isSafeShipMove(ship, destination)) {
       return 0;
     } else {
-      return -ship.halite;
+      return -0.5 * ship.halite - 200;
     }
   }
 

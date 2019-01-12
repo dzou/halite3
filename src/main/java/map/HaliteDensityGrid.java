@@ -13,7 +13,7 @@ import java.util.Set;
 
 public class HaliteDensityGrid {
 
-  private static final int MIN_HALITE_SUMS = 2400;
+  private static final int MIN_HALITE_SUMS = 2000;
 
   private static final int MIN_HALITE_VELOCITY = 500;
 
@@ -51,7 +51,7 @@ public class HaliteDensityGrid {
 
         if (tooCloseToOtherDropoff
             || mapOracle.allExistingDropoffs.contains(curr)
-            || mapOracle.influenceDifferenceAtPoint(x, y) < -0.1) {
+            || mapOracle.influenceDifferenceAtPoint(x, y) < 0.0) {
           continue;
         }
 

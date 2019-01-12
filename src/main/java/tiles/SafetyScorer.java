@@ -50,7 +50,7 @@ public class SafetyScorer {
         mapOracle.influenceDifferenceAtPoint(destination.x, destination.y) > 0;
 
     if (shipOwnershipRatio() > 0.47) {
-      if (10 * ship.halite < enemyThreatHalite) {
+      if (3 * ship.halite < enemyThreatHalite) {
         return true;
       }
 
@@ -78,24 +78,4 @@ public class SafetyScorer {
   private double shipOwnershipRatio() {
     return 1.0 * mapOracle.myShips.size() / (mapOracle.myShips.size() + mapOracle.enemyShips.size());
   }
-
-  // public double tileControlScore(Ship ship, Position position) {
-  //
-  //   if (influenceDifference > 0.0) {
-  //     if (enemyMinHalite != -1) {
-  //       return Math.min(0, enemyMinHalite - 1.3 * ship.halite);
-  //     } else {
-  //       return 0;
-  //     }
-  //   } else {
-  //     if (enemyMinHalite != -1) {
-  //       double multiplier = 0.75 + (destination.equals(ship.position) ? 0.25 : 0.0);
-  //       return multiplier * -ship.halite;
-  //     } else if () {
-  //       return (0.5 - influenceDifference * 0.01) * -ship.halite;
-  //     } else {
-  //       return 0;
-  //     }
-  //   }
-  // }
 }

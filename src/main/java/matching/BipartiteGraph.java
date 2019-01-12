@@ -46,7 +46,9 @@ public class BipartiteGraph {
   }
 
   public void addSingleCapacityNode(Position pos, Map<Position, Double> neighbors, int capacity) {
-    addSource(pos);
+    if (!sourcePositions.containsKey(pos)) {
+      addSource(pos);
+    }
 
     for (Map.Entry<Position, Double> entry : neighbors.entrySet()) {
       Position neighborPosition = entry.getKey();

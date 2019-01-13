@@ -13,13 +13,13 @@ import java.util.Set;
 
 public class HaliteDensityGrid {
 
-  private static final int MIN_HALITE_SUMS = 2000;
+  private static final int MIN_HALITE_SUMS = 3000;
 
-  private static final int MIN_HALITE_VELOCITY = 500;
+  private static final int MIN_HALITE_VELOCITY = 600;
 
-  private static final int MIN_SPACE_BTWN_DROPOFFS = 16;
+  private static final int MIN_SPACE_BTWN_DROPOFFS = 15;
 
-  private static final int HALITE_DENSITY_RANGE = 6;
+  private static final int HALITE_DENSITY_RANGE = 4;
 
   private final MapOracle mapOracle;
 
@@ -88,7 +88,7 @@ public class HaliteDensityGrid {
   }
 
   public static HaliteDensityGrid create(MapOracle mapOracle) {
-    List<TileScoreEntry> bestTiles = GoalFilter.getBestPositions(mapOracle, 100);
+    List<TileScoreEntry> bestTiles = GoalFilter.getBestPositions(mapOracle, 150);
 
     Grid<Double> haliteVelocitySums = new Grid<>(mapOracle.haliteGrid.width, mapOracle.haliteGrid.height, 0.0);
     Grid<Integer> haliteRawSums = new Grid<>(mapOracle.haliteGrid.width, mapOracle.haliteGrid.height, 0);
@@ -99,9 +99,9 @@ public class HaliteDensityGrid {
           int x = tileScoreEntry.position.x + dx;
           int y = tileScoreEntry.position.y + dy;
 
-          if (mapOracle.influenceDifferenceAtPoint(x, y) < 0) {
-            continue;
-          }
+//          if (mapOracle.influenceDifferenceAtPoint(x, y) < 0) {
+//            continue;
+//          }
 
           double curr = mapOracle.haliteGrid.get(tileScoreEntry.position.x, tileScoreEntry.position.y)
               / (haliteVelocitySums.distance(tileScoreEntry.position.x, tileScoreEntry.position.y, x, y) + 1);

@@ -6,7 +6,6 @@ import hlt.Log;
 import hlt.Position;
 import hlt.Ship;
 import map.DjikstraGrid;
-import map.Grid;
 import matching.BipartiteGraph;
 import matching.HungarianAlgorithm;
 import shipagent.MapOracle;
@@ -60,8 +59,6 @@ public class GoalAssignment {
       int prevCapacity = graph.getCapacity(destination);
       if (mapOracle.influenceDifferenceAtPoint(destination.x, destination.y) < 0) {
         graph.setCapacity(destination, prevCapacity * 3);
-      } else if (mapOracle.isNearFakeDropoff(destination, 5)) {
-        graph.setCapacity(destination, prevCapacity * 3);
       }
     }
 
@@ -101,13 +98,9 @@ public class GoalAssignment {
     if (assignedJob == NULL_JOB) {
       score = 0;
     } else {
-      score = isInDirection(ship.position, assignedJob, dir, mapOracle.haliteGrid)
+      score = DjikstraGrid.isInDirection(ship.position, assignedJob, dir, mapOracle.haliteGrid)
           ? tileScorer.localGoalScore(ship, dir, assignedJob)
           : 0;
-
-      if (mapOracle.isNearFakeDropoff(assignedJob, 5)) {
-        score *= 3.0;
-      }
     }
 
     TileScoreEntry assignedTileEntry = new TileScoreEntry(
@@ -129,22 +122,4 @@ public class GoalAssignment {
         .get();
   }
 
-  static boolean isInDirection(Position origin, Position destination, Direction dir, Grid<Integer> haliteGrid) {
-    if (dir == Direction.STILL) {
-      return true;
-    }
-
-    int dx = DjikstraGrid.getAxisDirection(origin.x, destination.x, haliteGrid.width);
-    int dy = DjikstraGrid.getAxisDirection(origin.y, destination.y, haliteGrid.height);
-
-    if (dir == Direction.NORTH && dy <= 0
-        || dir == Direction.SOUTH && dy >= 0
-        || dir == Direction.WEST && dx <= 0
-        || dir == Direction.EAST && dx >= 0
-        || dir == Direction.STILL) {
-      return true;
-    } else {
-      return false;
-    }
-  }
 }

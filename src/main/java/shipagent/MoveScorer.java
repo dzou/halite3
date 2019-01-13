@@ -4,6 +4,7 @@ import hlt.Constants;
 import hlt.Direction;
 import hlt.Position;
 import hlt.Ship;
+import map.FocusGrid;
 import tiles.GoalAssignment;
 import tiles.SafetyScorer;
 import tiles.TileScoreEntry;
@@ -15,13 +16,14 @@ public class MoveScorer {
   private final MapOracle mapOracle;
 
   private final GoalAssignment goalAssignment;
-
   private final SafetyScorer safetyScorer;
+  private final FocusGrid focusGrid;
 
   public MoveScorer(MapOracle mapOracle) {
     this.mapOracle = mapOracle;
     this.goalAssignment = new GoalAssignment(mapOracle);
     this.safetyScorer = new SafetyScorer(mapOracle);
+    this.focusGrid = FocusGrid.create(mapOracle);
   }
 
   public HashSet<Decision> getDecisions(Ship ship) {
@@ -51,6 +53,7 @@ public class MoveScorer {
     boolean endTheGame = mapOracle.isTimeToEndGame(ship, mapOracle.myShips.size());
 
     double homeScore = goHomeScore(ship, destination, endTheGame);
+    double focusScore = focusGrid.score(ship, moveDir);
     TileScoreEntry tileScoreEntry = goalAssignment.scoreLocalTile(ship, moveDir);
     double enemyInfluence = getEnemyInfluence(ship, destination);
     double killScore = killScore(ship, destination);
@@ -60,13 +63,15 @@ public class MoveScorer {
           homeScore,
           tileScoreEntry,
           enemyInfluence,
-          killScore);
+          killScore,
+          focusScore);
     } else {
       return new DecisionVector(
-          homeScore * 100,
+          homeScore * 1000,
           new TileScoreEntry(Position.at(-1, -1), 0, 0),
           enemyInfluence,
-          killScore);
+          killScore,
+          focusScore);
     }
   }
 

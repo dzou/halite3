@@ -110,6 +110,25 @@ public class DjikstraGrid {
     }
   }
 
+  public static boolean isInDirection(Position origin, Position destination, Direction dir, Grid<Integer> haliteGrid) {
+    if (dir == Direction.STILL) {
+      return true;
+    }
+
+    int dx = getAxisDirection(origin.x, destination.x, haliteGrid.width);
+    int dy = getAxisDirection(origin.y, destination.y, haliteGrid.height);
+
+    if (dir == Direction.NORTH && dy < 0
+        || dir == Direction.SOUTH && dy > 0
+        || dir == Direction.WEST && dx < 0
+        || dir == Direction.EAST && dx > 0
+        || dir == Direction.STILL) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   @Override
   public String toString() {
     return costCache.toString();

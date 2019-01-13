@@ -6,7 +6,7 @@ import shipagent.MapOracle;
 
 /**
  * Scores the safety of tiles and whether a trade should occur.
- *
+ * <p>
  * -infinity to 0.
  */
 public class SafetyScorer {
@@ -19,6 +19,11 @@ public class SafetyScorer {
 
   public boolean isSafeShipMove(Ship ship, Position destination) {
     Position nearestHome = mapOracle.getNearestHome(destination);
+
+    if (mapOracle.enemyDropoffs.contains(destination) && inDirectThreat(destination)) {
+      return false;
+    }
+
     if (mapOracle.haliteGrid.distance(nearestHome, destination) <= 1) {
       return true;
     }
@@ -39,7 +44,9 @@ public class SafetyScorer {
     }
   }
 
-  /** if a trade occurs, would it be positive? */
+  /**
+   * if a trade occurs, would it be positive?
+   */
   private boolean isGoodTrade(Ship ship, Position destination) {
     int enemyThreatHalite = mapOracle.enemyThreatMap.get(destination.x, destination.y);
     if (ship.halite > enemyThreatHalite) {
@@ -71,9 +78,9 @@ public class SafetyScorer {
         && mapOracle.influenceDifferenceAtPoint(destination.x, destination.y) < 0;
   }
 
-	private boolean inDirectThreat(Position destination) {
-		return mapOracle.enemyThreatMap.get(destination.x, destination.y) != -1;
-	}
+  private boolean inDirectThreat(Position destination) {
+    return mapOracle.enemyThreatMap.get(destination.x, destination.y) != -1;
+  }
 
   private double shipOwnershipRatio() {
     return 1.0 * mapOracle.myShips.size() / (mapOracle.myShips.size() + mapOracle.enemyShips.size());

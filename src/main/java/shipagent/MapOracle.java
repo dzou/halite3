@@ -26,8 +26,8 @@ public class MapOracle {
   public final Collection<Ship> enemyShips;
 
   public final Map<Position, DjikstraGrid> myDropoffsMap;
-  public final HashSet<Position> fakeDropoffs;
   public final Set<Position> allExistingDropoffs;
+  public final Set<Position> enemyDropoffs;
 
   public final ImmutableMap<Position, Ship> myShipPositionsMap;
   public final ImmutableMap<Position, Ship> enemyShipPositionsMap;
@@ -68,7 +68,11 @@ public class MapOracle {
         .stream()
         .flatMap(base -> base.stream())
         .collect(ImmutableSet.toImmutableSet());
-    this.fakeDropoffs = new HashSet<>();
+    this.enemyDropoffs = playerBases.keySet()
+        .stream()
+        .filter(playerId -> !playerId.equals(myPlayerId))
+        .flatMap(player -> playerBases.get(player).stream())
+        .collect(ImmutableSet.toImmutableSet());
 
     this.myInfluenceMap = InfluenceMaps.buildShipInfluenceMap(myShips, haliteGrid);
     this.enemyInfluenceMap = InfluenceMaps.buildShipInfluenceMap(enemyShips, haliteGrid);
@@ -86,10 +90,6 @@ public class MapOracle {
         .orElse(0.0);
   }
 
-  public boolean isNearFakeDropoff(Position explorePosition, int distance) {
-    return fakeDropoffs.stream().anyMatch(dropoff -> haliteGrid.distance(explorePosition, dropoff) <= distance);
-  }
-
   public int distance(Position origin, Position destination) {
     return haliteGrid.distance(origin, destination);
   }
@@ -100,7 +100,6 @@ public class MapOracle {
 
   public Optional<Ship> orderDropOff(Position projectedDropOffLoc) {
     myDropoffsMap.put(projectedDropOffLoc, DjikstraGrid.create(haliteGrid, projectedDropOffLoc));
-    fakeDropoffs.add(projectedDropOffLoc);
     return Optional.ofNullable(myShipPositionsMap.get(projectedDropOffLoc));
   }
 

@@ -17,13 +17,13 @@ public class MoveScorer {
 
   private final GoalAssignment goalAssignment;
   private final SafetyScorer safetyScorer;
-  private final FocusGrid focusGrid;
+  // private final FocusGrid focusGrid;
 
   public MoveScorer(MapOracle mapOracle) {
     this.mapOracle = mapOracle;
     this.goalAssignment = new GoalAssignment(mapOracle);
     this.safetyScorer = new SafetyScorer(mapOracle);
-    this.focusGrid = FocusGrid.create(mapOracle);
+    // this.focusGrid = FocusGrid.create(mapOracle);
   }
 
   public HashSet<Decision> getDecisions(Ship ship) {
@@ -53,7 +53,7 @@ public class MoveScorer {
     boolean endTheGame = mapOracle.isTimeToEndGame(ship, mapOracle.myShips.size());
 
     double homeScore = goHomeScore(ship, destination, endTheGame);
-    double focusScore = focusGrid.score(ship, moveDir);
+    double focusScore = 0; // focusGrid.score(ship, moveDir);
     TileScoreEntry tileScoreEntry = goalAssignment.scoreLocalTile(ship, moveDir);
     double enemyInfluence = getEnemyInfluence(ship, destination);
     double killScore = killScore(ship, destination);

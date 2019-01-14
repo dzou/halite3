@@ -76,7 +76,7 @@ public class GoalFilter {
         Position curr = Position.at(x, y);
         int distanceHome = mapOracle.distance(curr, mapOracle.getNearestHome(curr)) + 1;
 
-        double inspireMultiplier = (mapOracle.inspireMap.get(x, y) > 1) ? 2.0 : 1.0;
+        double inspireMultiplier = (mapOracle.inspireMap.get(x, y) > 1) ? 2.25 : 1.0;
 
         double score = (inspireMultiplier * mapOracle.haliteGrid.get(x, y) - mapOracle.goHomeCost(curr)) / distanceHome;
         queue.offer(new TileScoreEntry(curr, mapOracle.haliteGrid.get(x, y), score));
@@ -105,6 +105,6 @@ public class GoalFilter {
       return false;
     }
 
-    return (1.0 * currSum / mapOracle.haliteSum) < 0.10;
+    return (1.0 * currSum / mapOracle.haliteSum) < 0.20;
   }
 }

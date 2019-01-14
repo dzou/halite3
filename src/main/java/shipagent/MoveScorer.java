@@ -89,11 +89,7 @@ public class MoveScorer {
   }
 
   private double getEnemyInfluence(Ship ship, Position destination) {
-    if (safetyScorer.isSafeShipMove(ship, destination)) {
-      return 0;
-    } else {
-      return -0.5 * ship.halite - 200;
-    }
+    return safetyScorer.safetyScore(ship, destination);
   }
 
   private double killScore(Ship ship, Position destination) {

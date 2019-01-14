@@ -30,6 +30,11 @@ public class LocalCostGrid {
     return Arrays.stream(costCache).flatMapToInt(Arrays::stream).max().orElse(0);
   }
 
+  public double averageDistance() {
+    int[][] costCache = costCacheMap.get(Direction.STILL);
+    return Arrays.stream(costCache).flatMapToInt(Arrays::stream).average().orElse(0.0);
+  }
+
   public int getCostToDest(Position destination, Direction d) {
     Position mappedPosition = getMappedPosition(destination, absoluteCenter, radius, haliteGrid);
 

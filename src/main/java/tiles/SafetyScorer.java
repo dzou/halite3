@@ -17,30 +17,37 @@ public class SafetyScorer {
     this.mapOracle = mapOracle;
   }
 
-  public boolean isSafeShipMove(Ship ship, Position destination) {
+  public double safetyScore(Ship ship, Position destination) {
     Position nearestHome = mapOracle.getNearestHome(destination);
 
     if (mapOracle.enemyDropoffs.contains(destination) && inDirectThreat(destination)) {
-      return false;
+      return -ship.halite;
     }
 
     if (mapOracle.haliteGrid.distance(nearestHome, destination) <= 1) {
-      return true;
+      return 0;
     }
 
     if (!inDirectThreat(destination) && !inSurroundThreat(destination)) {
-      return true;
+      return 0;
     }
 
     if (inDirectThreat(destination) && inSurroundThreat(destination)) {
-      return false;
+      return -ship.halite;
     }
 
     if (inDirectThreat(destination)) {
-      return isGoodTrade(ship, destination);
+      if (isGoodTrade(ship, destination)) {
+        return 0;
+      } else {
+        return -ship.halite;
+      }
     } else {
-      // else we are in Surround-threat. Safe if we have < 100 halite.
-      return ship.halite < 100;
+      if (ship.halite < 100) {
+        return 0;
+      } else {
+        return -0.1 * ship.halite;
+      }
     }
   }
 
@@ -56,19 +63,20 @@ public class SafetyScorer {
     boolean moreFriendliesInArea =
         mapOracle.influenceDifferenceAtPoint(destination.x, destination.y) > 0;
 
-    if (shipOwnershipRatio() > 0.47) {
-      if (3 * ship.halite < enemyThreatHalite) {
-        return true;
-      }
-
-      if (moreFriendliesInArea) {
-        return true;
-      }
-    } else {
-      if (4 * ship.halite < enemyThreatHalite && moreFriendliesInArea) {
-        return true;
-      }
+    if (4.0 * ship.halite < enemyThreatHalite) {
+      return true;
     }
+
+    if (moreFriendliesInArea) {
+      return true;
+    }
+
+//    if (shipOwnershipRatio() > 0.35) {
+//    } else {
+//      if (4 * ship.halite < enemyThreatHalite && moreFriendliesInArea) {
+//        return true;
+//      }
+//    }
 
     return false;
   }

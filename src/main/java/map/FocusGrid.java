@@ -10,7 +10,7 @@ import java.util.List;
 
 public class FocusGrid {
 
-  private static final double FOCUS_REWARD = 15.0;
+  private static final double FOCUS_REWARD = 5.0;
   private static final int FOCUS_POINT_RANGE = 4;
 
   private final List<FocusPoint> focusPoints;
@@ -20,7 +20,7 @@ public class FocusGrid {
   }
 
   public double score(Ship ship, Direction d) {
-    return focusPoints.stream().mapToDouble(f -> f.score(ship, d)).sum();
+    return focusPoints.stream().mapToDouble(f -> f.score(ship, d)).max().orElse(0.0);
   }
 
   public static FocusGrid create(MapOracle mapOracle) {
@@ -28,9 +28,20 @@ public class FocusGrid {
 
     for (Position myDropoff : mapOracle.myDropoffsMap.keySet()) {
       if (haliteSum(myDropoff, mapOracle.haliteGrid) > 4000) {
-        focusPoints.add(new FocusPoint(myDropoff, FOCUS_POINT_RANGE, mapOracle.myDropoffsMap.get(myDropoff)));
+        boolean dangerNearby = mapOracle.enemyDropoffs.stream().anyMatch(d -> mapOracle.distance(d, myDropoff) <= 5)
+            || mapOracle.influenceDifferenceAtPoint(myDropoff.x, myDropoff.y) < 0;
+
+        if (dangerNearby) {
+          // focusPoints.add(new FocusPoint(myDropoff, FOCUS_POINT_RANGE, mapOracle.myDropoffsMap.get(myDropoff)));
+        }
       }
     }
+
+//    for (Position dropoff : mapOracle.enemyDropoffs) {
+//      if (haliteSum(dropoff, mapOracle.haliteGrid) > 4000) {
+//        focusPoints.add(new FocusPoint(dropoff, 2, DjikstraGrid.create(mapOracle.haliteGrid, dropoff)));
+//      }
+//    }
 
     return new FocusGrid(focusPoints);
   }
@@ -65,15 +76,14 @@ public class FocusGrid {
 
 //      double multiplier = ((Constants.MAX_HALITE - ship.halite) * (Constants.MAX_HALITE - ship.halite))
 //          / (Constants.MAX_HALITE * Constants.MAX_HALITE);
-      // double multiplier = (1.0 * Constants.MAX_HALITE - ship.halite) / Constants.MAX_HALITE;
-      double reward = FOCUS_REWARD;
+//      double multiplier = (1.0 * Constants.MAX_HALITE - ship.halite) / Constants.MAX_HALITE;
+      double reward = /* multiplier */ FOCUS_REWARD;
 
       if (djikstraGrid.haliteGrid.distance(destination, focusCenter) <= size) {
         return reward;
       }
 
-
-      if (dir != Direction.STILL && DjikstraGrid.isInDirection(ship.position, focusCenter, dir, djikstraGrid.haliteGrid)) {
+      if (DjikstraGrid.isInDirection(ship.position, focusCenter, dir, djikstraGrid.haliteGrid)) {
         return reward - 0.001 * djikstraGrid.costCache.get(destination.x, destination.y);
       } else {
         return 0.0;

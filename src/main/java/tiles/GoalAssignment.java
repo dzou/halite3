@@ -39,7 +39,7 @@ public class GoalAssignment {
       HashMap<Position, Double> shipDestinations = new HashMap<>();
 
       List<TileScoreEntry> safeGoals = goalFilter.bestTiles.stream()
-          .filter(entry -> safetyScorer.isSafeShipMove(ship, entry.position))
+          // .filter(entry -> safetyScorer.safetyScore(ship, entry.position) >= 0.0)
           .collect(Collectors.toList());
 
       for (TileScoreEntry tileScoreEntry : safeGoals) {
@@ -55,12 +55,12 @@ public class GoalAssignment {
           ship.position, ImmutableMap.of(NULL_JOB, 0.0), 999);
     }
 
-    for (Position destination : graph.getDestinations()) {
-      int prevCapacity = graph.getCapacity(destination);
-      if (mapOracle.influenceDifferenceAtPoint(destination.x, destination.y) < 0) {
-        graph.setCapacity(destination, prevCapacity * 3);
-      }
-    }
+//    for (Position destination : graph.getDestinations()) {
+//      int prevCapacity = graph.getCapacity(destination);
+//      if (mapOracle.enemyInfluenceMap.get(destination.x, destination.y) < 0) {
+//        graph.setCapacity(destination, prevCapacity * 3);
+//      }
+//    }
 
     long startTime = System.currentTimeMillis();
 
@@ -111,8 +111,8 @@ public class GoalAssignment {
     TileScoreEntry localTileEntry =
         goalFilter.getLocalMoves(ship, dir).stream()
             .filter(pos -> !tappedPositions.contains(pos)
-                || mapOracle.haliteGrid.distance(pos, ship.position) <= 1 && mapOracle.myShipPositionsMap.containsKey(pos))
-            .filter(pos -> safetyScorer.isSafeShipMove(ship, pos))
+                || mapOracle.haliteGrid.distance(pos, ship.position) <= 2 /* && mapOracle.myShipPositionsMap.containsKey(pos) */)
+            .filter(pos -> safetyScorer.safetyScore(ship, pos) >= 0)
             .map(pos -> new TileScoreEntry(pos, mapOracle.haliteGrid.get(pos.x, pos.y), tileScorer.localGoalScore(ship, dir, pos)))
             .max(Comparator.comparingDouble(entry -> entry.score))
             .orElse(new TileScoreEntry(ship.position, mapOracle.haliteGrid.get(ship.position.x, ship.position.y), 0.0));

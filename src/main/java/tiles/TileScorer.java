@@ -37,8 +37,10 @@ public class TileScorer {
     if (mapOracle.distance(ship.position, explorePosition) <= GoalFilter.LOCAL_DISTANCE) {
       haliteSumToDest = localCostGrid.getCostToDest(explorePosition, dir);
     } else {
-      haliteSumToDest = localCostGrid.maxDistance();
+      haliteSumToDest = (int) (localCostGrid.averageDistance() * GoalFilter.LOCAL_DISTANCE);
     }
+
+    Position nearestHome = mapOracle.getNearestHome(explorePosition);
 
     double best = 0;
     for (int i = 0; i < MINE_RATIOS.length; i++) {
@@ -48,19 +50,27 @@ public class TileScorer {
       double haliteMined = Math.min(Constants.MAX_HALITE - ship.halite, haliteOnTile * MINE_RATIOS[i]);
 
       double haliteReward = haliteMined;
-      if (mapOracle.inspireMap.get(explorePosition.x, explorePosition.y) > 1
-          && mapOracle.distance(ship.position, explorePosition) <= 4) {
-        haliteReward *= 2.5;
+      if (mapOracle.inspireMap.get(explorePosition.x, explorePosition.y) > 1) {
+        haliteReward *= 2.2;
+//        if (mapOracle.distance(ship.position, explorePosition) <= 4) {
+//        }
+//        else {
+//          haliteReward *= 1.4;
+//        }
       }
       haliteReward = Math.min(Constants.MAX_HALITE - ship.halite, haliteReward);
 
-      int turnsInTransit = mapOracle.haliteGrid.distance(shipMovedPosition, explorePosition) + 1;
+
+      double turnsInTransit = mapOracle.haliteGrid.distance(shipMovedPosition, explorePosition) * 0.75
+          + mapOracle.distance(explorePosition, nearestHome) * 0.25 // * (0.25 * ship.halite / Constants.MAX_HALITE)
+          + 1;
+
       if (dir == Direction.STILL) {
         turnsInTransit += 1;
       }
 
       double tollToTile = Math.max(0, (haliteSumToDest - haliteMined) * 0.1);
-      double tollHome = (1.0 * (ship.halite + haliteReward) / Constants.MAX_HALITE)
+      double tollHome = (1.0 * ship.halite / Constants.MAX_HALITE)
           * (mapOracle.goHomeCost(explorePosition) - haliteMined * 0.10);
 
       best = Math.max(best, (haliteReward - tollToTile - tollHome) / (turnsInTransit + turnsSpentOnTile));

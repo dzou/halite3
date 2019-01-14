@@ -13,11 +13,11 @@ import java.util.Set;
 
 public class HaliteDensityGrid {
 
-  private static final int MIN_HALITE_SUMS = 3000;
+  private static final int MIN_HALITE_SUMS = 4000;
 
   private static final int MIN_HALITE_VELOCITY = 600;
 
-  private static final int MIN_SPACE_BTWN_DROPOFFS = 15;
+  private static final int MIN_SPACE_BTWN_DROPOFFS = 14;
 
   private static final int HALITE_DENSITY_RANGE = 4;
 
@@ -99,9 +99,9 @@ public class HaliteDensityGrid {
           int x = tileScoreEntry.position.x + dx;
           int y = tileScoreEntry.position.y + dy;
 
-//          if (mapOracle.influenceDifferenceAtPoint(x, y) < 0) {
-//            continue;
-//          }
+          if (mapOracle.influenceDifferenceAtPoint(x, y) < 0) {
+            continue;
+          }
 
           double curr = mapOracle.haliteGrid.get(tileScoreEntry.position.x, tileScoreEntry.position.y)
               / (haliteVelocitySums.distance(tileScoreEntry.position.x, tileScoreEntry.position.y, x, y) + 1);
@@ -121,7 +121,7 @@ public class HaliteDensityGrid {
           int x = ship.position.x + dx;
           int y = ship.position.y + dy;
 
-          double curr = 1.5 * ship.halite / (haliteVelocitySums.distance(ship.position.x, ship.position.y, x, y) + 1);
+          double curr = ship.halite / (haliteVelocitySums.distance(ship.position.x, ship.position.y, x, y) + 1);
           double prev = haliteVelocitySums.get(x, y);
           haliteVelocitySums.set(x, y, prev + curr);
         }

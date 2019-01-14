@@ -33,7 +33,7 @@ public class HaliteSpender {
     }
     double avgHalitePotential = 0.25 * haliteSum / (oracle.haliteGrid.width * oracle.haliteGrid.height);
 
-    return haliteAvailable >= Constants.SHIP_COST && oracle.turnsRemaining * avgHalitePotential > 2700;
+    return haliteAvailable >= Constants.SHIP_COST && oracle.turnsRemaining * avgHalitePotential > 2500;
   }
 
   public Optional<Position> orderDropoff() {
@@ -66,13 +66,13 @@ public class HaliteSpender {
   }
 
   private boolean shouldOrderDropoff() {
-    if (oracle.myShips.size() < 13
+    if (oracle.myShips.size() < 14
         || oracle.myDropoffsMap.size() >= MAX_DROPOFFS
         || oracle.turnsRemaining < DROPOFF_TURNS_REMAINING_CUTOFF) {
       return false;
     }
 
-    return (oracle.myShips.size() / 13 + 1) > oracle.myDropoffsMap.size();
+    return (oracle.myShips.size() / 14 + 1) > oracle.myDropoffsMap.size();
   }
 
 }

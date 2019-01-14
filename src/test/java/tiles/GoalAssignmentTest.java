@@ -7,6 +7,7 @@ import hlt.Direction;
 import hlt.PlayerId;
 import hlt.Position;
 import hlt.Ship;
+import map.DjikstraGrid;
 import map.Grid;
 import org.junit.Test;
 import shipagent.MapOracle;
@@ -126,22 +127,22 @@ public class GoalAssignmentTest {
   public void testCorrectDirectionalAwareness() {
     Grid<Integer> haliteGrid = new Grid<>(32, 32, 0);
 
-    boolean x = GoalAssignment.isInDirection(Position.at(0, 0), Position.at(0, 21), NORTH, haliteGrid);
+    boolean x = DjikstraGrid.isInDirection(Position.at(0, 0), Position.at(0, 21), NORTH, haliteGrid);
     assertThat(x).isTrue();
 
-    x = GoalAssignment.isInDirection(Position.at(0, 0), Position.at(0, 21), SOUTH, haliteGrid);
+    x = DjikstraGrid.isInDirection(Position.at(0, 0), Position.at(0, 21), SOUTH, haliteGrid);
     assertThat(x).isFalse();
 
-    x = GoalAssignment.isInDirection(Position.at(14, 16), Position.at(5, 21), SOUTH, haliteGrid);
+    x = DjikstraGrid.isInDirection(Position.at(14, 16), Position.at(5, 21), SOUTH, haliteGrid);
     assertThat(x).isTrue();
 
-    x = GoalAssignment.isInDirection(Position.at(14, 16), Position.at(5, 21), WEST, haliteGrid);
+    x = DjikstraGrid.isInDirection(Position.at(14, 16), Position.at(5, 21), WEST, haliteGrid);
     assertThat(x).isTrue();
 
-    x = GoalAssignment.isInDirection(Position.at(14, 16), Position.at(5, 21), EAST, haliteGrid);
+    x = DjikstraGrid.isInDirection(Position.at(14, 16), Position.at(5, 21), EAST, haliteGrid);
     assertThat(x).isFalse();
 
-    x = GoalAssignment.isInDirection(Position.at(14, 16), Position.at(5, 21), NORTH, haliteGrid);
+    x = DjikstraGrid.isInDirection(Position.at(14, 16), Position.at(5, 21), NORTH, haliteGrid);
     assertThat(x).isFalse();
   }
 }

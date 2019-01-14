@@ -5,9 +5,12 @@ import hlt.Direction;
 import hlt.Position;
 import hlt.Ship;
 import map.LocalCostGrid;
+import map.ZoneGrid;
+import map.ZonePlan;
 import shipagent.MapOracle;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 
 public class TileScorer {
@@ -16,10 +19,13 @@ public class TileScorer {
 
   private final MapOracle mapOracle;
 
+  private final ZoneGrid zoneGrid;
+
   private final HashMap<Ship, LocalCostGrid> shipMoveCostCache;
 
   public TileScorer(MapOracle mapOracle) {
     this.mapOracle = mapOracle;
+    this.zoneGrid = ZoneGrid.create(mapOracle.haliteGrid);
     this.shipMoveCostCache = new HashMap<>();
   }
 
@@ -41,37 +47,24 @@ public class TileScorer {
     }
 
     Position nearestHome = mapOracle.getNearestHome(explorePosition);
+    List<ZonePlan> zonePlans = zoneGrid.getZonePlans(explorePosition.x, explorePosition.y, mapOracle);
 
     double best = 0;
-    for (int i = 0; i < MINE_RATIOS.length; i++) {
-      int turnsSpentOnTile = i + 2;
+    for (ZonePlan plan : zonePlans) {
+      int turnsSpentOnTile = plan.turnsSpentInZone;
 
-      int haliteOnTile = mapOracle.haliteGrid.get(explorePosition.x, explorePosition.y);
-      double haliteMined = Math.min(Constants.MAX_HALITE - ship.halite, haliteOnTile * MINE_RATIOS[i]);
+      double haliteReward = Math.min(Constants.MAX_HALITE - ship.halite, plan.haliteGained);
 
-      double haliteReward = haliteMined;
-      if (mapOracle.inspireMap.get(explorePosition.x, explorePosition.y) > 1) {
-        haliteReward *= 2.2;
-//        if (mapOracle.distance(ship.position, explorePosition) <= 4) {
-//        }
-//        else {
-//          haliteReward *= 1.4;
-//        }
-      }
-      haliteReward = Math.min(Constants.MAX_HALITE - ship.halite, haliteReward);
-
-
-      double turnsInTransit = mapOracle.haliteGrid.distance(shipMovedPosition, explorePosition) * 0.75
-          + mapOracle.distance(explorePosition, nearestHome) * 0.25 // * (0.25 * ship.halite / Constants.MAX_HALITE)
+      double turnsInTransit = mapOracle.haliteGrid.distance(shipMovedPosition, explorePosition)
+          + mapOracle.distance(explorePosition, nearestHome) // * (0.25 * ship.halite / Constants.MAX_HALITE)
           + 1;
 
       if (dir == Direction.STILL) {
         turnsInTransit += 1;
       }
 
-      double tollToTile = Math.max(0, (haliteSumToDest - haliteMined) * 0.1);
-      double tollHome = (1.0 * ship.halite / Constants.MAX_HALITE)
-          * (mapOracle.goHomeCost(explorePosition) - haliteMined * 0.10);
+      double tollToTile = Math.max(0, haliteSumToDest * 0.1);
+      double tollHome = (1.0 * ship.halite / Constants.MAX_HALITE) * (mapOracle.goHomeCost(explorePosition));
 
       best = Math.max(best, (haliteReward - tollToTile - tollHome) / (turnsInTransit + turnsSpentOnTile));
     }

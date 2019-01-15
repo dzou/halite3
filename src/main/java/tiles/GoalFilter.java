@@ -46,20 +46,24 @@ public class GoalFilter {
     Log.log(goodTiles.toString() + "\n");
   }
 
-  Set<Position> getLocalMoves(Ship ship, Direction d) {
+  Set<Position> getLocalMoves(Position shipPosition, Direction d) {
+    return getLocalMoves(shipPosition, d, LOCAL_DISTANCE);
+  }
+
+  Set<Position> getLocalMoves(Position shipPosition, Direction d, int range) {
     ImmutableSet.Builder<Position> localPositions = ImmutableSet.builder();
 
-    int xStart = (d == Direction.EAST) ? 1 : -LOCAL_DISTANCE;
-    int xEnd = (d == Direction.WEST) ? -1 : LOCAL_DISTANCE;
+    int xStart = (d == Direction.EAST) ? 1 : -range;
+    int xEnd = (d == Direction.WEST) ? -1 : range;
 
-    int yStart = (d == Direction.SOUTH) ? 1 : -LOCAL_DISTANCE;
-    int yEnd = (d == Direction.NORTH) ? -1 : LOCAL_DISTANCE;
+    int yStart = (d == Direction.SOUTH) ? 1 : -range;
+    int yEnd = (d == Direction.NORTH) ? -1 : range;
 
     for (int y = yStart; y <= yEnd; y++) {
-      for (int x = Math.max(xStart, -LOCAL_DISTANCE + Math.abs(y));
-           x <= Math.min(xEnd, LOCAL_DISTANCE - Math.abs(y));
+      for (int x = Math.max(xStart, -range + Math.abs(y));
+           x <= Math.min(xEnd, range - Math.abs(y));
            x++) {
-        Position curr = Position.at(ship.position.x + x, ship.position.y + y);
+        Position curr = Position.at(shipPosition.x + x, shipPosition.y + y);
 
         localPositions.add(mapOracle.haliteGrid.normalize(curr));
       }

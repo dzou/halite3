@@ -109,7 +109,7 @@ public class GoalAssignment {
         score);
 
     TileScoreEntry localTileEntry =
-        goalFilter.getLocalMoves(ship, dir).stream()
+        goalFilter.getLocalMoves(ship.position, dir).stream()
             .filter(pos -> !tappedPositions.contains(pos)
                 || mapOracle.haliteGrid.distance(pos, ship.position) <= 1 /* && mapOracle.myShipPositionsMap.containsKey(pos) */)
             .filter(pos -> safetyScorer.safetyScore(ship, pos) >= 0)

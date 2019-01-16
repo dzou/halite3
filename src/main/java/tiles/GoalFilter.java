@@ -46,11 +46,11 @@ public class GoalFilter {
     Log.log(goodTiles.toString() + "\n");
   }
 
-  Set<Position> getLocalMoves(Position shipPosition, Direction d) {
-    return getLocalMoves(shipPosition, d, LOCAL_DISTANCE);
+  Set<Position> getLocalMoves(Ship ship, Direction d) {
+    return getLocalMoves(ship.position, d, LOCAL_DISTANCE);
   }
 
-  Set<Position> getLocalMoves(Position shipPosition, Direction d, int range) {
+  Set<Position> getLocalMoves(Position origin, Direction d, int range) {
     ImmutableSet.Builder<Position> localPositions = ImmutableSet.builder();
 
     int xStart = (d == Direction.EAST) ? 1 : -range;
@@ -63,7 +63,7 @@ public class GoalFilter {
       for (int x = Math.max(xStart, -range + Math.abs(y));
            x <= Math.min(xEnd, range - Math.abs(y));
            x++) {
-        Position curr = Position.at(shipPosition.x + x, shipPosition.y + y);
+        Position curr = Position.at(origin.x + x, origin.y + y);
 
         localPositions.add(mapOracle.haliteGrid.normalize(curr));
       }

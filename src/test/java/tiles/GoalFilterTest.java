@@ -125,7 +125,7 @@ public class GoalFilterTest {
 
   Grid<Character> display(GoalFilter filter, Ship ship, Direction dir) {
     ArrayList<Position> affectedPositions = new ArrayList<>();
-    affectedPositions.addAll(filter.getLocalMoves(ship.position, dir));
+    affectedPositions.addAll(filter.getLocalMoves(ship, dir));
 
     Grid<Character> result = new Grid<>(32, 32, '_');
     for (Position p : affectedPositions) {

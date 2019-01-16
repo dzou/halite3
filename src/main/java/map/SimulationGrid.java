@@ -45,6 +45,10 @@ public class SimulationGrid {
     return haliteGained;
   }
 
+  public int distance(Position x, Position y) {
+    return haliteGrid.distance(x, y);
+  }
+
   private void setHalite(Position pos, int haliteAmt) {
     modifiedHalite.put(pos, haliteAmt);
   }

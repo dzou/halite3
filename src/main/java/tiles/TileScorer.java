@@ -32,7 +32,7 @@ public class TileScorer {
   public double localGoalScore(Ship ship, Direction dir, Position explorePosition) {
     if (!shipMoveCostCache.containsKey(ship)) {
       shipMoveCostCache.put(ship, LocalCostGrid.create(
-          mapOracle.haliteGrid, ship.position, GoalFilter.LOCAL_DISTANCE, mapOracle.myShipPositionsMap.keySet()));
+          mapOracle.haliteGrid, ship.position, GoalAssignment.LOCAL_SEARCH_RANGE, mapOracle.myShipPositionsMap.keySet()));
     }
 
     Position shipMovedPosition = ship.position.directionalOffset(dir);
@@ -40,10 +40,10 @@ public class TileScorer {
     LocalCostGrid localCostGrid = shipMoveCostCache.get(ship);
 
     int haliteSumToDest;
-    if (mapOracle.distance(ship.position, explorePosition) <= GoalFilter.LOCAL_DISTANCE) {
+    if (mapOracle.distance(ship.position, explorePosition) <= GoalAssignment.LOCAL_SEARCH_RANGE) {
       haliteSumToDest = localCostGrid.getCostToDest(explorePosition, dir);
     } else {
-      haliteSumToDest = (int) (localCostGrid.averageDistance() * GoalFilter.LOCAL_DISTANCE);
+      haliteSumToDest = (int) (localCostGrid.averageDistance() * GoalAssignment.LOCAL_SEARCH_RANGE);
     }
 
     Position nearestHome = mapOracle.getNearestHome(explorePosition);

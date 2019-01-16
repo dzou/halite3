@@ -16,11 +16,16 @@ import java.util.stream.Stream;
 
 public class GoalAssignment {
 
+  static final int LOCAL_SEARCH_RANGE = 4;
+
+  private static final int MAX_GOALS = 150;
+
   private static final Position NULL_JOB = Position.at(-1, -1);
 
   private final MapOracle mapOracle;
 
   final GoalFilter goalFilter;
+  final GoalFinder goalFinder;
   final TileScorer tileScorer;
   final SafetyScorer safetyScorer;
 
@@ -30,15 +35,17 @@ public class GoalAssignment {
   public GoalAssignment(MapOracle mapOracle) {
     this.mapOracle = mapOracle;
     this.safetyScorer = new SafetyScorer(mapOracle);
-    this.goalFilter = new GoalFilter(mapOracle);
+    this.goalFilter = new GoalFilter(mapOracle.haliteGrid);
+    this.goalFinder = new GoalFinder(mapOracle);
     this.tileScorer = new TileScorer(mapOracle);
 
-    BipartiteGraph graph = new BipartiteGraph();
+    List<TileScoreEntry> bestGoals = goalFinder.getBestPositions(MAX_GOALS);
 
+    BipartiteGraph graph = new BipartiteGraph();
     for (Ship ship : mapOracle.myShips) {
       HashMap<Position, Double> shipDestinations = new HashMap<>();
 
-      List<TileScoreEntry> safeGoals = goalFilter.bestTiles.stream()
+      List<TileScoreEntry> safeGoals = bestGoals.stream()
           // .filter(entry -> safetyScorer.safetyScore(ship, entry.position) >= 0.0)
           .collect(Collectors.toList());
 
@@ -49,7 +56,7 @@ public class GoalAssignment {
       graph.addSingleCapacityNode(
           ship.position,
           shipDestinations,
-          1 + mapOracle.myShips.size() / goalFilter.bestTiles.size());
+          1 + mapOracle.myShips.size() / bestGoals.size());
 
       graph.addSingleCapacityNode(
           ship.position, ImmutableMap.of(NULL_JOB, 0.0), 999);
@@ -109,7 +116,7 @@ public class GoalAssignment {
         score);
 
     TileScoreEntry localTileEntry =
-        goalFilter.getLocalMoves(ship.position, dir).stream()
+        goalFilter.getLocalMoves(ship.position, dir, LOCAL_SEARCH_RANGE).stream()
             .filter(pos -> !tappedPositions.contains(pos)
                 || mapOracle.haliteGrid.distance(pos, ship.position) <= 1 /* && mapOracle.myShipPositionsMap.containsKey(pos) */)
             .filter(pos -> safetyScorer.safetyScore(ship, pos) >= 0)

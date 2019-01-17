@@ -31,10 +31,11 @@ public class TileValueGrid {
 
     SimulationGrid simulationGrid = new SimulationGrid(haliteGrid, shipOrigin);
     for (int i = 0; i < SIMULATION_LENGTH; i++) {
-      Direction bestDir = getBestDirection(shipOrigin, simulationGrid, goalFilter);
+      Direction bestDir = getBestDirection(simulationGrid.getPosition(), simulationGrid, goalFilter);
       simulationGrid.moveShip(bestDir);
 
       tileWalks.add(new TileWalk(simulationGrid.getHaliteGained(), simulationGrid.getPosition()));
+      System.out.println(simulationGrid);
     }
 
     return tileWalks;
@@ -65,7 +66,7 @@ public class TileValueGrid {
       return goalFilter.getLocalMoves(shipOrigin, dir, SIMULATION_RANGE)
           .stream()
           .mapToDouble(pos ->
-              (1.0 * simulationGrid.getHalite(pos) - 0.1 * simulationGrid.getHalite(shipOrigin))
+              (0.25 * simulationGrid.getHalite(pos) - 0.1 * simulationGrid.getHalite(shipOrigin))
                   / (simulationGrid.distance(pos, shipOrigin) + 1))
           .max()
           .orElse(0.0);

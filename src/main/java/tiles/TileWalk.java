@@ -14,9 +14,6 @@ public class TileWalk {
 
   @Override
   public String toString() {
-    return "TileWalk{" +
-        "haliteGain=" + haliteGain +
-        ", endpoint=" + endpoint +
-        '}';
+    return endpoint.toString() + haliteGain;
   }
 }

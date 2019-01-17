@@ -29,7 +29,7 @@ public class SimulationGrid {
       haliteGained += haliteMined;
     } else {
       haliteGained -= getHalite(shipPosition) / 10;
-      shipPosition = shipPosition.directionalOffset(dir);
+      shipPosition = haliteGrid.normalize(shipPosition.directionalOffset(dir));
     }
   }
 
@@ -51,5 +51,19 @@ public class SimulationGrid {
 
   private void setHalite(Position pos, int haliteAmt) {
     modifiedHalite.put(pos, haliteAmt);
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder stringBuilder = new StringBuilder();
+
+    for (int y = 0; y < haliteGrid.height; y++) {
+      for (int x = 0; x < haliteGrid.width; x++) {
+        stringBuilder.append(getHalite(Position.at(x, y)) + " ");
+      }
+      stringBuilder.append("\n");
+    }
+
+    return stringBuilder.toString();
   }
 }

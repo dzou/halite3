@@ -5,6 +5,7 @@ import hlt.Position;
 import hlt.Ship;
 import shipagent.MapOracle;
 import tiles.GoalFilter;
+import tiles.GoalFinder;
 import tiles.TileScoreEntry;
 
 import java.util.List;
@@ -88,7 +89,8 @@ public class HaliteDensityGrid {
   }
 
   public static HaliteDensityGrid create(MapOracle mapOracle) {
-    List<TileScoreEntry> bestTiles = GoalFilter.getBestPositions(mapOracle, 150);
+    GoalFinder goalFinder = new GoalFinder(mapOracle);
+    List<TileScoreEntry> bestTiles = goalFinder.getBestPositions(250);
 
     Grid<Double> haliteVelocitySums = new Grid<>(mapOracle.haliteGrid.width, mapOracle.haliteGrid.height, 0.0);
     Grid<Integer> haliteRawSums = new Grid<>(mapOracle.haliteGrid.width, mapOracle.haliteGrid.height, 0);

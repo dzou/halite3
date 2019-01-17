@@ -110,7 +110,7 @@ public class GoalFilterTest {
         ImmutableList.of(myShip),
         ImmutableList.of(),
         ImmutableMap.of(new PlayerId(0), ImmutableSet.of(Position.at(4, 4))));
-    GoalFilter goalFilter = new GoalFilter(mapOracle);
+    GoalFilter goalFilter = new GoalFilter(mapOracle.haliteGrid);
 
     for (Direction d : Direction.values()) {
       System.out.println(display(goalFilter, myShip, d));
@@ -125,7 +125,7 @@ public class GoalFilterTest {
 
   Grid<Character> display(GoalFilter filter, Ship ship, Direction dir) {
     ArrayList<Position> affectedPositions = new ArrayList<>();
-    affectedPositions.addAll(filter.getLocalMoves(ship, dir));
+    affectedPositions.addAll(filter.getLocalMoves(ship.position, dir, 4));
 
     Grid<Character> result = new Grid<>(32, 32, '_');
     for (Position p : affectedPositions) {

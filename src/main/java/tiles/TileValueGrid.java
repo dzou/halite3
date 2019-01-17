@@ -8,11 +8,13 @@ import map.SimulationGrid;
 
 public class TileValueGrid {
 
-  private static final int SIMULATION_RANGE = 2;
+  private static final int SIMULATION_RANGE = 1;
 
-  private static final int SIMULATION_LENGTH = 10;
+  private static final int SIMULATION_LENGTH = 6;
 
-  public static Grid<ArrayList<TileWalk>> create(Grid<Integer> haliteGrid) {
+  public static Grid<ArrayList<TileWalk>> create(
+      Grid<Integer> haliteGrid,
+      Grid<Integer> inspireMap) {
     GoalFilter goalFilter = new GoalFilter(haliteGrid);
 
     Grid<ArrayList<TileWalk>> valueGrid = new Grid<>(haliteGrid.width, haliteGrid.height, null);
@@ -31,11 +33,28 @@ public class TileValueGrid {
 
     SimulationGrid simulationGrid = new SimulationGrid(haliteGrid, shipOrigin);
     for (int i = 0; i < SIMULATION_LENGTH; i++) {
-      Direction bestDir = getBestDirection(simulationGrid.getPosition(), simulationGrid, goalFilter);
+      Position currShipPosition = simulationGrid.getPosition();
+
+      Direction bestDir;
+      if (i < 3 || i == SIMULATION_LENGTH - 1) {
+        bestDir = Direction.STILL;
+      } else {
+        bestDir = getBestDirection(currShipPosition, simulationGrid, goalFilter);
+      }
+
       simulationGrid.moveShip(bestDir);
 
-      tileWalks.add(new TileWalk(simulationGrid.getHaliteGained(), simulationGrid.getPosition()));
-      System.out.println(simulationGrid);
+      TileWalk currWalk = new TileWalk(
+          simulationGrid.getHaliteGained(),
+          simulationGrid.getPosition(),
+          haliteGrid.get(currShipPosition.x, currShipPosition.y) - simulationGrid.getHalite(currShipPosition));
+      if (currWalk.haliteDiscount < 0) {
+        throw new IllegalArgumentException(
+            "it is impossible for haliteDiscount to be negative. discount val: "
+                + currWalk.haliteDiscount);
+      }
+
+      tileWalks.add(currWalk);
     }
 
     return tileWalks;
@@ -66,8 +85,8 @@ public class TileValueGrid {
       return goalFilter.getLocalMoves(shipOrigin, dir, SIMULATION_RANGE)
           .stream()
           .mapToDouble(pos ->
-              (0.25 * simulationGrid.getHalite(pos) - 0.1 * simulationGrid.getHalite(shipOrigin))
-                  / (simulationGrid.distance(pos, shipOrigin) + 1))
+              (0.44 * simulationGrid.getHalite(pos) - 0.1 * simulationGrid.getHalite(shipOrigin))
+                  / (simulationGrid.distance(pos, shipOrigin) + 2))
           .max()
           .orElse(0.0);
     }

@@ -83,22 +83,7 @@ public class GoalAssignment {
 //    Log.log(this.tappedPositions.toString());
   }
 
-  public double mineScore(Ship ship) {
-    return tileScorer.mineScore(ship);
-  }
-
   public TileScoreEntry scoreLocalTile(Ship ship, Direction dir) {
-    TileScoreEntry mineScoreEntry = new TileScoreEntry(
-        ship.position, mapOracle.haliteGrid.get(ship.position.x, ship.position.y), 0.0);
-
-    if (dir == Direction.STILL) {
-      mineScoreEntry = new TileScoreEntry(
-          ship.position, mapOracle.haliteGrid.get(ship.position.x, ship.position.y), tileScorer.mineScore(ship));
-      if (mapOracle.myDropoffsMap.containsKey(ship.position)) {
-        return mineScoreEntry;
-      }
-    }
-
     Position assignedJob = shipAssignments.get(ship.position);
 
     double score;
@@ -124,7 +109,7 @@ public class GoalAssignment {
             .max(Comparator.comparingDouble(entry -> entry.score))
             .orElse(new TileScoreEntry(ship.position, mapOracle.haliteGrid.get(ship.position.x, ship.position.y), 0.0));
 
-    return Stream.of(mineScoreEntry, assignedTileEntry, localTileEntry)
+    return Stream.of(assignedTileEntry, localTileEntry)
         .max(Comparator.comparingDouble(entry -> entry.score))
         .get();
   }

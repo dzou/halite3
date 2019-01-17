@@ -8,6 +8,7 @@ import org.junit.Test;
 import java.util.Arrays;
 
 import static com.google.common.truth.Truth.assertThat;
+import static hlt.Direction.NORTH;
 
 public class LocalCostGridTest {
 
@@ -46,7 +47,7 @@ public class LocalCostGridTest {
     Integer[][] rawGrid = {
         {2, 4, 2, 2, 2, 1, 1, 8},
         {2, 2, 2, 2, 2, 1, 1, 8},
-        {2, 2, 2, 2, 2, 1, 1, 8},
+        {2, 9, 2, 2, 2, 1, 1, 8},
         {2, 2, 2, 8, 2, 1, 1, 8},
         {1, 1, 3, 3, 4, 4, 4, 4},
         {1, 1, 3, 3, 4, 1, 1, 7},
@@ -57,9 +58,10 @@ public class LocalCostGridTest {
 
     LocalCostGrid localCostGrid = LocalCostGrid.create(haliteGrid, Position.at(6, 4), 3, ImmutableSet.of());
 
-    assertThat(localCostGrid.getCostToDest(Position.at(1, 2), Direction.WEST)).isEqualTo(22);
-    assertThat(localCostGrid.getCostToDest(Position.at(1, 2), Direction.EAST)).isEqualTo(14);
-    assertThat(localCostGrid.getCostToDest(Position.at(1, 2), Direction.STILL)).isEqualTo(14);
+    assertThat(localCostGrid.getCostToDest(Position.at(1, 2), Direction.WEST)).isEqualTo(20);
+    assertThat(localCostGrid.getCostToDest(Position.at(1, 2), Direction.EAST)).isEqualTo(12);
+    assertThat(localCostGrid.getCostToDest(Position.at(1, 2), Direction.STILL)).isEqualTo(12);
+    assertThat(localCostGrid.getCostToDest(Position.at(1, 2), NORTH)).isEqualTo(16);
   }
 
   @Test

@@ -40,7 +40,7 @@ public class LocalCostGrid {
 
     int[][] costCache = costCacheMap.get(d);
     int costToMove = (d != Direction.STILL) ? haliteGrid.get(absoluteCenter.x, absoluteCenter.y) : 0;
-    return costCache[mappedPosition.y][mappedPosition.x] + costToMove;
+    return costCache[mappedPosition.y][mappedPosition.x] + costToMove - haliteGrid.get(destination.x, destination.y);
   }
 
   private static Position getMappedPosition(

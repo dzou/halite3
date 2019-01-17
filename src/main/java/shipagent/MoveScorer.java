@@ -53,7 +53,7 @@ public class MoveScorer {
     boolean endTheGame = mapOracle.isTimeToEndGame(ship, mapOracle.myShips.size());
 
     double homeScore = goHomeScore(ship, destination, endTheGame);
-    double focusScore = 0; // focusGrid.score(ship, moveDir);
+    double focusScore = 0;
     TileScoreEntry tileScoreEntry = goalAssignment.scoreLocalTile(ship, moveDir);
     double enemyInfluence = getEnemyInfluence(ship, destination);
     double killScore = killScore(ship, destination);
@@ -77,14 +77,8 @@ public class MoveScorer {
 
   private double goHomeScore(Ship ship, Position destination, boolean endTheGame) {
     double haliteCostToHome = endTheGame ? 0 : mapOracle.goHomeCost(destination);
-
-    double payload = ship.halite;
-    if (destination.equals(ship.position)) {
-      payload += goalAssignment.mineScore(ship);
-    }
-
     double moveHomeOpportunityCost = (1.0 * ship.halite * ship.halite) / (Constants.MAX_HALITE * Constants.MAX_HALITE);
-    return moveHomeOpportunityCost * (payload - haliteCostToHome)
+    return moveHomeOpportunityCost * (ship.halite - haliteCostToHome)
         / (mapOracle.haliteGrid.distance(destination, mapOracle.getNearestHome(ship.position)) + 4);
   }
 

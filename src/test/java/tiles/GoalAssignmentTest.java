@@ -38,11 +38,13 @@ public class GoalAssignmentTest {
 
     System.out.println(assignment.shipAssignments);
     System.out.println(assignment.tappedPositions);
+    System.out.println(assignment.tileScorer.tileValueGrid.get(0, 10));
+    System.out.println(assignment.tileScorer.tileValueGrid.get(20, 10));
 
     assertThat(assignment.shipAssignments).isEqualTo(ImmutableMap.of(
         Position.at(10, 10), Position.at(20, 10),
         Position.at(10, 0), Position.at(10, 0),
-        Position.at(10, 1), Position.at(0, 10)));
+        Position.at(10, 1), Position.at(9, 0)));
   }
 
 

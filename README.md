@@ -10,7 +10,7 @@ If you want to try playing around with my bot, I have included two versions of m
 
 Also, if you would like to experiment with the code, this project is built with Maven.
 
-* Run `mvn package -DskipTests` to produce `target/MyBot.jar`, which is the jar file for my bot.
+* You can build my bot from the sources, by running `mvn package -DskipTests`. This produces `target/MyBot.jar`, which is the jar file for my bot.
 
 ## Overview
 
@@ -30,8 +30,8 @@ The factors of scoring each move are taken from the following categories:
 - **Tile Score**: Every ship moves toward a tile which yields some amount of points.
 
   - Every ship is matched with a tile on the map that is considered a best-effort match to the ship. Additionally,
-    every ship considers the tiles within 4-units away from it. All of these tiles are scored for the ship, and the best
-    score for each tile is saved into the `{UP, DOWN, LEFT, RIGHT, STILL}` scores.
+    every ship considers all the tiles within 4-units away from it. All of these tiles are scored for the ship, and the best
+    scores from the tiles are saved into the `{UP, DOWN, LEFT, RIGHT, STILL}` move scores for each ship.
 
   - The points a tiles yields is calculated with `inspiredBonus * (haliteGained - tollFromTileToHome) / (turnsToGetToTile + turnsSpentOnTile)`.
     This is the essence of the tile scoring strategy with a few minor tweaks.

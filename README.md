@@ -9,8 +9,8 @@ If you want to try playing around with my bot, I have included two versions of m
 * latest.jar: This contains a lot of experimental changes which are untested.
 
 Also, if you would like to experiment with the code, this project is built with Maven.
-You can run `mvn package -DskipTests` which will produce the jar file under the `target/`
-directory which can be used to run it.
+
+* Run `mvn package -DskipTests` to produce `target/MyBot.jar`, which is the jar file for my bot.
 
 ## Overview
 

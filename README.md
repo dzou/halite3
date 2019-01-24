@@ -124,7 +124,10 @@ This produces a clumping strategy which seems successful for purposes of gaining
 
 ## Summary
 
-Thanks for reading, hope you found the write-up useful. And please feel free to let me know if you have questions. Peace.
+Thanks for reading, hope you found the write-up useful.
+And please feel free to let me know if you have questions - the easiest way is to create an issue in this repo.
+
+Peace.
 
 
 

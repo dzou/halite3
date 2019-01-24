@@ -10,7 +10,7 @@ If you want to try playing around with my bot, I have included two versions of m
 
 Also, if you would like to experiment with the code, this project is built with Maven.
 
-* You can build my bot from the sources, by running `mvn package -DskipTests`. This produces `target/MyBot.jar`, which is the jar file for my bot.
+* You can build my bot from the sources, by running `mvn package -DskipTests`. After running the command, the bot will be compiled into a jar and outputted to a generated target directory: `target/MyBot.jar`.
 
 ## Overview
 

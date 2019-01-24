@@ -98,8 +98,9 @@ Make a bipartite graph out of it, and then the Hungarian matching algorithm will
 
 In the example, the ship at (10, 10) moves to (10, 11) to win 30 points, and the ship at (11, 11) moves to (11, 12) to win 20 points.
 
-The reason why this algorithm is useful is because the matching it produces is 1-to-1.
-In the context of Halite, this means that the matching of ships to destination will never have any collisions.
+The reason why this algorithm is useful is because the matching it produces is perfect and 1-to-1.
+In the context of Halite, this means that all ships are matched to a destination and the matching will never produce any collisions.
+And the matching maximizes the sum of move scores, so it is going to be a good assignment. 
 
 ### Dropoff Strategy
 

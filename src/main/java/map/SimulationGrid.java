@@ -23,9 +23,17 @@ public class SimulationGrid {
   }
 
   public void moveShip(Direction dir) {
+    moveShip(dir, false);
+  }
+
+  public void moveShip(Direction dir, boolean useInspire) {
     if (dir == Direction.STILL) {
       int haliteMined = getHalite(shipPosition) / 4;
       setHalite(shipPosition, getHalite(shipPosition) - haliteMined);
+
+      if (useInspire) {
+        haliteMined *= 3;
+      }
       haliteGained += haliteMined;
     } else {
       haliteGained -= getHalite(shipPosition) / 10;

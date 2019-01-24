@@ -1,6 +1,8 @@
 package shipagent;
 
+import bot.HaliteStatTracker;
 import hlt.Constants;
+import hlt.Log;
 import hlt.Position;
 import map.HaliteDensityGrid;
 
@@ -10,7 +12,7 @@ public class HaliteSpender {
 
   private static final int MAX_DROPOFFS = 10;
 
-  private static final int DROPOFF_TURNS_REMAINING_CUTOFF = 75;
+  private static final int DROPOFF_TURNS_REMAINING_CUTOFF = 100;
 
   private final MapOracle oracle;
 
@@ -24,16 +26,12 @@ public class HaliteSpender {
     this.haliteAvailable = haliteAvailable;
   }
 
-  public boolean shouldMakeShip() {
-    double haliteSum = 0;
-    for (int y = 0; y < oracle.haliteGrid.height; y++) {
-      for (int x = 0; x < oracle.haliteGrid.width; x++) {
-        haliteSum += oracle.haliteGrid.get(x, y);
-      }
+  public boolean canAffordShipAndShouldMake() {
+    if (haliteAvailable < Constants.SHIP_COST) {
+      return false;
     }
-    double avgHalitePotential = 0.25 * haliteSum / (oracle.haliteGrid.width * oracle.haliteGrid.height);
 
-    return haliteAvailable >= Constants.SHIP_COST && oracle.turnsRemaining * avgHalitePotential > 2500;
+    return oracle.shouldMakeShip();
   }
 
   public Optional<Position> orderDropoff() {

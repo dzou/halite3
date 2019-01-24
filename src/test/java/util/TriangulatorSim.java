@@ -110,10 +110,10 @@ public class TriangulatorSim {
     );
 
     ImmutableList<Ship> enemyShips = ImmutableList.of(
-        ship(9, 11, 0),
+        ship(10, 20),
         ship(10, 0, 0),
         ship(20, 10, 0),
-        ship(0, 20, 0)
+        ship(0, 10, 0)
     );
 
     MapOracle mapOracle = new MapOracle(

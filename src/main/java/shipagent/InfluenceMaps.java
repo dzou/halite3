@@ -5,6 +5,7 @@ import hlt.Position;
 import hlt.Ship;
 import map.Grid;
 
+import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.HashSet;
 
@@ -14,32 +15,50 @@ public class InfluenceMaps {
 
   public static final int SHIP_INFLUENCE_RANGE = 4;
 
-//  public static double getExploreFactor(Ship ship, int dx, int dy, Grid<Integer> haliteGrid) {
-//    double distance = 3 * haliteGrid.distance(dx, dy, ship.position.x, ship.position.y) + 1;
-//    double miningPotential = (1.0 * Constants.MAX_HALITE - ship.halite) / (distance * Constants.MAX_HALITE);
-//    return miningPotential;
-//  }
-//
-//  public static Grid<Double> buildExploreMap(Collection<Ship> myShips, Grid<Integer> haliteGrid) {
-//    Grid<Double> influenceMap = new Grid<>(haliteGrid.width, haliteGrid.height, 0.0);
-//
-//    int influenceRange = Math.min(haliteGrid.width / 2, SHIP_INFLUENCE_RANGE);
-//
-//    for (Ship ship : myShips) {
-//      for (int y = -influenceRange; y <= influenceRange; y++) {
-//        for (int x = -influenceRange + Math.abs(y); x <= influenceRange - Math.abs(y); x++) {
-//          int dx = ship.position.x + x;
-//          int dy = ship.position.y + y;
-//
-//          double miningPotential = getExploreFactor(ship, dx, dy, haliteGrid);
-//          double prev = influenceMap.get(dx, dy);
-//          influenceMap.set(dx, dy, prev + miningPotential);
-//        }
-//      }
+  public static Grid<Integer> getControlMap(
+      Grid<Integer> haliteGrid,
+      Collection<Position> alliedPositions,
+      Collection<Position> enemyPositions) {
+
+    Grid<Integer> controlMap = new Grid<>(
+        haliteGrid.width, haliteGrid.height, 0);
+
+    ArrayDeque<Position> queue = new ArrayDeque<>();
+    for (Position myPoint : alliedPositions) {
+      queue.addLast(myPoint);
+      controlMap.set(myPoint.x, myPoint.y, 1);
+    }
+
+    for (Position enemyPoint : enemyPositions) {
+      queue.addLast(enemyPoint);
+      controlMap.set(enemyPoint.x, enemyPoint.y, -1);
+    }
+
+//    for (Ship myShip : myShips) {
+//      queue.addLast(myShip.position);
+//      controlMap.set(myShip.position.x, myShip.position.y, 1);
 //    }
 //
-//    return influenceMap;
-//  }
+//    for (Ship enemyShip : enemyShips) {
+//      queue.addLast(enemyShip.position);
+//      controlMap.set(enemyShip.position.x, enemyShip.position.y, -1);
+//    }
+
+    while (!queue.isEmpty()) {
+      Position curr = queue.removeFirst();
+      int rootShipType = controlMap.get(curr.x, curr.y);
+
+      for (Position neighbor : haliteGrid.getNeighbors(curr)) {
+        int neighborShipType = controlMap.get(neighbor.x, neighbor.y);
+        if (neighborShipType == 0) {
+          controlMap.set(neighbor.x, neighbor.y, rootShipType);
+          queue.addLast(neighbor);
+        }
+      }
+    }
+
+    return controlMap;
+  }
 
   public static double getInfluenceFactor(Ship ship, int dx, int dy, Grid<Integer> haliteGrid) {
     int distance = haliteGrid.distance(dx, dy, ship.position.x, ship.position.y);

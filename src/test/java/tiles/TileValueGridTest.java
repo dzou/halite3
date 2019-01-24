@@ -10,15 +10,12 @@ import hlt.Direction;
 import hlt.PlayerId;
 import hlt.Position;
 import hlt.Ship;
-import java.util.Comparator;
-import java.util.Set;
 import map.Grid;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import shipagent.Decision;
+
 import shipagent.MapOracle;
-import shipagent.MoveScorer;
 
 public class TileValueGridTest {
 
@@ -30,8 +27,10 @@ public class TileValueGridTest {
         {  0,   0,  20}
     };
     Grid<Integer> haliteGrid = new Grid<>(rawGrid);
+    Grid<Integer> inspireGrid = new Grid<>(3, 3, 0);
 
-    Grid<ArrayList<TileWalk>> tileValueGrid = TileValueGrid.create(haliteGrid);
+    Grid<ArrayList<TileWalk>> tileValueGrid =
+        TileValueGrid.create(haliteGrid, inspireGrid);
 
     System.out.println(tileValueGrid);
 
@@ -60,12 +59,14 @@ public class TileValueGridTest {
     MapOracle mapOracle = new MapOracle(new PlayerId(0), haliteGrid, 9999, myShips, ImmutableList.of(), ImmutableMap
         .of(new PlayerId(0), ImmutableSet.of(Position.at(0, 0))));
 
-    TileScorer tileScorer = new TileScorer(mapOracle);
+    TileScorer tileScorer = new TileScorer(
+        mapOracle,
+        TileValueGrid.create(mapOracle.haliteGrid, mapOracle.inspireMap));
 
-    double x = tileScorer.localGoalScore(ship, Direction.NORTH, Position.at(4, 3));
+    double x = tileScorer.roundTripTileScore(ship, Direction.NORTH, Position.at(4, 3));
     System.out.println(x);
 
-    x = tileScorer.localGoalScore(ship, Direction.STILL, Position.at(4, 4));
+    x = tileScorer.roundTripTileScore(ship, Direction.STILL, Position.at(4, 4));
     System.out.println(x);
   }
 }

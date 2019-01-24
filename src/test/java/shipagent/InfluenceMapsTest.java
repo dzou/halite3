@@ -1,6 +1,7 @@
 package shipagent;
 
 import com.google.common.collect.ImmutableList;
+import hlt.Position;
 import hlt.Ship;
 import map.Grid;
 import org.junit.Test;
@@ -96,5 +97,44 @@ public class InfluenceMapsTest {
     assertThat(inspireMap.get(2, 2)).isEqualTo(2);
 
     System.out.println(inspireMap);
+  }
+
+  @Test
+  public void testControlMaps() {
+    Grid<Integer> haliteGrid = new Grid<>(16, 16, 0);
+
+    ImmutableList<Position> myPositions = ImmutableList.of(
+        Position.at(0, 0),
+        Position.at(6, 2),
+        Position.at(8, 4)
+    );
+
+    ImmutableList<Position> enemyPositions = ImmutableList.of(
+        Position.at(1, 0),
+        Position.at(7, 13),
+        Position.at(15, 15)
+    );
+
+    Grid<Integer> controlMap = InfluenceMaps.getControlMap(haliteGrid, myPositions, enemyPositions);
+
+    for (Position friend : myPositions) {
+      controlMap.set(friend.x, friend.y, 0);
+    }
+
+    for (Position enemy : enemyPositions) {
+      controlMap.set(enemy.x, enemy.y, 0);
+    }
+
+    for (int y = 0; y < controlMap.height; y++) {
+      for (int x = 0; x < controlMap.width; x++) {
+        int val = controlMap.get(x, y);
+        if (val < 0) {
+          System.out.print(val + " ");
+        } else {
+          System.out.print(" " + val + " ");
+        }
+      }
+      System.out.println();
+    }
   }
 }

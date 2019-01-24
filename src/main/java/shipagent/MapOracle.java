@@ -1,7 +1,9 @@
 package shipagent;
 
+import bot.HaliteStatTracker;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import hlt.Log;
 import hlt.PlayerId;
 import hlt.Position;
 import hlt.Ship;
@@ -38,7 +40,9 @@ public class MapOracle {
   public final Grid<Integer> enemyThreatMap;
 
   public final Grid<Integer> inspireMap;
+  public final Grid<Integer> controlMap;
 
+  public final BaseManager baseManager;
   public final TriangulationGrid enemyShipCovers;
 
   public final int haliteSum;
@@ -80,7 +84,9 @@ public class MapOracle {
     this.enemyThreatMap = InfluenceMaps.threatMap(enemyShips, haliteGrid);
 
     this.inspireMap = InfluenceMaps.inspiredMap(enemyShips, haliteGrid);
+    this.controlMap = InfluenceMaps.getControlMap(haliteGrid, myDropoffsMap.keySet(), enemyDropoffs);
 
+    this.baseManager = new BaseManager(playerBases, haliteGrid);
     this.enemyShipCovers = new TriangulationGrid(enemyShips, ENEMY_COVER_RANGE);
 
     this.haliteSum = haliteGrid.stream().mapToInt(n -> n).sum();
@@ -88,6 +94,21 @@ public class MapOracle {
         .mapToInt(n -> n)
         .average()
         .orElse(0.0);
+  }
+
+  public boolean shouldMakeShip() {
+    int shipCount = myShips.size() + enemyShips.size();
+
+    double averageShipConsumptionRate = HaliteStatTracker.getHaliteConsumptionRate(shipCount);
+    int haliteSum = HaliteStatTracker.getHaliteSum();
+
+    Log.log("Halite Sum on Map: " + haliteSum);
+    Log.log("Ship Consumption Rate: " + averageShipConsumptionRate);
+
+    double avgHalitePotential = 0.25 * haliteSum / (haliteGrid.width * haliteGrid.height);
+
+    return turnsRemaining * avgHalitePotential > 2700
+        || averageShipConsumptionRate * turnsRemaining > 1400;
   }
 
   public int distance(Position origin, Position destination) {
@@ -103,6 +124,12 @@ public class MapOracle {
     return Optional.ofNullable(myShipPositionsMap.get(projectedDropOffLoc));
   }
 
+  public Position nearestEnemyBase(Position origin) {
+    return enemyDropoffs.stream()
+        .min(Comparator.comparingInt(dropoff -> distance(origin, dropoff)))
+        .orElse(origin);
+  }
+
   public Position getNearestHome(Position origin) {
     Comparator<Position> dropOffComparator =
         Comparator.<Position>comparingInt(dropoff -> haliteGrid.distance(origin, dropoff))
@@ -114,12 +141,12 @@ public class MapOracle {
         .min(dropOffComparator)
         .get();
 
-    return closestDropoff;
-//    return myDropoffsMap.keySet()
-//        .stream()
-//        .filter(pos -> influenceDifferenceAtPoint(pos.x, pos.y) >= 0.0)
-//        .min(dropOffComparator)
-//        .orElse(closestDropoff);
+//    return closestDropoff;
+    return myDropoffsMap.keySet()
+        .stream()
+        .filter(pos -> influenceDifferenceAtPoint(pos.x, pos.y) > -3.0 || distance(pos, origin) <= 2)
+        .min(dropOffComparator)
+        .orElse(closestDropoff);
   }
 
   public double goHomeCost(Position destination) {

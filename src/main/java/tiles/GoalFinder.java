@@ -7,14 +7,19 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
+
+import map.Grid;
 import shipagent.MapOracle;
 
 public class GoalFinder {
 
   private final MapOracle mapOracle;
 
-  public GoalFinder(MapOracle mapOracle) {
+  private final Grid<ArrayList<TileWalk>> tileValueGrid;
+
+  public GoalFinder(MapOracle mapOracle, Grid<ArrayList<TileWalk>> tileValueGrid) {
     this.mapOracle = mapOracle;
+    this.tileValueGrid = tileValueGrid;
   }
 
   /** Returns at most {@code maxCount} of the best positions to consider, usually fewer. */
@@ -23,12 +28,16 @@ public class GoalFinder {
 
     for (int y = 0; y < mapOracle.haliteGrid.height; y++) {
       for (int x = 0; x < mapOracle.haliteGrid.width; x++) {
+        ArrayList<TileWalk> tileWalks = tileValueGrid.get(x, y);
+        TileWalk bestWalk = tileWalks.get(tileWalks.size() - 1);
+
         Position curr = Position.at(x, y);
-        int distanceHome = mapOracle.distance(curr, mapOracle.getNearestHome(curr)) + 1;
+        int turnsSpent =
+            mapOracle.distance(bestWalk.endpoint, mapOracle.getNearestHome(bestWalk.endpoint))
+                // + tileWalks.size()
+                + 1;
 
-        double inspireMultiplier = (mapOracle.inspireMap.get(x, y) > 1) ? 2.25 : 1.0;
-
-        double score = (inspireMultiplier * mapOracle.haliteGrid.get(x, y) - mapOracle.goHomeCost(curr)) / distanceHome;
+        double score = (bestWalk.haliteGain - mapOracle.goHomeCost(curr)) / turnsSpent;
         queue.offer(new TileScoreEntry(curr, mapOracle.haliteGrid.get(x, y), score));
 
         if (queue.size() > maxCount) {
@@ -66,6 +75,6 @@ public class GoalFinder {
       return false;
     }
 
-    return (1.0 * currSum / mapOracle.haliteSum) < 0.20;
+    return (1.0 * currSum / mapOracle.haliteSum) < 0.25;
   }
 }

@@ -37,7 +37,7 @@ public class DecisionVector {
 
     return result
         + enemyThreatScore
-        + 0.10 * killScore;
+        + killScore;
   }
 
   @Override

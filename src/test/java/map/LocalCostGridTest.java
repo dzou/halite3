@@ -1,14 +1,19 @@
 package map;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import hlt.Direction;
 import hlt.Position;
+import hlt.Ship;
 import org.junit.Test;
 
 import java.util.Arrays;
 
 import static com.google.common.truth.Truth.assertThat;
+import static hlt.Direction.EAST;
 import static hlt.Direction.NORTH;
+import static hlt.Direction.STILL;
+import static util.TestUtil.ship;
 
 public class LocalCostGridTest {
 
@@ -41,6 +46,23 @@ public class LocalCostGridTest {
 //
 //    assertThat(costcache).isEqualTo(expected);
 //  }
+
+  @Test
+  public void testShipCrowdFactor() {
+
+    ImmutableSet<Position> myShips = ImmutableSet.of(
+        Position.at(0, 0),
+        Position.at(1, 0),
+        Position.at(2, 0)
+    );
+
+    Grid<Integer> grid = new Grid<>(32, 32, 0);
+
+    LocalCostGrid localCostGrid = LocalCostGrid.create(grid, Position.at(0, 0), 4, myShips);
+
+    assertThat(localCostGrid.getCostToDest(Position.at(3, 0), NORTH)).isEqualTo(0);
+    assertThat(localCostGrid.getCostToDest(Position.at(3, 0), STILL)).isEqualTo(2);
+  }
 
   @Test
   public void testFindLowestCostPath() {

@@ -21,14 +21,17 @@ public class TileValueGrid {
 
     for (int y = 0; y < valueGrid.height; y++) {
       for (int x = 0; x < valueGrid.width; x++) {
-        ArrayList<TileWalk> tileWalks = simulateWalk(Position.at(x, y), haliteGrid, goalFilter);
+        ArrayList<TileWalk> tileWalks = simulateWalk(
+            Position.at(x, y), haliteGrid, goalFilter, inspireMap);
         valueGrid.set(x, y, tileWalks);
       }
     }
     return valueGrid;
   }
 
-  private static ArrayList<TileWalk> simulateWalk(Position shipOrigin, Grid<Integer> haliteGrid, GoalFilter goalFilter) {
+  private static ArrayList<TileWalk> simulateWalk(
+      Position shipOrigin, Grid<Integer> haliteGrid, GoalFilter goalFilter, Grid<Integer> inspireMap) {
+
     ArrayList<TileWalk> tileWalks = new ArrayList<>();
 
     SimulationGrid simulationGrid = new SimulationGrid(haliteGrid, shipOrigin);
@@ -39,10 +42,14 @@ public class TileValueGrid {
       if (i < 3 || i == SIMULATION_LENGTH - 1) {
         bestDir = Direction.STILL;
       } else {
-        bestDir = getBestDirection(currShipPosition, simulationGrid, goalFilter);
+        bestDir = getBestDirection(currShipPosition, simulationGrid, goalFilter, inspireMap);
       }
 
-      simulationGrid.moveShip(bestDir);
+      if (i < 3 && inspireMap.get(currShipPosition.x, currShipPosition.y) > 1) {
+        simulationGrid.moveShip(bestDir, true);
+      } else {
+        simulationGrid.moveShip(bestDir, false);
+      }
 
       TileWalk currWalk = new TileWalk(
           simulationGrid.getHaliteGained(),
@@ -61,13 +68,13 @@ public class TileValueGrid {
   }
 
   private static Direction getBestDirection(
-      Position shipOrigin, SimulationGrid simulationGrid, GoalFilter goalFilter) {
+      Position shipOrigin, SimulationGrid simulationGrid, GoalFilter goalFilter, Grid<Integer> inspireMap) {
 
     Direction bestDir = Direction.STILL;
     double bestScore = 0.0;
 
     for (Direction dir : Direction.values()) {
-      double score = getValueOfMove(shipOrigin, dir, simulationGrid, goalFilter);
+      double score = getValueOfMove(shipOrigin, dir, simulationGrid, goalFilter, inspireMap);
       if (score > bestScore) {
         bestDir = dir;
         bestScore = score;
@@ -78,18 +85,42 @@ public class TileValueGrid {
   }
 
   private static double getValueOfMove(
-      Position shipOrigin, Direction dir, SimulationGrid simulationGrid, GoalFilter goalFilter) {
+      Position shipOrigin, Direction dir, SimulationGrid simulationGrid, GoalFilter goalFilter, Grid<Integer> inspireMap) {
+
     if (dir == Direction.STILL) {
-      return 0.25 * simulationGrid.getHalite(shipOrigin);
+      double multiplier = inspireMap.get(shipOrigin.x, shipOrigin.y) > 1 ? 3.0 : 1.0;
+      return multiplier * 0.25 * simulationGrid.getHalite(shipOrigin);
     } else {
       return goalFilter.getLocalMoves(shipOrigin, dir, SIMULATION_RANGE)
           .stream()
           .mapToDouble(pos ->
               (0.44 * simulationGrid.getHalite(pos) - 0.1 * simulationGrid.getHalite(shipOrigin))
-                  / (simulationGrid.distance(pos, shipOrigin) + 2))
+                / (simulationGrid.distance(pos, shipOrigin) + 2))
           .max()
           .orElse(0.0);
     }
 
   }
+
+//  private static double getValueOfMove(
+//      Position shipOrigin, Direction dir, SimulationGrid simulationGrid, GoalFilter goalFilter, Grid<Integer> inspireMap) {
+//
+//
+//    if (dir == Direction.STILL) {
+//      double multiplier = inspireMap.get(shipOrigin.x, shipOrigin.y) > 1 ? 3.0 : 1.0;
+//      return multiplier * 0.25 * simulationGrid.getHalite(shipOrigin);
+//    } else {
+//      return goalFilter.getLocalMoves(shipOrigin, dir, SIMULATION_RANGE)
+//          .stream()
+//          .mapToDouble(pos -> {
+//            double multiplier = inspireMap.get(shipOrigin.x, shipOrigin.y) > 1 ? 3.0 : 1.0;
+//            return multiplier
+//                * (0.44 * simulationGrid.getHalite(pos) - 0.1 * simulationGrid.getHalite(shipOrigin))
+//                / (simulationGrid.distance(pos, shipOrigin) + 2);
+//          })
+//          .max()
+//          .orElse(0.0);
+//    }
+//
+//  }
 }

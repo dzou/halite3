@@ -128,14 +128,19 @@ public class Grid<T> {
 
   @Override
   public String toString() {
-    DecimalFormat df = new DecimalFormat("#");
+    DecimalFormat dfPos = new DecimalFormat(" #");
+    DecimalFormat dfNeg = new DecimalFormat("#");
     DecimalFormat doubleFormat = new DecimalFormat("0.00");
 
     StringBuilder stringBuilder = new StringBuilder();
     for (int i = 0; i < costGrid.length; i++) {
       for (int j = 0; j < costGrid[i].length; j++) {
         if (costGrid[i][j] instanceof Integer) {
-          stringBuilder.append(df.format(costGrid[i][j]) + " ");
+          stringBuilder.append(dfNeg.format(costGrid[i][j]) + " ");
+//          if ((Integer) costGrid[i][j] < 0) {
+//          } else {
+//            stringBuilder.append(dfPos.format(costGrid[i][j]) + " ");
+//          }
         } else if (costGrid[i][j] instanceof Double) {
           stringBuilder.append(doubleFormat.format(costGrid[i][j]) + " ");
         } else {

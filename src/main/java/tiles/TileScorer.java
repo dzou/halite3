@@ -1,5 +1,6 @@
 package tiles;
 
+import com.google.common.collect.ImmutableSet;
 import hlt.Constants;
 import hlt.Direction;
 import hlt.Position;
@@ -7,12 +8,9 @@ import hlt.Ship;
 import java.util.ArrayList;
 import map.Grid;
 import map.LocalCostGrid;
-import map.ZoneGrid;
-import map.ZonePlan;
 import shipagent.MapOracle;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Objects;
 
 public class TileScorer {
@@ -22,58 +20,100 @@ public class TileScorer {
   final Grid<ArrayList<TileWalk>> tileValueGrid;
 
   final HashMap<Ship, LocalCostGrid> shipMoveCostCache;
+  final HashMap<Ship, LocalCostGrid> shipCrowdCostCache;
 
-  public TileScorer(MapOracle mapOracle) {
+  public TileScorer(MapOracle mapOracle, Grid<ArrayList<TileWalk>> tileValueGrid) {
     this.mapOracle = mapOracle;
-    this.tileValueGrid = TileValueGrid.create(mapOracle.haliteGrid);
+    this.tileValueGrid = tileValueGrid;
     this.shipMoveCostCache = new HashMap<>();
+    this.shipCrowdCostCache = new HashMap<>();
   }
 
-  public double localGoalScore(Ship ship, Direction dir, Position explorePosition) {
+  public double mineScore(Ship ship) {
+    double haliteMinedPotential = mapOracle.haliteGrid.get(ship.position.x, ship.position.y) * 0.25;
+    double actualHaliteMined = Math.min(
+        Constants.MAX_HALITE - ship.halite,
+        mapOracle.inspireMap.get(ship.position.x, ship.position.y) > 1 ? haliteMinedPotential * 3 : haliteMinedPotential);
+    return actualHaliteMined;
+  }
+
+  public double oneWayTileScore(Ship ship, Position explorePosition) {
     if (!shipMoveCostCache.containsKey(ship)) {
       shipMoveCostCache.put(ship, LocalCostGrid.create(
-          mapOracle.haliteGrid, ship.position, GoalAssignment.LOCAL_SEARCH_RANGE, mapOracle.myShipPositionsMap.keySet()));
+          mapOracle.haliteGrid, ship.position, GoalAssignment.LOCAL_SEARCH_RANGE, ImmutableSet.of()));
     }
-
-    Position shipMovedPosition = ship.position.directionalOffset(dir);
 
     LocalCostGrid localCostGrid = shipMoveCostCache.get(ship);
 
     int haliteSumToDest = 0;
     if (mapOracle.distance(ship.position, explorePosition) <= GoalAssignment.LOCAL_SEARCH_RANGE) {
-      haliteSumToDest = localCostGrid.getCostToDest(explorePosition, dir);
+      haliteSumToDest = localCostGrid.getCostToDest(explorePosition, Direction.STILL);
     } else {
-      haliteSumToDest = (int) (localCostGrid.averageDistance() * GoalAssignment.LOCAL_SEARCH_RANGE);
+      haliteSumToDest = (int) (mapOracle.averageHaliteOnMap * mapOracle.distance(ship.position, explorePosition));
     }
+    double tollToTile = 0.1 * haliteSumToDest;
 
-    Position nearestHome = mapOracle.getNearestHome(explorePosition);
     ArrayList<TileWalk> tileWalks = tileValueGrid.get(explorePosition.x, explorePosition.y);
 
     double best = 0;
     for (int i = 0; i < tileWalks.size(); i++) {
       TileWalk tileWalk = tileWalks.get(i);
       int turnsSpentOnTile = i + 1;
+
+      double haliteReward = Math.min(Constants.MAX_HALITE - ship.halite, tileWalk.haliteGain);
+      double turnsInTransit = mapOracle.haliteGrid.distance(ship.position, explorePosition) + 1;
+
+      best = Math.max(best, (haliteReward - tollToTile) / (turnsInTransit + turnsSpentOnTile));
+    }
+
+    return best;
+  }
+
+  public double roundTripTileScore(Ship ship, Direction dir, Position explorePosition) {
+    if (!shipCrowdCostCache.containsKey(ship)) {
+      shipCrowdCostCache.put(ship, LocalCostGrid.create(
+          new Grid<>(mapOracle.haliteGrid.width, mapOracle.haliteGrid.height, 0),
+          ship.position,
+          GoalAssignment.LOCAL_SEARCH_RANGE,
+          mapOracle.myShipPositionsMap.keySet()));
+    }
+
+    LocalCostGrid shipCrowdedCache = shipCrowdCostCache.get(ship);
+
+    Position shipMovedPosition = ship.position.directionalOffset(dir);
+    ArrayList<TileWalk> tileWalks = tileValueGrid.get(explorePosition.x, explorePosition.y);
+
+    double crowdFactor;
+    if (mapOracle.distance(ship.position, explorePosition) <= GoalAssignment.LOCAL_SEARCH_RANGE) {
+      crowdFactor = shipCrowdedCache.getCostToDest(explorePosition, dir);
+    } else {
+      crowdFactor = 0;
+    }
+
+    double best = 0;
+    for (int i = 0; i < tileWalks.size(); i++) {
+      TileWalk tileWalk = tileWalks.get(i);
+      int turnsSpentOnTile = i + 1;
+      Position nearestHome = mapOracle.getNearestHome(tileWalk.endpoint);
+
       int rawHaliteReward = tileWalk.haliteGain;
 
-      int turnsInTransit =
-          mapOracle.haliteGrid.distance(shipMovedPosition, explorePosition)
-          + mapOracle.distance(tileWalk.endpoint, nearestHome);
+      double turnsInTransit = mapOracle.haliteGrid.distance(shipMovedPosition, explorePosition);
+          // + mapOracle.distance(tileWalk.endpoint, nearestHome);
 
       if (dir == Direction.STILL) {
-        rawHaliteReward += mapOracle.haliteGrid.get(ship.position.x, ship.position.y) / 4;
-        turnsInTransit += 1;
+        int multiplier = mapOracle.inspireMap.get(ship.position.x, ship.position.y) > 1 ? 3 : 1;
+        rawHaliteReward += multiplier * mapOracle.haliteGrid.get(ship.position.x, ship.position.y) / 4;
+        // turnsInTransit += 1;
       }
 
       double haliteReward = Math.min(Constants.MAX_HALITE - ship.halite, rawHaliteReward);
-
-      double tollToTile = Math.max(0, haliteSumToDest * 0.1);
       double tollHome = mapOracle.goHomeCost(tileWalk.endpoint) - tileWalk.haliteDiscount * 0.10;
-          //(1.0 * ship.halite / Constants.MAX_HALITE) * (mapOracle.goHomeCost(explorePosition));
 
-      best = Math.max(best, (haliteReward - tollToTile - tollHome) / (turnsInTransit + turnsSpentOnTile));
+      best = Math.max(best, (haliteReward - tollHome) / (turnsInTransit + turnsSpentOnTile + crowdFactor));
     }
 
-    return best; /* - 0.03 * mapOracle.myInfluenceMap.get(shipMovedPosition.x, shipMovedPosition.y); */
+    return best;
   }
 
   private static class ShipDirectionPair {

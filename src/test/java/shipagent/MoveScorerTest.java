@@ -22,13 +22,12 @@ import static util.TestUtil.ship;
 public class MoveScorerTest {
 
   @Test
-  public void testKillScore() {
+  public void testKillScore2() {
     Grid<Integer> haliteGrid = new Grid<>(32, 32, 0);
 
     ImmutableList<Ship> myShips = ImmutableList.of(
         ship(2, 0, 0),
         ship(0, 2, 0),
-        ship(4, 2, 0),
         ship(2, 4, 0)
     );
 
@@ -50,7 +49,40 @@ public class MoveScorerTest {
 
     decisionSet = scorer.getDecisions(ship(0, 2));
     assertThat(getBest(decisionSet)).isEqualTo(EAST);
+
+    decisionSet = scorer.getDecisions(ship(2, 4));
     decisionSet.stream().forEach(s -> System.out.println(s));
+  }
+
+
+  @Test
+  public void testKillScore() {
+    Grid<Integer> haliteGrid = new Grid<>(32, 32, 0);
+
+    ImmutableList<Ship> myShips = ImmutableList.of(
+        ship(1, 0, 0),
+        ship(3, 0, 0)
+    );
+
+    ImmutableList<Ship> enemyShips = ImmutableList.of(
+        ship(2, 0, 500)
+    );
+
+    MapOracle mapOracle = new MapOracle(
+        new PlayerId(0),
+        haliteGrid,
+        9999,
+        myShips,
+        enemyShips,
+        ImmutableMap.of(new PlayerId(0), ImmutableSet.of(Position.at(0, 0))));
+
+    MoveScorer scorer = new MoveScorer(mapOracle);
+
+    Set<Decision> decisionSet = scorer.getDecisions(ship(1, 0));
+    assertThat(getBest(decisionSet)).isEqualTo(EAST);
+
+    decisionSet = scorer.getDecisions(ship(3, 0));
+    assertThat(getBest(decisionSet)).isNotEqualTo(WEST);
   }
 
   @Test
@@ -138,7 +170,7 @@ public class MoveScorerTest {
   public void testLocalMoveScore() {
     Integer[][] rawHaliteGrid = {
         {0, 0, 0, 0, 0, 0, 0, 0, 0},
-        {0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 200, 0, 0, 0, 0},
         {0, 0, 0, 0, 0, 0, 0, 0, 0},
         {0, 0, 0, 0, 200, 0, 0, 0, 0},
         {50, 0, 0, 0, 50, 0, 0, 0, 70},
@@ -186,7 +218,7 @@ public class MoveScorerTest {
     Ship ship = ship(4, 4);
     ImmutableList<Ship> myShips = ImmutableList.of(ship);
 
-    MapOracle mapOracle = new MapOracle(new PlayerId(0), haliteGrid, 9999, myShips, ImmutableList.of(), ImmutableMap.of(new PlayerId(0), ImmutableSet.of(Position.at(4, 4))));
+    MapOracle mapOracle = new MapOracle(new PlayerId(0), haliteGrid, 9999, myShips, ImmutableList.of(), ImmutableMap.of(new PlayerId(0), ImmutableSet.of(Position.at(0, 0))));
     MoveScorer moveScorer = new MoveScorer(mapOracle);
 
     Set<Decision> decisionSet = moveScorer.getDecisions(ship);
@@ -197,7 +229,7 @@ public class MoveScorerTest {
         .map(d -> d.direction)
         .collect(ImmutableList.toImmutableList());
     assertThat(dirList)
-        .containsExactly(SOUTH, WEST, STILL, EAST, NORTH)
+        .containsExactly(SOUTH, EAST, STILL, WEST, NORTH)
         .inOrder();
 
   }

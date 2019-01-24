@@ -1,5 +1,6 @@
 package shipagent;
 
+import com.google.common.collect.ImmutableSet;
 import hlt.Direction;
 import hlt.PlayerId;
 import hlt.Position;
@@ -7,10 +8,7 @@ import hlt.Ship;
 import map.DjikstraGrid;
 import map.Grid;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class BaseManager {
 
@@ -23,8 +21,8 @@ public class BaseManager {
     this.haliteGrid = haliteGrid;
   }
 
-  public ArrayList<Position> findGoHomeDirections(Ship ship) {
-    ArrayList<Position> goHomeDirections = new ArrayList<>();
+  public Set<Position> findGoHomeDirections(Ship ship) {
+    HashSet<Position> goHomeDirections = new HashSet<>();
 
     Position closestBase = allBases.get(ship.owner)
         .stream()

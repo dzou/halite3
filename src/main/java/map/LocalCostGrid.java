@@ -55,13 +55,12 @@ public class LocalCostGrid {
     return Position.at(radius + xDelta, radius + yDelta);
   }
 
-
   public static LocalCostGrid create(
       Grid<Integer> haliteGrid, Position center, int radius, Set<Position> myShipPositions) {
 
     Set<Position> mappedShipPositions = myShipPositions.stream()
         .filter(p -> !p.equals(center) && haliteGrid.distance(center, p) <= radius)
-        .map(p -> getMappedPosition(center, p, radius, haliteGrid))
+        .map(p -> getMappedPosition(p, center, radius, haliteGrid))
         .collect(ImmutableSet.toImmutableSet());
 
     Map<Direction, int[][]> costCacheMap = new HashMap<>();
@@ -103,9 +102,9 @@ public class LocalCostGrid {
           .min()
           .orElse(0);
 
-      // int shipCrowdCost = mappedShipPositions.contains(curr) ? 100 : 0;
+      int shipCrowdCost = mappedShipPositions.contains(curr) ? 1 : 0;
 
-      costCache[curr.y][curr.x] = cost + prevCost;
+      costCache[curr.y][curr.x] = cost + prevCost + shipCrowdCost;
       for (Position neighbor : curr.getUnnormalizedNeighbors()) {
         queue.offer(neighbor);
       }

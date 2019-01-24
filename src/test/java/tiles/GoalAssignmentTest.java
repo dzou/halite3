@@ -37,14 +37,14 @@ public class GoalAssignmentTest {
     GoalAssignment assignment = new GoalAssignment(mapOracle);
 
     System.out.println(assignment.shipAssignments);
-    System.out.println(assignment.tappedPositions);
+    System.out.println(assignment.tappedJobs);
     System.out.println(assignment.tileScorer.tileValueGrid.get(0, 10));
     System.out.println(assignment.tileScorer.tileValueGrid.get(20, 10));
 
     assertThat(assignment.shipAssignments).isEqualTo(ImmutableMap.of(
         Position.at(10, 10), Position.at(20, 10),
         Position.at(10, 0), Position.at(10, 0),
-        Position.at(10, 1), Position.at(9, 0)));
+        Position.at(10, 1), Position.at(10, 20)));
   }
 
 
@@ -79,6 +79,9 @@ public class GoalAssignmentTest {
       TileScoreEntry entry = goalAssignment.scoreLocalTile(myShip, d);
       System.out.println(d + ": " + entry);
     }
+    System.out.println(goalAssignment.tileScorer.tileValueGrid.get(5, 3));
+    System.out.println(goalAssignment.tileScorer.tileValueGrid.get(4, 3));
+    System.out.println(goalAssignment.tileScorer.tileValueGrid.get(5, 4));
 
     ImmutableMap<Direction, Double> moveScoreMap = Arrays.stream(Direction.values())
         .collect(ImmutableMap.toImmutableMap(d -> d, d -> goalAssignment.scoreLocalTile(myShip, d).score));

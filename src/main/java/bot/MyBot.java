@@ -30,8 +30,10 @@ public class MyBot {
 
     for (; ; ) {
       long startTime = System.currentTimeMillis();
-
       game.updateFrame();
+
+      HaliteStatTracker.loadSnapshot(game.gameMap.toHaliteGrid());
+
       final Player me = game.me;
       final GameMap gameMap = game.gameMap;
 
@@ -83,7 +85,7 @@ public class MyBot {
 
       if (me.halite >= Constants.SHIP_COST
           && !movedOnBase
-          && spender.shouldMakeShip()) {
+          && spender.canAffordShipAndShouldMake()) {
         commandQueue.add(me.shipyard.spawn());
       }
 

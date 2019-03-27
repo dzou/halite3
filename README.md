@@ -1,6 +1,6 @@
 # CowZow Halite AI
 
-This is my AI for the Halite 3 competition (https://halite.io/).
+This is my AI for the Halite 3 competition (https://halite.io/). It was [rank 13 out of 4014 competitors](https://2018.halite.io/programming-competition-leaderboard).
 
 ## Build Instructions
 
